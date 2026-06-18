@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataDost — Your Personal Money Companion</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--sf:#FF6B1A;--sf-l:#FFF1E9;--sf-m:#FFD4B8;--ink:#1A1A2E;--ink-s:#3D3D5C;--slate:#6B7280;--mist:#F7F6F3;--white:#fff;--green:#0F6E56;--green-l:#E1F5EE;--green-m:#9FE1CB;--border:rgba(26,26,46,0.10);--r:16px;--rs:10px}
+html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);color:var(--ink);overflow:hidden}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;opacity:0;transform:translateX(20px);transition:opacity .25s,transform .25s}
+.screen.active{display:flex;opacity:1;transform:translateX(0)}
+/* NAV */
+.app-nav{background:var(--white);border-bottom:1px solid var(--border);padding:.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.logo{font-family:"Sora",sans-serif;font-weight:700;font-size:1.25rem;color:var(--ink)}
+.logo span{color:var(--sf)}
+.nav-links{display:flex;gap:1.25rem;align-items:center}
+.nl{font-size:.82rem;color:var(--slate);font-weight:500;cursor:pointer;padding:.3rem .6rem;border-radius:8px;transition:all .15s;border:none;background:none;font-family:inherit}
+.nl:hover,.nl.act{color:var(--sf);background:var(--sf-l)}
+.nav-pill{display:flex;align-items:center;gap:.5rem;cursor:pointer}
+.nav-av{width:32px;height:32px;border-radius:50%;background:var(--sf);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff}
+.nav-nm{font-size:.83rem;font-weight:500}
+/* BTNS */
+.btn{border:none;border-radius:100px;font-family:inherit;cursor:pointer;font-weight:600;transition:all .15s}
+.btn-sf{background:var(--sf);color:#fff;padding:.75rem 1.6rem;font-size:.92rem}
+.btn-sf:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(255,107,26,.3)}
+.btn-out{background:transparent;color:var(--ink);border:1.5px solid var(--border);padding:.72rem 1.6rem;font-size:.92rem}
+.btn-out:hover{border-color:var(--sf);color:var(--sf)}
+.btn-sm{background:var(--sf);color:#fff;padding:.45rem 1.1rem;font-size:.82rem;border:none;border-radius:100px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .15s}
+.btn-sm:hover{opacity:.9}
+.btn-sm-out{background:transparent;color:var(--ink);border:1.5px solid var(--border);padding:.43rem 1.1rem;font-size:.82rem;border-radius:100px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+.btn-sm-out:hover{border-color:var(--sf);color:var(--sf)}
+/* CARD */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem}
+.card-title{font-family:"Sora",sans-serif;font-size:.92rem;font-weight:600;margin-bottom:.9rem;display:flex;align-items:center;justify-content:space-between}
+.card-action{font-size:.75rem;font-weight:500;color:var(--sf);cursor:pointer;border:none;background:none;font-family:inherit}
+
+/* ═══ LANDING ═══ */
+#s-land{background:var(--white);overflow-y:auto}
+.land-nav{padding:1rem 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}
+.hero{padding:4.5rem 6% 3rem;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,#FFF1E9,transparent 70%);z-index:0}
+.hero::after{content:"";position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,#E1F5EE,transparent 70%);z-index:0}
+.hero>*{position:relative;z-index:1}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:var(--sf-l);color:var(--sf);border:1px solid var(--sf-m);border-radius:100px;padding:.3rem .9rem;font-size:.77rem;font-weight:600;margin-bottom:1.1rem}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--sf);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.hero h1{font-family:"Sora",sans-serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:700;line-height:1.15;margin-bottom:.9rem}
+.hero h1 span{color:var(--sf)}
+.hero p{font-size:1rem;color:var(--slate);max-width:500px;margin:0 auto 2rem;line-height:1.7}
+.hero-btns{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap;margin-bottom:2.5rem}
+/* demo chat */
+.demo-wrap{max-width:520px;margin:0 auto;background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:0 8px 36px rgba(26,26,46,.08);overflow:hidden}
+.demo-bar{background:var(--mist);padding:.55rem 1rem;display:flex;align-items:center;gap:.4rem;border-bottom:1px solid var(--border);font-size:.75rem;color:var(--slate)}
+.demo-dots{display:flex;gap:4px}.demo-dots span{width:8px;height:8px;border-radius:50%}
+.demo-body{padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+.d-file{align-self:flex-end;display:flex;align-items:center;gap:.5rem;background:var(--sf-l);border:1px solid var(--sf-m);border-radius:9px;padding:.45rem .85rem;font-size:.78rem;color:#993C1D;font-weight:500}
+.d-user{align-self:flex-end;background:var(--sf);color:#fff;border-radius:12px 12px 3px 12px;padding:.6rem .85rem;font-size:.8rem;max-width:78%}
+.d-ai{align-self:flex-start;background:var(--mist);border-radius:3px 12px 12px 12px;padding:.7rem .85rem;font-size:.8rem;max-width:88%;line-height:1.55}
+.d-ai .hi{color:var(--green);font-weight:600}.d-ai .warn{color:#BA7517;font-weight:600}
+/* features */
+.feats{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;padding:2rem 6%;background:var(--mist);border-top:1px solid var(--border)}
+.feat{display:flex;align-items:center;gap:.55rem;font-size:.82rem;color:var(--slate)}
+.feat-i{width:30px;height:30px;border-radius:9px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+/* pricing */
+.pricing{padding:3rem 6%;text-align:center}
+.pricing h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:.4rem}
+.pricing p{color:var(--slate);font-size:.88rem;margin-bottom:1.75rem}
+.plans{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.plan{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;min-width:170px;position:relative}
+.plan.pop{border:2px solid var(--sf)}
+.pop-tag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--sf);color:#fff;font-size:.68rem;font-weight:700;padding:.2rem .8rem;border-radius:100px;white-space:nowrap}
+.plan-name{font-size:.78rem;color:var(--slate);font-weight:600;margin-bottom:.25rem}
+.plan-price{font-family:"Sora",sans-serif;font-size:1.7rem;font-weight:700}
+.plan-price span{font-size:.82rem;font-weight:400;color:var(--slate)}
+.plan-desc{font-size:.73rem;color:var(--slate);margin-top:.2rem}
+/* land cta */
+.land-cta{background:var(--sf);padding:2.5rem 6%;text-align:center}
+.land-cta h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}
+.land-cta p{color:rgba(255,255,255,.8);font-size:.88rem;margin-bottom:1.25rem}
+.land-foot{background:var(--ink);padding:1.2rem 6%;text-align:center}
+
+/* ═══ AUTH ═══ */
+#s-auth{background:var(--mist);align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem}
+.auth-back{position:absolute;top:1rem;left:1.25rem;cursor:pointer;font-size:.83rem;color:var(--slate);display:flex;align-items:center;gap:.3rem;border:none;background:none;font-family:inherit}
+.auth-card{width:100%;max-width:410px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2rem 2.25rem;box-shadow:0 8px 36px rgba(26,26,46,.07);overflow:visible;margin:1.5rem auto}
+.auth-logo{font-family:"Sora",sans-serif;font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:.2rem}
+.auth-sub{text-align:center;font-size:.82rem;color:var(--slate);margin-bottom:1.75rem}
+.auth-tabs{display:flex;border:1px solid var(--border);border-radius:100px;padding:3px;margin-bottom:1.5rem;background:var(--mist)}
+.auth-tab{flex:1;text-align:center;padding:.48rem;border-radius:100px;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--slate);border:none;background:none;font-family:inherit}
+.auth-tab.act{background:var(--sf);color:#fff;box-shadow:0 2px 8px rgba(255,107,26,.25)}
+.form{display:flex;flex-direction:column;gap:.9rem}
+.fg{display:flex;flex-direction:column;gap:.3rem}
+.fl{font-size:.78rem;font-weight:600;color:var(--ink-s)}
+.fi{padding:.7rem .95rem;border:1.5px solid var(--border);border-radius:var(--rs);font-size:.88rem;font-family:inherit;color:var(--ink);outline:none;transition:border-color .2s;width:100%;box-sizing:border-box}
+.fi:focus{border-color:var(--sf)}
+.fi::placeholder{color:#bbb}
+.form-row{display:flex;flex-direction:column;gap:.65rem}
+.fe{font-size:.72rem;color:#E24B4A;display:none}
+.fe.show{display:block}
+.divider{display:flex;align-items:center;gap:.65rem;font-size:.75rem;color:var(--slate)}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--border)}
+.btn-google{width:100%;padding:.7rem;border:1.5px solid var(--border);border-radius:var(--rs);background:var(--white);font-size:.85rem;font-weight:500;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.55rem;color:var(--ink);transition:all .15s}
+.btn-google:hover{border-color:#aaa;background:var(--mist)}
+.btn-submit{width:100%;padding:.8rem;background:var(--sf);color:#fff;border:none;border-radius:var(--rs);font-size:.92rem;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;margin-top:.15rem}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(255,107,26,.28)}
+.auth-note{text-align:center;font-size:.75rem;color:var(--slate);line-height:1.5}
+.auth-note a{color:var(--sf);cursor:pointer}
+.trust-row{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap;margin-top:1.25rem;padding-top:1.1rem;border-top:1px solid var(--border)}
+.tr-item{font-size:.72rem;color:var(--slate);display:flex;align-items:center;gap:.3rem}
+
+/* ═══ DASHBOARD ═══ */
+#s-dash{background:var(--mist);overflow-y:auto}
+.dash-body{padding:1.4rem 5%;max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:1.1rem}
+.dash-h{font-family:"Sora",sans-serif;font-size:1.25rem;font-weight:700}
+.dash-h span{color:var(--sf)}
+.dash-s{font-size:.84rem;color:var(--slate);margin-top:.15rem}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.9rem}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem}
+.stat-val{font-family:"Sora",sans-serif;font-size:1.4rem;font-weight:700}
+.stat-lbl{font-size:.72rem;color:var(--slate);margin-top:.15rem}
+.stat-trend{font-size:.7rem;margin-top:.2rem;font-weight:600}
+.t-up{color:#E24B4A}.t-warn{color:#BA7517}.t-down{color:var(--green)}
+.dash-grid{display:grid;grid-template-columns:1fr 300px;gap:1.1rem}
+/* spend bars */
+.spend-row{display:flex;align-items:center;gap:.65rem;margin-bottom:.55rem}
+.spend-lbl{font-size:.78rem;color:var(--ink-s);width:110px;flex-shrink:0}
+.spend-wrap{flex:1;height:7px;background:var(--mist);border-radius:100px;overflow:hidden}
+.spend-bar{height:100%;border-radius:100px;width:0;transition:width 1.1s ease}
+.spend-amt{font-size:.78rem;font-weight:600;width:58px;text-align:right;flex-shrink:0}
+/* insight */
+.ins-card{background:var(--sf-l);border:1px solid var(--sf-m);border-radius:var(--rs);padding:.85rem .95rem;display:flex;gap:.65rem;cursor:pointer;transition:background .15s;margin-bottom:.55rem}
+.ins-card:hover{background:var(--sf-m)}
+.ins-card:last-child{margin-bottom:0}
+.ins-em{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.ins-text{font-size:.8rem;line-height:1.5;color:var(--ink-s)}
+.ins-text b{color:var(--ink)}
+/* doc items */
+.doc-item{display:flex;align-items:center;gap:.65rem;padding:.6rem 0;border-bottom:1px solid var(--border);cursor:pointer}
+.doc-item:last-child{border-bottom:none}
+.doc-item:hover{opacity:.8}
+.doc-ico{width:34px;height:34px;border-radius:9px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.95rem}
+.doc-name{font-size:.8rem;font-weight:500}
+.doc-meta{font-size:.72rem;color:var(--slate)}
+.doc-arr{margin-left:auto;color:var(--slate);font-size:13px}
+/* qa */
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.qa-btn{background:var(--mist);border:1px solid var(--border);border-radius:var(--rs);padding:.85rem;display:flex;flex-direction:column;gap:.35rem;cursor:pointer;transition:all .15s;text-align:left}
+.qa-btn:hover{border-color:var(--sf);background:var(--sf-l)}
+.qa-icon{font-size:1rem}
+.qa-label{font-size:.78rem;font-weight:600}
+.qa-desc{font-size:.7rem;color:var(--slate)}
+
+/* ═══ UPLOAD ═══ */
+#s-upload{background:var(--mist);overflow-y:auto}
+.upload-body{padding:1.4rem 5%;max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 290px;gap:1.1rem;align-items:start}
+.upload-left{display:flex;flex-direction:column;gap:.9rem}
+.upload-title{font-family:"Sora",sans-serif;font-size:1.2rem;font-weight:700}
+.upload-sub{font-size:.83rem;color:var(--slate);margin-top:.15rem}
+.dz{background:var(--white);border:2px dashed var(--sf-m);border-radius:18px;padding:2.25rem 1.5rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.8rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;min-height:230px;justify-content:center}
+.dz:hover,.dz.drag{border-color:var(--sf);background:var(--sf-l)}
+.dz.ok{border-style:solid;border-color:var(--green);background:var(--green-l)}
+.dz.read{border-style:solid;border-color:var(--sf);background:var(--sf-l)}
+.scan{position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--sf),transparent);top:0;animation:scan 1.8s ease-in-out infinite;display:none}
+.dz.read .scan{display:block}
+@keyframes scan{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
+.dz-icon{width:52px;height:52px;border-radius:14px;background:var(--sf-l);border:1.5px solid var(--sf-m);display:flex;align-items:center;justify-content:center}
+.dz-icon svg{width:22px;height:22px;stroke:var(--sf);stroke-width:1.8;fill:none}
+.dz:hover .dz-icon,.dz.drag .dz-icon{background:var(--sf)}
+.dz:hover .dz-icon svg,.dz.drag .dz-icon svg{stroke:#fff}
+.dz-title{font-family:"Sora",sans-serif;font-size:.92rem;font-weight:600}
+.dz-sub{font-size:.78rem;color:var(--slate);max-width:270px;line-height:1.5}
+.dz-fmts{display:flex;gap:.35rem;flex-wrap:wrap;justify-content:center}
+.dz-fmt{font-size:.7rem;padding:2px 8px;border-radius:100px;background:var(--mist);color:var(--slate);border:1px solid var(--border)}
+.dz-browse{font-size:.78rem;font-weight:600;color:var(--sf);text-decoration:underline;cursor:pointer}
+/* read state */
+.read-st{display:none;flex-direction:column;align-items:center;gap:.65rem;width:100%}
+.dz.read .dz-def{display:none}
+.dz.read .read-st{display:flex}
+.dz.ok .dz-def{display:none}
+.dz.ok .file-ok{display:flex}
+.file-ok{display:none;flex-direction:column;align-items:center;gap:.55rem}
+.read-pulse{width:48px;height:48px;border-radius:50%;background:var(--sf-l);border:2px solid var(--sf-m);display:flex;align-items:center;justify-content:center;animation:rp 1.2s ease-in-out infinite}
+@keyframes rp{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,107,26,.3)}50%{transform:scale(1.08);box-shadow:0 0 0 10px rgba(255,107,26,0)}}
+.read-pulse svg{width:20px;height:20px;stroke:var(--sf);stroke-width:1.8;fill:none}
+.read-title{font-family:"Sora",sans-serif;font-size:.9rem;font-weight:600}
+.read-sub{font-size:.75rem;color:var(--slate)}
+.read-prog{width:100%;max-width:230px;height:4px;background:var(--sf-m);border-radius:100px;overflow:hidden}
+.read-fill{height:100%;width:0;background:var(--sf);border-radius:100px;transition:width .3s}
+.read-steps{width:100%;max-width:250px;display:flex;flex-direction:column;gap:3px}
+.rs{font-size:.72rem;color:var(--slate);display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .3s}
+.rs.show{opacity:1}
+.rs-dot{width:4px;height:4px;border-radius:50%;background:var(--sf);flex-shrink:0}
+.file-ok-icon{width:44px;height:44px;border-radius:11px;background:var(--green-l);border:1.5px solid var(--green-m);display:flex;align-items:center;justify-content:center}
+.file-ok-icon svg{width:20px;height:20px;stroke:var(--green);stroke-width:1.8;fill:none}
+.file-ok-badge{font-size:.73rem;color:var(--green);font-weight:600}
+/* doc types */
+.dt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.dt{background:var(--white);border:1px solid var(--border);border-radius:var(--rs);padding:.7rem;cursor:pointer;transition:all .15s;text-align:center}
+.dt:hover,.dt.sel{border-color:var(--sf);background:var(--sf-l)}
+.dt-em{font-size:1.15rem;margin-bottom:.25rem}
+.dt-nm{font-size:.73rem;font-weight:600}
+/* trust bar */
+.trust-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--rs);padding:.8rem 1rem;display:flex;gap:.9rem;flex-wrap:wrap}
+.ti{display:flex;align-items:center;gap:.35rem;font-size:.73rem;color:var(--slate)}
+.ti-ic{width:17px;height:17px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center}
+.ti-ic svg{width:9px;height:9px;stroke:var(--green);stroke-width:2.5;fill:none}
+.btn-analyse{width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:none}
+.btn-analyse.vis{display:block}
+.btn-analyse:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(255,107,26,.28)}
+.btn-analyse:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-change{font-size:.76rem;color:var(--slate);text-align:center;cursor:pointer;text-decoration:underline;display:none;border:none;background:none;font-family:inherit;margin-top:-.2rem}
+.btn-change.vis{display:block}
+
+/* ═══ SUCCESS ═══ */
+.sov{display:none;position:fixed;inset:0;background:rgba(255,255,255,.95);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center;padding:2rem}
+.sov.show{display:flex}
+.sc{width:68px;height:68px;border-radius:50%;background:var(--green-l);border:2px solid var(--green-m);display:flex;align-items:center;justify-content:center;animation:pop .4s cubic-bezier(.175,.885,.32,1.275)}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.sc svg{width:30px;height:30px;stroke:var(--green);stroke-width:2;fill:none}
+.sov h2{font-family:"Sora",sans-serif;font-size:1.45rem;font-weight:700}
+.sov p{color:var(--slate);font-size:.88rem;max-width:360px;line-height:1.6}
+.sov-ins{background:var(--mist);border-radius:var(--r);padding:1rem 1.2rem;max-width:360px;width:100%;text-align:left;display:flex;flex-direction:column;gap:.45rem}
+.si{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--ink-s);opacity:0;animation:fi .4s forwards}
+@keyframes fi{to{opacity:1}}
+.si-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* ═══ CHAT ═══ */
+#s-chat{background:var(--mist)}
+.chat-wrap{flex:1;display:grid;grid-template-columns:250px 1fr;overflow:hidden}
+.csb{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.csb-head{padding:.9rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:.45rem}
+.csb-title{font-family:"Sora",sans-serif;font-size:.82rem;font-weight:600}
+.csb-docs{flex:1;overflow-y:auto;padding:.65rem}
+.csb-sec{font-size:.68rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin:.6rem 0 .35rem}
+.csb-doc{display:flex;align-items:center;gap:.55rem;padding:.5rem .6rem;border-radius:8px;cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left}
+.csb-doc:hover{background:var(--mist)}
+.csb-doc.act{background:var(--sf-l)}
+.csb-doc-em{font-size:.9rem;flex-shrink:0}
+.csb-doc-name{font-size:.76rem;font-weight:500;flex:1;line-height:1.3}
+.csb-doc-meta{font-size:.67rem;color:var(--slate)}
+.chat-main{display:flex;flex-direction:column;overflow:hidden}
+.chat-hdr{background:var(--white);border-bottom:1px solid var(--border);padding:.75rem 1.1rem;display:flex;align-items:center;gap:.65rem;flex-shrink:0}
+.chat-hdr-ico{width:34px;height:34px;border-radius:9px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.chat-hdr-title{font-size:.85rem;font-weight:600}
+.chat-hdr-sub{font-size:.7rem;color:var(--slate)}
+.chat-msgs{flex:1;overflow-y:auto;padding:1.1rem;display:flex;flex-direction:column;gap:.75rem}
+.msg-row{display:flex;gap:.55rem;align-items:flex-end}
+.msg-row.user{flex-direction:row-reverse}
+.m-av{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
+.bubble{padding:.7rem .9rem;border-radius:13px;font-size:.82rem;line-height:1.55;max-width:80%}
+.bubble.ai{background:var(--white);border:1px solid var(--border);border-radius:3px 13px 13px 13px}
+.bubble.user{background:var(--sf);color:#fff;border-radius:13px 13px 3px 13px}
+.bubble .hi{color:var(--green);font-weight:600}
+.bubble .warn{color:#BA7517;font-weight:600}
+.typing{display:flex;align-items:center;gap:4px;padding:.7rem .9rem;background:var(--white);border:1px solid var(--border);border-radius:3px 13px 13px 13px}
+.typing span{width:5px;height:5px;border-radius:50%;background:var(--slate);opacity:.5;animation:td 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-4px)}}
+.qbtns{display:flex;gap:.4rem;flex-wrap:wrap;padding:0 1.1rem .65rem}
+.qb{font-size:.73rem;padding:.35rem .8rem;border:1px solid var(--border);border-radius:100px;background:var(--white);color:var(--slate);cursor:pointer;transition:all .15s;font-family:inherit}
+.qb:hover{border-color:var(--sf);color:var(--sf);background:var(--sf-l)}
+.chat-inp-row{border-top:1px solid var(--border);padding:.8rem 1.1rem;display:flex;gap:.65rem;align-items:center;background:var(--white);flex-shrink:0}
+.chat-inp{flex:1;border:1.5px solid var(--border);border-radius:100px;padding:.6rem 1rem;font-size:.85rem;font-family:inherit;color:var(--ink);background:var(--white);outline:none;transition:border-color .2s}
+.chat-inp:focus{border-color:var(--sf)}
+.chat-send{width:34px;height:34px;border-radius:50%;background:var(--sf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s}
+.chat-send:hover{transform:scale(1.08)}
+.chat-send svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none}
+.chat-up-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
+.chat-up-btn:hover{border-color:var(--sf)}
+.chat-up-btn svg{width:14px;height:14px;stroke:var(--slate);stroke-width:2;fill:none}
+.chat-up-btn:hover svg{stroke:var(--sf)}
+/* toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--ink);color:#fff;padding:.6rem 1.3rem;border-radius:100px;font-size:.8rem;font-weight:500;z-index:300;transition:transform .3s,opacity .3s;opacity:0;pointer-events:none;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:660px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .dash-grid,.upload-body,.chat-wrap{grid-template-columns:1fr}
+  .csb,.upload-side{display:none}
+  .dt-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div class="screen active" id="s-land">
+  <nav class="land-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div style="display:flex;gap:.65rem;align-items:center">
+      <button class="btn-sm-out" id="land-login">Log in</button>
+      <button class="btn-sm" id="land-signup">Get started free</button>
+    </div>
+  </nav>
+  <div style="overflow-y:auto;flex:1">
+    <div class="hero">
+      <div class="badge"><div class="badge-dot"></div>Now in early access · Free to try</div>
+      <h1>Your money, finally<br><span>speaking your language</span></h1>
+      <p>Drop your bank statement, utility bill, or salary slip — and just ask. DataDost gives clear, honest, even a little funny financial advice.</p>
+      <div class="hero-btns">
+        <button class="btn btn-sf" id="hero-signup">Start for free — no card needed</button>
+        <button class="btn btn-out" id="hero-demo-btn">See how it works ↓</button>
+      </div>
+      <div class="demo-wrap">
+        <div class="demo-bar">
+          <div class="demo-dots"><span style="background:#FF5F57"></span><span style="background:#FFBD2E"></span><span style="background:#28C840"></span></div>
+          <span style="margin:0 auto">DataDost — Chat with your data</span>
+        </div>
+        <div class="demo-body">
+          <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
+          <div class="d-user">Yaar, where is all my money going? 😅</div>
+          <div class="d-ai">Haha, valid question! Here's the honest picture:<br><br>🍔 <span class="warn">Food delivery: ₹4,820</span> — Swiggy + Zomato, 10% of your salary!<br>📱 <span class="warn">Subscriptions: ₹1,566</span> — 4 services, do you use all of them?<br><br>Cut delivery + cancel 2 subscriptions = <span class="hi">save ₹3,400/month</span> — that's a solid SIP start! 🎯</div>
+        </div>
+      </div>
+    </div>
+    <div class="feats">
+      <div class="feat"><div class="feat-i">📄</div>Upload any financial document</div>
+      <div class="feat"><div class="feat-i">💬</div>Ask in plain English or Hindi</div>
+      <div class="feat"><div class="feat-i">📊</div>Spend vs save breakdown</div>
+      <div class="feat"><div class="feat-i">🔒</div>DPDP Act compliant · India servers</div>
+      <div class="feat"><div class="feat-i">😄</div>Friendly · honest · a little funny</div>
+    </div>
+    <div class="pricing">
+      <h2>Simple, honest pricing</h2>
+      <p>Start free. Upgrade when you love it. No annual lock-ins.</p>
+      <div class="plans">
+        <div class="plan"><div class="plan-name">Free</div><div class="plan-price">₹0<span>/mo</span></div><div class="plan-desc">2 uploads · 10 questions each</div><button class="btn-sm" style="width:100%;margin-top:.9rem" id="plan-free">Get started</button></div>
+        <div class="plan pop"><div class="pop-tag">Most popular</div><div class="plan-name">DataDost Plus</div><div class="plan-price">₹199<span>/mo</span></div><div class="plan-desc">Unlimited uploads &amp; questions</div><button class="btn-sm" style="width:100%;margin-top:.9rem" id="plan-plus">Join waitlist</button></div>
+        <div class="plan"><div class="plan-name">Family</div><div class="plan-price">₹349<span>/mo</span></div><div class="plan-desc">Up to 4 members · shared view</div><button class="btn-sm-out" style="width:100%;margin-top:.9rem" id="plan-fam">Join waitlist</button></div>
+      </div>
+    </div>
+    <div class="land-cta">
+      <h2>Be first when DataDost launches</h2>
+      <p>Free for life for the first 500 signups.</p>
+      <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Join the waitlist →</button>
+    </div>
+    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><span onclick="goTo('s-terms')" style="font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline">Privacy Policy</span><span onclick="goTo('s-terms')" style="font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline">Terms of Use</span></div></div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="screen" id="s-auth">
+  <button class="auth-back" id="auth-back">← Back</button>
+  <div class="auth-card">
+    <div class="auth-logo">DataDost<span style="color:var(--sf)">.</span></div>
+    <div class="auth-sub">Your personal money companion 🙏</div>
+    <div class="auth-tabs">
+      <button class="auth-tab act" id="tab-login">Log in</button>
+      <button class="auth-tab" id="tab-signup">Sign up</button>
+    </div>
+    <div class="form" id="form-login">
+      <div class="fg"><label class="fl">Email address</label><input type="email" class="fi" placeholder="you@example.com" id="l-email"><div class="fe" id="l-email-e">Please enter a valid email</div></div>
+      <div class="fg"><label class="fl">Password</label><input type="password" class="fi" placeholder="Your password" id="l-pass"><div class="fe" id="l-pass-e">Password is required</div></div>
+      <div style="text-align:right;margin-top:-.3rem"><span style="font-size:.76rem;color:var(--sf);cursor:pointer">Forgot password?</span></div>
+      <button class="btn-submit" id="do-login">Log in to DataDost</button>
+      <div class="divider">or</div>
+      <button class="btn-google" id="g-login">
+        <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-note">No account? <a id="sw-signup">Sign up free →</a></div>
+    </div>
+    <div class="form" id="form-signup" style="display:none">
+      <div class="form-row">
+        <div class="fg"><label class="fl">First name</label><input type="text" class="fi" placeholder="Rahul" id="s-fname"></div>
+        <div class="fg"><label class="fl">Last name</label><input type="text" class="fi" placeholder="Sharma" id="s-lname"></div>
+      </div>
+      <div class="fg"><label class="fl">Email address</label><input type="email" class="fi" placeholder="you@example.com" id="s-email"><div class="fe" id="s-email-e">Please enter a valid email</div></div>
+      <div class="fg"><label class="fl">Password</label><input type="password" class="fi" placeholder="Min. 8 characters" id="s-pass"><div class="fe" id="s-pass-e">Must be at least 8 characters</div></div>
+      <button class="btn-submit" id="do-signup">Create my DataDost account</button>
+      <div class="divider">or</div>
+      <button class="btn-google" id="g-signup">
+        <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-note">By signing up you agree to our <a onclick="goTo('s-terms')" style="cursor:pointer">Terms of Use</a> &amp; <a onclick="goTo('s-terms')" style="cursor:pointer">Privacy Policy</a> · DPDP Act 2023 compliant</div>
+      <div class="auth-note">Already have an account? <a id="sw-login">Log in →</a></div>
+    </div>
+    <div class="trust-row">
+      <div class="tr-item">🔒 Bank-grade encryption</div>
+      <div class="tr-item">🇮🇳 India data servers</div>
+      <div class="tr-item">✅ DPDP compliant</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen" id="s-dash">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl act" id="nav-dash">Dashboard</button>
+      <button class="nl" id="nav-upload">Upload</button>
+      <button class="nl" id="nav-chat">Chat</button>
+    </div>
+    <div class="nav-pill" id="user-pill-dash">
+      <div class="nav-av" id="av-dash">R</div>
+      <span class="nav-nm" id="nm-dash">Rahul</span>
+    </div>
+  </nav>
+  <div style="flex:1;overflow-y:auto">
+    <div class="dash-body">
+      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div></div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-val">₹48,500</div><div class="stat-lbl">Monthly income</div><div class="stat-trend t-up">↑ Same as last month</div></div>
+        <div class="stat-card"><div class="stat-val">₹43,045</div><div class="stat-lbl">Total spending</div><div class="stat-trend t-up">↑ +8% vs last month</div></div>
+        <div class="stat-card"><div class="stat-val">₹5,455</div><div class="stat-lbl">Saved this month</div><div class="stat-trend t-warn">↓ Could be ₹8,000+</div></div>
+        <div class="stat-card"><div class="stat-val">11.3%</div><div class="stat-lbl">Savings rate</div><div class="stat-trend t-warn">Target: 20%</div></div>
+      </div>
+      <div class="dash-grid">
+        <div style="display:flex;flex-direction:column;gap:1.1rem">
+          <div class="card"><div class="card-title">Where your money went <button class="card-action" id="dash-ask">Ask DataDost →</button></div><div id="spend-bars"></div></div>
+          <div class="card"><div class="card-title">DataDost insights <button class="card-action" id="dash-chat">Chat now →</button></div><div id="insights"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:1.1rem" class="upload-side">
+          <div class="card"><div class="card-title">Quick actions</div><div class="qa-grid">
+            <div class="qa-btn" id="qa-upload"><div class="qa-icon">📄</div><div class="qa-label">Upload doc</div><div class="qa-desc">Add a statement</div></div>
+            <div class="qa-btn" id="qa-chat"><div class="qa-icon">💬</div><div class="qa-label">Ask anything</div><div class="qa-desc">Chat with DataDost</div></div>
+            <div class="qa-btn" id="qa-report"><div class="qa-icon">📊</div><div class="qa-label">Monthly report</div><div class="qa-desc">Full breakdown</div></div>
+            <div class="qa-btn" id="qa-goal"><div class="qa-icon">🎯</div><div class="qa-label">Set a goal</div><div class="qa-desc">Save for something</div></div>
+          </div></div>
+          <div class="card"><div class="card-title">Recent documents <button class="card-action" id="dash-add">Add new →</button></div><div id="recent-docs"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD -->
+<div class="screen" id="s-upload">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl" id="nav-dash2">Dashboard</button>
+      <button class="nl act" id="nav-upload2">Upload</button>
+      <button class="nl" id="nav-chat2">Chat</button>
+    </div>
+    <div class="nav-pill"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
+  </nav>
+  <div style="flex:1;overflow-y:auto">
+    <div class="upload-body">
+      <div class="upload-left">
+        <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
+        <div class="dz" id="dz">
+          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" style="display:none">
+          <div class="scan"></div>
+          <div class="dz-def">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center">
+              <div class="dz-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <div><div class="dz-title">Drop your document here</div><div class="dz-sub">Bank statement, salary slip, utility bill, LIC receipt</div></div>
+              <div class="dz-fmts"><span class="dz-fmt">PDF</span><span class="dz-fmt">JPG/PNG</span><span class="dz-fmt">CSV</span></div>
+              <span class="dz-browse">or browse to choose a file</span>
+            </div>
+          </div>
+          <div class="read-st" id="read-st">
+            <div class="read-pulse"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+            <div class="read-title" id="read-title">Reading your document...</div>
+            <div class="read-sub" id="read-sub">Going through every line 🔍</div>
+            <div class="read-prog"><div class="read-fill" id="read-fill"></div></div>
+            <div class="read-steps" id="read-steps"></div>
+          </div>
+          <div class="file-ok" id="file-ok">
+            <div class="file-ok-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg></div>
+            <div style="font-weight:600;font-size:.88rem" id="f-name">document.pdf</div>
+            <div style="font-size:.73rem;color:var(--slate)" id="f-size">—</div>
+            <div class="file-ok-badge">✓ Ready to analyse</div>
+          </div>
+        </div>
+        <button class="btn-analyse" id="btn-analyse">Analyse this document →</button>
+        <button class="btn-change" id="btn-change">Choose a different file</button>
+        <div>
+          <div style="font-size:.72rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.55rem">What kind of document is this?</div>
+          <div class="dt-grid">
+            <div class="dt sel" data-type="bank"><div class="dt-em">🏦</div><div class="dt-nm">Bank statement</div></div>
+            <div class="dt" data-type="salary"><div class="dt-em">💼</div><div class="dt-nm">Salary slip</div></div>
+            <div class="dt" data-type="utility"><div class="dt-em">⚡</div><div class="dt-nm">Utility bill</div></div>
+            <div class="dt" data-type="insurance"><div class="dt-em">🛡️</div><div class="dt-nm">Insurance</div></div>
+            <div class="dt" data-type="tax"><div class="dt-em">📋</div><div class="dt-nm">Tax / ITR</div></div>
+            <div class="dt" data-type="creditcard"><div class="dt-em">💳</div><div class="dt-nm">Credit Card</div></div>
+            <div class="dt" data-type="other"><div class="dt-em">📄</div><div class="dt-nm">Other</div></div>
+          </div>
+        </div>
+        <div class="trust-bar">
+          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Encrypted on India servers</div>
+          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>File deleted after reading</div>
+          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>We never sell your data</div>
+        </div>
+      </div>
+      <div class="upload-side">
+        <div class="card"><div class="card-title">Recent documents</div><div id="up-recent"></div></div>
+        <div class="card"><div class="card-title">Tips</div>
+          <div style="display:flex;flex-direction:column;gap:.55rem">
+            <div style="font-size:.77rem;color:var(--slate);line-height:1.5"><b style="color:var(--ink)">Upload 3 months together</b> for spending trends.</div>
+            <div style="font-size:.77rem;color:var(--slate);line-height:1.5"><b style="color:var(--ink)">Salary slip + bank statement</b> = complete income vs spending picture.</div>
+            <div style="font-size:.77rem;color:var(--slate);line-height:1.5"><b style="color:var(--ink)">Ask in plain language</b> — "Can I afford a new phone?" works great.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="sov" id="sov">
+  <div class="sc"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>
+  <h2>Reading complete! 🎉</h2>
+  <p id="sov-sub">I've read through your document. Here's what I found:</p>
+  <div class="sov-ins" id="sov-ins"></div>
+  <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 2rem;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
+  <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.2rem" id="sov-close">Upload another document</button>
+</div>
+
+<!-- CHAT -->
+<div class="screen" id="s-chat">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl" id="nav-dash3">Dashboard</button>
+      <button class="nl" id="nav-upload3">Upload</button>
+      <button class="nl act" id="nav-chat3">Chat</button>
+    </div>
+    <div class="nav-pill"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
+  </nav>
+  <div class="chat-wrap">
+    <div class="csb">
+      <div class="csb-head">
+        <div class="csb-title">Your documents</div>
+        <button class="btn-sm" id="csb-add" style="font-size:.75rem;padding:.4rem .9rem">+ Add document</button>
+      </div>
+      <div class="csb-docs">
+        <div class="csb-sec">This month</div>
+        <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">SBI Statement — May 2025</div><div class="csb-doc-meta">14 questions asked</div></div></button>
+        <div class="csb-sec">Earlier</div>
+        <button class="csb-doc" data-doc="salary"><div class="csb-doc-em">💼</div><div><div class="csb-doc-name">Salary Slip — Apr 2025</div><div class="csb-doc-meta">6 questions asked</div></div></button>
+        <button class="csb-doc" data-doc="utility"><div class="csb-doc-em">⚡</div><div><div class="csb-doc-name">BESCOM Bill — Apr 2025</div><div class="csb-doc-meta">3 questions asked</div></div></button>
+        <button class="csb-doc" data-doc="creditcard"><div class="csb-doc-em">💳</div><div><div class="csb-doc-name">HDFC Regalia — May 2025</div><div class="csb-doc-meta">New · just uploaded</div></div></button>
+      </div>
+    </div>
+    <div class="chat-main">
+      <div class="chat-hdr">
+        <div class="chat-hdr-ico" id="chat-hdr-ico">🏦</div>
+        <div><div class="chat-hdr-title" id="chat-hdr-title">SBI Statement — May 2025</div><div class="chat-hdr-sub" id="chat-hdr-sub">Bank statement · Uploaded 3 days ago</div></div>
+      </div>
+      <div class="chat-msgs" id="chat-msgs"></div>
+      <div class="qbtns" id="qbtns"></div>
+      <div class="chat-inp-row">
+        <button class="chat-up-btn" id="chat-up-btn" title="Upload document"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+        <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
+        <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ SCREEN: TERMS & PRIVACY ═══ -->
+<div class="screen" id="s-terms">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl" onclick="history.back()" style="display:flex;align-items:center;gap:5px">← Back</button>
+    </div>
+    <div></div>
+  </nav>
+  <div style="flex:1;overflow-y:auto;background:var(--mist)">
+    <div style="max-width:720px;margin:0 auto;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:2rem">
+
+      <!-- PRIVACY POLICY -->
+      <div class="card" style="padding:2rem">
+        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">PRIVACY POLICY</div>
+        <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Privacy Policy</h1>
+        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">Last updated: June 2026 · Compliant with India's Digital Personal Data Protection Act 2023</p>
+
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+          <div style="background:var(--green-l);border:1px solid var(--green-m);border-radius:12px;padding:1rem 1.25rem">
+            <div style="font-weight:600;font-size:.92rem;color:var(--green);margin-bottom:.5rem">Our Four Core Commitments</div>
+            <div style="display:flex;flex-direction:column;gap:.4rem">
+              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never store your original documents. Bank statements and PDFs are read and deleted immediately after analysis.</div>
+              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never sell your data to any third party — ever. No advertisers, no banks, no government without your explicit consent.</div>
+              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never share your financial information without your knowledge and consent.</div>
+              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> You can delete all your data instantly, anytime, with one click.</div>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">1. What data we collect</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">We collect only what is necessary to provide the DataDost service: your name and email address (for your account), extracted financial insights from documents you upload (spending categories, totals, balances — never the raw document), and your questions and DataDost's responses within your session. We do not collect Aadhaar numbers, PAN numbers, bank account numbers, card numbers, or any government identification.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">2. How we process your documents</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">When you upload a document, it is temporarily processed by our AI system (Anthropic Claude API) to extract financial insights. The raw document file is permanently deleted from our servers within seconds of processing. Only the extracted insights (e.g., "food delivery spend: ₹4,820", "closing balance: ₹3,820") are stored in your account — never the original PDF or image.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">3. Where your data is stored</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">All user account data and financial insights are stored on servers located in India (Mumbai region, AWS ap-south-1) in compliance with the Digital Personal Data Protection Act 2023. Your data does not leave Indian territory. All data is encrypted at rest using AES-256 encryption and in transit using TLS 1.3.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">4. Your rights under DPDP Act 2023</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You have the right to: access all data DataDost holds about you, correct any inaccurate data, delete all your data permanently, withdraw consent at any time, and nominate someone to exercise these rights on your behalf. To exercise any of these rights, email us at privacy@datadost.in or use the Delete Account option in your profile settings.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">5. Third-party services</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost uses the following third-party services to operate: Anthropic (AI processing — your document content is transmitted to Anthropic's API for analysis, subject to Anthropic's privacy policy), Supabase (database and authentication — data stored in India region), Vercel (website hosting — static files only, no personal data), and Razorpay (payment processing — we never see your full card number). We do not use Google Analytics, Facebook Pixel, or any advertising tracking tools.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">6. Grievance Officer</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">As required under the DPDP Act 2023, our designated Grievance Officer can be contacted at: <b>privacy@datadost.in</b>. We will respond to all grievances within 30 days of receipt.</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TERMS OF USE -->
+      <div class="card" style="padding:2rem">
+        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">TERMS OF USE</div>
+        <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Terms of Use</h1>
+        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">Last updated: June 2026 · Governing law: Republic of India</p>
+
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">1. About DataDost</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost is an AI-powered personal finance companion that helps users understand their financial documents through conversational interaction. DataDost is operated by DataDost Technologies (entity registration in progress). By using DataDost, you agree to these Terms of Use.</div>
+          </div>
+
+          <div style="background:#FFF1E9;border:1px solid var(--sf-m);border-radius:12px;padding:1rem 1.25rem">
+            <div style="font-weight:600;font-size:.92rem;color:var(--sf);margin-bottom:.5rem">⚠️ Important Disclaimer — Not Financial Advice</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost provides financial <b>awareness and coaching</b>, not regulated financial advice. DataDost is not a SEBI-registered Investment Adviser, RBI-regulated entity, or certified financial planner. All insights, suggestions, and analysis provided by DataDost are for informational and educational purposes only. They do not constitute professional financial, investment, tax, or legal advice. Always consult a qualified professional before making significant financial decisions. DataDost is not liable for any financial losses arising from actions taken based on its outputs.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">2. Your responsibilities</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You must be at least 18 years old to use DataDost. You agree to upload only documents that belong to you or that you are legally authorised to share. You must not use DataDost for any unlawful purpose. You are responsible for maintaining the security of your account credentials.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">3. Subscription and payments</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost offers a free tier and paid subscription plans. Paid subscriptions are billed monthly and may be cancelled at any time. Refunds are provided for unused portions of annual plans. We reserve the right to modify pricing with 30 days notice to existing subscribers.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">4. Intellectual property</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">The DataDost name, logo, AI persona, and all product content are the intellectual property of DataDost Technologies. You may not copy, reproduce, or replicate any part of DataDost without written permission. The financial data you upload remains entirely yours.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">5. Limitation of liability</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost's liability is limited to the amount you paid for the service in the preceding 3 months. We are not liable for indirect, consequential, or incidental damages. AI-generated outputs may occasionally be inaccurate — always verify important financial information independently.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">6. Governing law and disputes</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Bengaluru, Karnataka, India. For any concerns, contact us at legal@datadost.in before initiating legal proceedings.</div>
+          </div>
+
+          <div style="background:var(--mist);border-radius:10px;padding:.85rem 1rem;text-align:center">
+            <div style="font-size:.82rem;color:var(--slate)">Questions about our Terms or Privacy Policy?</div>
+            <div style="font-size:.85rem;font-weight:600;color:var(--sf);margin-top:.25rem">hello@datadost.in</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="height:1rem"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- API calls handled securely by /api/chat server function -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// All JS runs after DOM is ready
+document.addEventListener("DOMContentLoaded", function() {
+
+var uName="Rahul", uInit="R", activeDoc="bank", docType="bank", curFile=null;
+
+// ── NAVIGATE ──
+function goTo(id, tab) {
+  document.querySelectorAll(".screen").forEach(function(s) {
+    if (s.id === id) { s.classList.add("active"); }
+    else { s.classList.remove("active"); }
+  });
+  window.scrollTo(0,0);
+  if (id === "s-auth" && tab) switchTab(tab);
+  if (id === "s-dash") renderDash();
+  if (id === "s-chat") renderChat();
+  if (id === "s-upload") renderUpRecent();
+}
+
+// ── TABS ──
+function switchTab(tab) {
+  document.getElementById("form-login").style.display = tab === "login" ? "flex" : "none";
+  document.getElementById("form-signup").style.display = tab === "signup" ? "flex" : "none";
+  document.getElementById("tab-login").className = "auth-tab" + (tab === "login" ? " act" : "");
+  document.getElementById("tab-signup").className = "auth-tab" + (tab === "signup" ? " act" : "");
+}
+
+// ── USER UI ──
+function setUser() {
+  ["av-dash","av-up","av-chat"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
+  ["nm-dash","nm-up","nm-chat"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
+  var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
+}
+
+// ── AUTH HANDLERS ──
+function doLogin() {
+  var email = document.getElementById("l-email").value;
+  var pass = document.getElementById("l-pass").value;
+  var ok = true;
+  document.getElementById("l-email-e").classList.remove("show");
+  document.getElementById("l-pass-e").classList.remove("show");
+  if (!email || !email.includes("@")) { document.getElementById("l-email-e").classList.add("show"); ok = false; }
+  if (!pass) { document.getElementById("l-pass-e").classList.add("show"); ok = false; }
+  if (!ok) return;
+  var n = email.split("@")[0];
+  uName = n.charAt(0).toUpperCase() + n.slice(1);
+  uInit = uName.charAt(0).toUpperCase();
+  setUser(); goTo("s-dash"); toast("Welcome back, " + uName + "! 👋");
+}
+
+function doSignup() {
+  var fn = document.getElementById("s-fname").value || "Friend";
+  var email = document.getElementById("s-email").value;
+  var pass = document.getElementById("s-pass").value;
+  var ok = true;
+  document.getElementById("s-email-e").classList.remove("show");
+  document.getElementById("s-pass-e").classList.remove("show");
+  if (!email || !email.includes("@")) { document.getElementById("s-email-e").classList.add("show"); ok = false; }
+  if (!pass || pass.length < 8) { document.getElementById("s-pass-e").classList.add("show"); ok = false; }
+  if (!ok) return;
+  uName = fn.charAt(0).toUpperCase() + fn.slice(1);
+  uInit = uName.charAt(0).toUpperCase();
+  setUser(); goTo("s-dash"); toast("Welcome to DataDost, " + uName + "! 🎉");
+}
+
+function doGoogle() {
+  uName = "Rahul"; uInit = "R";
+  setUser(); goTo("s-dash"); toast("Welcome back, Rahul! 👋");
+}
+
+// ── WIRE LANDING BUTTONS ──
+document.getElementById("land-login").addEventListener("click", function() { goTo("s-auth","login"); });
+document.getElementById("land-signup").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("hero-signup").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("hero-demo-btn").addEventListener("click", function() { document.querySelector(".feats").scrollIntoView({behavior:"smooth"}); });
+document.getElementById("plan-free").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("plan-plus").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("plan-fam").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("cta-btn").addEventListener("click", function() { goTo("s-auth","signup"); });
+
+// ── WIRE AUTH ──
+document.getElementById("auth-back").addEventListener("click", function() { goTo("s-land"); });
+document.getElementById("tab-login").addEventListener("click", function() { switchTab("login"); });
+document.getElementById("tab-signup").addEventListener("click", function() { switchTab("signup"); });
+document.getElementById("sw-signup").addEventListener("click", function() { switchTab("signup"); });
+document.getElementById("sw-login").addEventListener("click", function() { switchTab("login"); });
+document.getElementById("do-login").addEventListener("click", doLogin);
+document.getElementById("do-signup").addEventListener("click", doSignup);
+document.getElementById("g-login").addEventListener("click", doGoogle);
+document.getElementById("g-signup").addEventListener("click", doGoogle);
+document.getElementById("l-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doLogin(); });
+document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doSignup(); });
+
+// ── WIRE DASH NAV ──
+document.getElementById("nav-dash").addEventListener("click", function() { goTo("s-dash"); });
+document.getElementById("nav-upload").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("nav-chat").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("nav-dash2").addEventListener("click", function() { goTo("s-dash"); });
+document.getElementById("nav-upload2").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("nav-chat2").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("nav-dash3").addEventListener("click", function() { goTo("s-dash"); });
+document.getElementById("nav-upload3").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("nav-chat3").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("dash-ask").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("dash-chat").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("dash-add").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("qa-upload").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("qa-chat").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("qa-report").addEventListener("click", function() { toast("Monthly report coming soon!"); });
+document.getElementById("qa-goal").addEventListener("click", function() { toast("Savings goals coming in Phase 2!"); });
+document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("chat-up-btn").addEventListener("click", function() { goTo("s-upload"); });
+
+// ── DASHBOARD DATA ──
+var spendData = [
+  {l:"Rent",a:14000,c:"#2E75B6",p:32},{l:"Food delivery",a:4820,c:"#FF6B1A",p:11},
+  {l:"Groceries",a:5000,c:"#0F6E56",p:12},{l:"Transport",a:2230,c:"#BA7517",p:5},
+  {l:"Subscriptions",a:1566,c:"#6B3FA0",p:4},{l:"Medical",a:890,c:"#E24B4A",p:2},
+];
+var insightsData = [
+  {e:"🍔",t:"<b>Food delivery: ₹4,820</b> — 10% of salary on Swiggy &amp; Zomato. Cooking twice a week saves ₹2,000+/month."},
+  {e:"📱",t:"<b>4 streaming subscriptions: ₹1,566/month.</b> Pick 2, drop 2 → save ₹618/month = ₹7,400/year."},
+  {e:"💰",t:"Savings rate <b>11.3%</b> — target is 20%. You need ₹4,180 more saved monthly to hit it."},
+  {e:"🎯",t:"<b>Quick win:</b> Set up a ₹2,000 SIP today. In 10 years at 12% CAGR that becomes ₹4.6 lakh."},
+];
+var recentDocsData = [
+  {ico:"🏦",name:"SBI Statement — May 2025",meta:"3 days ago · Bank statement",doc:"bank"},
+  {ico:"💼",name:"Salary Slip — April 2025",meta:"2 weeks ago · Salary slip",doc:"salary"},
+  {ico:"⚡",name:"BESCOM Bill — April 2025",meta:"Last month · Utility bill",doc:"utility"},
+  {ico:"💳",name:"HDFC Regalia — May 2025",meta:"Just now · Credit card",doc:"creditcard"},
+];
+
+function renderDash() {
+  var sb = document.getElementById("spend-bars");
+  if (sb) {
+    sb.innerHTML = "";
+    spendData.forEach(function(d) {
+      sb.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">₹" + d.a.toLocaleString("en-IN") + "</div></div>";
+    });
+    setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
+  }
+  var ins = document.getElementById("insights");
+  if (ins) {
+    ins.innerHTML = "";
+    insightsData.forEach(function(d) {
+      var el = document.createElement("div");
+      el.className = "ins-card";
+      el.innerHTML = "<div class=\"ins-em\">" + d.e + "</div><div class=\"ins-text\">" + d.t + "</div>";
+      el.addEventListener("click", function() { goTo("s-chat"); });
+      ins.appendChild(el);
+    });
+  }
+  var rd = document.getElementById("recent-docs");
+  if (rd) {
+    rd.innerHTML = "";
+    recentDocsData.forEach(function(d) {
+      var el = document.createElement("div");
+      el.className = "doc-item";
+      el.innerHTML = "<div class=\"doc-ico\">" + d.ico + "</div><div><div class=\"doc-name\">" + d.name + "</div><div class=\"doc-meta\">" + d.meta + "</div></div><div class=\"doc-arr\">›</div>";
+      el.addEventListener("click", function() { selectDoc(d.doc); goTo("s-chat"); });
+      rd.appendChild(el);
+    });
+  }
+  var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
+}
+
+// ── UPLOAD ──
+function renderUpRecent() {
+  var ur = document.getElementById("up-recent");
+  if (!ur) return;
+  ur.innerHTML = "";
+  recentDocsData.forEach(function(d) {
+    var el = document.createElement("div");
+    el.className = "doc-item";
+    el.innerHTML = "<div class=\"doc-ico\">" + d.ico + "</div><div><div class=\"doc-name\">" + d.name + "</div><div class=\"doc-meta\">" + d.meta + "</div></div><div class=\"doc-arr\">›</div>";
+    el.addEventListener("click", function() { selectDoc(d.doc); goTo("s-chat"); });
+    ur.appendChild(el);
+  });
+}
+
+// Doc type selection
+document.querySelectorAll(".dt").forEach(function(el) {
+  el.addEventListener("click", function() {
+    document.querySelectorAll(".dt").forEach(function(d) { d.classList.remove("sel"); });
+    el.classList.add("sel");
+    docType = el.dataset.type;
+  });
+});
+
+// Drop zone
+var dzEl = document.getElementById("dz");
+var fileInp = document.getElementById("file-inp");
+
+dzEl.addEventListener("click", function() { fileInp.click(); });
+fileInp.addEventListener("change", function() { if(this.files[0]) handleFile(this.files[0]); });
+dzEl.addEventListener("dragover", function(e) { e.preventDefault(); dzEl.classList.add("drag"); });
+dzEl.addEventListener("dragleave", function() { dzEl.classList.remove("drag"); });
+dzEl.addEventListener("drop", function(e) { e.preventDefault(); dzEl.classList.remove("drag"); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+function handleFile(f) {
+  curFile = f;
+  var dz = document.getElementById("dz");
+  dz.classList.remove("ok","read");
+  document.getElementById("f-name").textContent = f.name;
+  var kb = f.size/1024;
+  document.getElementById("f-size").textContent = kb < 1024 ? Math.round(kb)+" KB" : (kb/1024).toFixed(1)+" MB";
+  dz.classList.add("ok");
+  document.getElementById("btn-analyse").classList.add("vis");
+  document.getElementById("btn-change").classList.add("vis");
+}
+
+function resetUpload() {
+  curFile = null;
+  var dz = document.getElementById("dz");
+  dz.classList.remove("ok","read");
+  document.getElementById("btn-analyse").classList.remove("vis");
+  document.getElementById("btn-change").classList.remove("vis");
+  document.getElementById("btn-analyse").disabled = false;
+  fileInp.value = "";
+}
+
+document.getElementById("btn-change").addEventListener("click", resetUpload);
+
+document.getElementById("btn-analyse").addEventListener("click", function(e) {
+  e.stopPropagation();
+  var dz = document.getElementById("dz");
+  dz.classList.remove("ok"); dz.classList.add("read");
+  document.getElementById("btn-analyse").disabled = true;
+  document.getElementById("btn-change").classList.remove("vis");
+  var msgs = readMsgs[docType] || readMsgs.other;
+  var fill = document.getElementById("read-fill");
+  var stepsEl = document.getElementById("read-steps");
+  var titleEl = document.getElementById("read-title");
+  var subEl = document.getElementById("read-sub");
+  stepsEl.innerHTML = "";
+  msgs.forEach(function(m) { stepsEl.innerHTML += "<div class=\"rs\"><div class=\"rs-dot\"></div>" + m + "</div>"; });
+  var allSteps = stepsEl.querySelectorAll(".rs");
+  var prog = [{p:15,t:"Reading your document...",s:"Going through every line 🔍"},{p:38,t:"Identifying figures...",s:"Finding what matters"},{p:62,t:"Categorising data...",s:"Sorting the numbers"},{p:84,t:"Spotting patterns...",s:"Almost there..."},{p:100,t:"Done! 🎉",s:"Found some interesting things!"}];
+  var i = 0;
+  if (curFile) {
+    readFileForAPI(curFile);
+  }
+  var iv = setInterval(function() {
+    if (i < prog.length) {
+      fill.style.width = prog[i].p + "%";
+      titleEl.textContent = prog[i].t;
+      subEl.textContent = prog[i].s;
+      if (i < allSteps.length) allSteps[i].classList.add("show");
+      i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(showSuccess, 500);
+    }
+  }, 700);
+});
+
+function readFileForAPI(file) {
+  var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
+  if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (CSV):\n" + e.target.result.slice(0, 8000);
+      conversationHistory = [];
+    };
+    reader.readAsText(file);
+  } else if (file.type.startsWith("image/")) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[Image uploaded — user will describe or ask questions about their " + docTypeName + ". Respond as if you can see the document and provide helpful financial coaching based on typical " + docTypeName + " analysis.]";
+      conversationHistory = [];
+    };
+    reader.readAsDataURL(file);
+  } else {
+    uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[PDF document uploaded — the user has shared their " + docTypeName + ". Provide helpful financial coaching. Ask them to describe specific figures if needed, or answer their questions with context-appropriate advice for Indian middle-class finances.]";
+    conversationHistory = [];
+  }
+}
+
+var readMsgs = {
+  bank:["Found salary credit ₹48,500","Identified 47 debit transactions","Spotted food delivery: ₹4,820","Detected 4 subscriptions","Analysed closing balance"],
+  salary:["Confirmed gross salary","Calculated net take-home","Identified PF & TDS","Computed effective tax rate","Built salary summary"],
+  utility:["Read billing period","Found units consumed: 387","Compared to last month","Flagged 30% usage spike","Estimated savings potential"],
+  insurance:["Identified policy type","Read premium & due date","Noted coverage amount","Checked policy term","Built insurance summary"],
+  tax:["Found gross total income","Read TDS deducted","Checked 80C deductions","Estimated net liability","Identified refund/dues"],
+  creditcard:["Found card: HDFC Regalia","Reading reward points: 14,820","Checking expiry: 47 days","Scanning hidden benefits","Identifying missed rewards"],
+  other:["Scanning document","Identifying figures","Extracting key data","Cross-referencing","Building summary"],
+};
+
+var sovInsights = {
+  bank:[{c:"#FF6B1A",t:"Food delivery: ₹4,820 — your biggest surprise 👀"},{c:"#0F6E56",t:"Saved ₹5,455 this month (11.3% of salary)"},{c:"#BA7517",t:"4 subscriptions found — ₹1,566/month"},{c:"#2E75B6",t:"Ready to answer your questions!"}],
+  salary:[{c:"#0F6E56",t:"Take-home: ₹60,680 after all deductions"},{c:"#FF6B1A",t:"Effective tax rate: 9.4%"},{c:"#2E75B6",t:"PF saving ₹4,320/month automatically"},{c:"#BA7517",t:"Savings target: ₹12,136/month suggested"}],
+  utility:[{c:"#FF6B1A",t:"Usage up 30% vs last month — likely AC ⚡"},{c:"#0F6E56",t:"Potential saving: ₹300–400/month"},{c:"#2E75B6",t:"3 tips ready to reduce your bill"}],
+  insurance:[{c:"#0F6E56",t:"Policy active and premium up to date ✓"},{c:"#2E75B6",t:"Coverage looks reasonable for your profile"}],
+  tax:[{c:"#0F6E56",t:"TDS already deducted: ₹6,800"},{c:"#FF6B1A",t:"80C deductions — room to save more"}],
+  creditcard:[{c:"#FF6B1A",t:"14,820 reward points found — worth ₹3,705 😮"},{c:"#E24B4A",t:"Points expire in 47 days — act now!"},{c:"#0F6E56",t:"3 hidden benefits you're not using discovered"},{c:"#2E75B6",t:"You left ₹1,240 in rewards on the table last month"}],
+  other:[{c:"#0F6E56",t:"Document read successfully"},{c:"#FF6B1A",t:"Key figures extracted"}],
+};
+
+function showSuccess() {
+  var ins = sovInsights[docType] || sovInsights.other;
+  var el = document.getElementById("sov-ins");
+  el.innerHTML = "";
+  ins.forEach(function(d, i) {
+    var div = document.createElement("div");
+    div.className = "si";
+    div.style.animationDelay = (i * 0.15) + "s";
+    div.innerHTML = "<div class=\"si-dot\" style=\"background:" + d.c + "\"></div><span>" + d.t + "</span>";
+    el.appendChild(div);
+  });
+  document.getElementById("sov").classList.add("show");
+}
+
+document.getElementById("sov-close").addEventListener("click", function() {
+  document.getElementById("sov").classList.remove("show");
+  resetUpload();
+  document.getElementById("dz").classList.remove("read");
+});
+
+document.getElementById("sov-chat").addEventListener("click", function() {
+  document.getElementById("sov").classList.remove("show");
+  activeDoc = docType;
+  selectDoc(docType);
+  goTo("s-chat");
+});
+
+// ── CHAT ──
+var chatMeta = {
+  bank:{ico:"🏦",title:"SBI Statement — May 2025",sub:"Bank statement · Uploaded just now"},
+  salary:{ico:"💼",title:"Salary Slip — April 2025",sub:"Salary slip · Uploaded 2 weeks ago"},
+  utility:{ico:"⚡",title:"BESCOM Bill — April 2025",sub:"Utility bill · Uploaded last month"},
+  creditcard:{ico:"💳",title:"HDFC Regalia — May 2025",sub:"Credit card statement · Uploaded just now"},
+};
+var chatQs = {
+  bank:["Where did my money go?","Food spending?","How to save more?","Wasted subscriptions?"],
+  salary:["What's my take-home?","Effective tax rate?","How much to save?","Optimize deductions?"],
+  utility:["Why is my bill high?","How to reduce it?","Compare to last month","Tips to save power?"],
+  creditcard:["How many reward points do I have?","What benefits am I missing?","Best way to redeem points?","Which card for which spend?"],
+};
+var chatResp = {
+  bank:{
+    "where did my money go":"Let me be your financial mirror! 🪞<br><br>🏠 <b style='color:#2E75B6'>Rent: ₹14,000</b> (29%) — expected<br>🍔 <b style='color:#FF6B1A'>Food delivery: ₹4,820</b> (10%) — Swiggy + Zomato!<br>🛒 <b style='color:#0F6E56'>Groceries: ₹5,000</b> (10%) — fair<br>🚗 Transport: ₹2,230 (5%)<br>📱 <b style='color:#BA7517'>Subscriptions: ₹1,566</b> (3%) — 4 services!<br><br>Salary: ₹48,500. Spent: ₹43,045. Saved: ₹5,455 (11.3%). Food delivery + subscriptions is your biggest leak! 🎯",
+    "food spending":"Full food audit! 🍱<br><br>🛵 <b style='color:#FF6B1A'>Swiggy: ₹2,840</b><br>🛵 <b style='color:#FF6B1A'>Zomato: ₹1,980</b><br>🛒 BigBasket: ₹3,200<br>🛒 DMart: ₹1,800<br><br>Total food: <b>₹9,820 = 20% of salary!</b><br><br>You're buying groceries AND ordering in 4–5 times a week. Classic! 😄 Cook 3 nights a week instead = save ₹2,000+/month = ₹24,000/year = a trip to Goa! 🏖️",
+    "how to save more":"Your savings playbook:<br><br><b style='color:#0F6E56'>Quick wins (this week):</b><br>✓ Cancel 2 of 4 streaming services → save ₹618/month<br>✓ Cut Swiggy/Zomato to 3x/week → save ₹2,000/month<br><br><b style='color:#0F6E56'>This month:</b><br>✓ Start SIP ₹2,000 → ₹4.6L in 10 years at 12%<br>✓ Set ₹3,000 in liquid fund as emergency buffer<br><br><b style='color:#BA7517'>Total potential saving: ₹5,748/month = ₹68,976/year 🎉</b>",
+    "wasted subscriptions":"Subscription audit! 🔍<br><br>📺 Netflix: ₹649 — keep if you watch<br>🎵 Spotify: ₹119 — fair<br>📦 Amazon Prime: ₹299 — good value<br>🏏 <b style='color:#FF6B1A'>Hotstar: ₹499</b> — do you actually use this?<br><br><b>Total: ₹1,566/month = ₹18,792/year</b><br><br>Keep Netflix + Prime (₹948), drop Spotify + Hotstar. Save ₹618/month. IPL season is over, Hotstar can wait! 🏏😄",
+  },
+  salary:{
+    "take-home":"Here's your April salary breakdown:<br><br>💰 <b style='color:#0F6E56'>Gross: ₹72,000</b><br>✂️ PF: ₹4,320 | TDS: ₹6,800 | PT: ₹200<br><br>🏠 <b style='color:#0F6E56'>Net take-home: ₹60,680</b><br><br>Your PF is a forced saving — ₹4,320/month. Over 10 years at 8% that's a solid ₹7.8 lakh corpus already building!",
+    "effective tax rate":"Your tax picture:<br><br>📊 Gross: ₹8.64L/year<br>📊 TDS: ₹6,800/month = ₹81,600/year<br><br><b>Effective rate: 9.4%</b> — reasonable!<br><br>If you maximize 80C (₹1.5L via ELSS/PPF/LIC) and 80D (₹25K health insurance), you can bring this to 6–7%. That's ₹15,000–20,000 more in your pocket every year! 💡",
+    "how much to save":"With ₹60,680 take-home, the 50-30-20 rule:<br><br>🏠 <b>Needs (50%): ₹30,340</b><br>🎉 <b>Wants (30%): ₹18,204</b><br>💰 <b style='color:#0F6E56'>Savings (20%): ₹12,136</b><br><br>You're already saving ₹4,320 via PF.<br>Remaining target: <b>₹7,816/month</b><br><br>Split: SIP index fund ₹4,000 + Liquid fund ₹2,000 + RD ₹1,816. Doable! 🎯",
+    "optimize deductions":"Deductions to reduce your TDS:<br><br>✅ <b>80C (₹1.5L):</b> ELSS fund, PPF, LIC, home loan principal<br>✅ <b>80D (₹25K):</b> Health insurance premium<br>✅ <b>HRA:</b> You get ₹18K — make sure it's claimed<br>✅ <b>Standard deduction:</b> ₹75,000 — automatic<br><br>Max 80C + 80D = save <b>₹20,000–25,000 in annual tax.</b> Submit proofs to HR by February! 📝",
+  },
+  creditcard:{
+    "reward points":"Let me count your treasure! 💳<br><br>🎯 <b style='color:#FF6B1A'>Current points: 14,820</b> (worth ~₹3,705 in Amazon vouchers)<br>⏰ <b style='color:#E24B4A'>Expiry alert: Points expire in 47 days!</b><br><br>Best redemption options for your HDFC Regalia:<br>✓ <b>Amazon vouchers:</b> 14,820 pts = ₹3,705 (best value)<br>✓ <b>Flight booking:</b> 14,820 pts = ₹2,964 (decent)<br>✓ <b>Cashback:</b> 14,820 pts = ₹1,482 (worst — avoid!)<br><br>💡 Don't let them expire — that's real money going to HDFC's pocket!",
+    "benefits missing":"Hidden benefits on your HDFC Regalia you're probably NOT using: 🤫<br><br>✈️ <b style='color:#0F6E56'>Travel insurance up to ₹1 crore</b> — auto-activates when you book flights with this card. Did you book flights last month with another card? You missed this!<br><br>🏨 <b style='color:#0F6E56'>8 complimentary airport lounge visits/year</b> — domestic. You've used 0 this year.<br><br>🛍️ <b style='color:#2E75B6'>1% forex markup waiver</b> — use this for all international purchases, not your debit card.<br><br>🍽️ <b style='color:#2E75B6'>Complimentary Dineout Passport</b> — up to 25% off at 2,000+ restaurants. Free, but you have to activate it.<br><br>These benefits cost HDFC money. Use them!",
+    "redeem points":"Smart redemption guide for your 14,820 Regalia points: 🎯<br><br><b style='color:#0F6E56'>Best value (do this):</b><br>→ Amazon Pay gift card: ₹3,705 (1 pt = ₹0.25)<br>→ Flipkart voucher: ₹3,408 (1 pt = ₹0.23)<br><br><b style='color:#BA7517'>Decent value:</b><br>→ Flight booking via SmartBuy: ₹2,964<br>→ Hotel booking: ₹2,223<br><br><b style='color:#E24B4A'>Avoid (worst value):</b><br>→ Direct cashback: ₹1,482 (you lose 60% value!)<br>→ Milestone vouchers: Often expire unused<br><br>⚡ <b>Act in the next 47 days</b> — then they're gone forever.",
+    "card for which spend":"Right card for each spend — your May analysis: 💡<br><br>You used your HDFC Regalia for everything. Here's what it cost you:<br><br>🛒 <b style='color:#E24B4A'>Amazon (₹4,200):</b> Used Regalia (2x pts). Should use <b>HDFC Millennia (5% cashback)</b> = missed ₹168<br>✈️ <b style='color:#0F6E56'>Flight (₹8,400):</b> Regalia is perfect here — travel insurance activated ✓<br>🍔 <b style='color:#E24B4A'>Swiggy/Zomato (₹2,200):</b> Regalia gives 1x. Axis Ace gives 5% = missed ₹88<br>⛽ <b style='color:#E24B4A'>Fuel (₹1,800):</b> Regalia charges 1% surcharge. BPCL SBI gives 4.25% back = missed ₹109<br><br><b style='color:#FF6B1A'>Total missed rewards this month: ₹365</b><br>Over a year that's ₹4,380 — almost a month of Plus subscription! 😄",
+  },
+  utility:{
+    "why is my bill high":"298 units (April) → 387 units (May) — that's a <b style='color:#FF6B1A'>30% jump!</b> 📈<br><br>Almost certainly: <b>Air conditioning</b>. May is peak summer in Bengaluru.<br><br>A 1.5-ton AC running 8 hours/day uses ~80–100 units/month. Running it longer explains the spike completely. Also check: is your fridge working harder in the heat?",
+    "how to reduce it":"Tips to bring your bill down: 💡<br><br>❄️ <b>Set AC to 24°C</b> — each degree up saves ~8% power<br>🌀 <b>Fan + AC combo</b> at 26°C feels same as 22°C without fan<br>🔌 <b>Unplug standby devices</b> — TV, laptop chargers, set-top box add 15–20 units/month<br>💡 <b>Switch remaining CFL bulbs</b> to LED<br><br><b style='color:#0F6E56'>Realistic saving: ₹250–400/month 🎯</b>",
+    "compare to last month":"📊 Month-on-month:<br><br><b>May 2025:</b> 387 units → ₹1,284<br><b>April 2025:</b> 298 units → ~₹987<br><b>May 2024:</b> 312 units → ~₹1,034<br><br>You're using <b style='color:#FF6B1A'>24% more than the same month last year.</b> Either a new appliance, more AC hours, or a guest who loves the cold! 😄",
+    "tips to save power":"Your top 5 power-saving moves: 🏠<br><br>1. <b>AC at 24°C</b> — the EESL recommended sweet spot<br>2. <b>Clean AC filter monthly</b> — dirty filter = 15–20% less efficiency<br>3. <b>5-star inverter AC</b> — pays for itself in 2–3 years if yours is old<br>4. <b>Smart power strips</b> for entertainment systems<br>5. <b>Run heavy appliances after 10pm</b> — lower grid load<br><br><b style='color:#0F6E56'>Combined: ₹300–600/month savings 💰</b>",
+  },
+};
+
+function selectDoc(doc) {
+  activeDoc = doc;
+  document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
+  document.querySelectorAll(".csb-doc").forEach(function(d) { if(d.dataset.doc === doc) d.classList.add("act"); });
+  var m = chatMeta[doc] || chatMeta.bank;
+  document.getElementById("chat-hdr-ico").textContent = m.ico;
+  document.getElementById("chat-hdr-title").textContent = m.title;
+  document.getElementById("chat-hdr-sub").textContent = m.sub;
+  renderChat();
+}
+
+// Wire sidebar doc buttons
+document.querySelectorAll(".csb-doc").forEach(function(el) {
+  el.addEventListener("click", function() { selectDoc(el.dataset.doc); });
+});
+
+function renderChat() {
+  var msgsEl = document.getElementById("chat-msgs");
+  var qbEl = document.getElementById("qbtns");
+  if (!msgsEl) return;
+  msgsEl.innerHTML = "";
+  var m = chatMeta[activeDoc] || chatMeta.bank;
+  var qs = chatQs[activeDoc] || chatQs.bank;
+  qbEl.innerHTML = "";
+  qs.forEach(function(q) {
+    var btn = document.createElement("button");
+    btn.className = "qb";
+    btn.textContent = q;
+    btn.addEventListener("click", function() { askQ(q); });
+    qbEl.appendChild(btn);
+  });
+  addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
+}
+
+function addMsg(role, html) {
+  var msgsEl = document.getElementById("chat-msgs");
+  var row = document.createElement("div");
+  row.className = "msg-row" + (role === "user" ? " user" : "");
+  var av = document.createElement("div");
+  av.className = "m-av";
+  av.style.background = role === "user" ? "#3D3D5C" : "#FF6B1A";
+  av.textContent = role === "user" ? uInit : "D";
+  var b = document.createElement("div");
+  b.className = "bubble " + role;
+  b.innerHTML = html;
+  if (role === "user") { row.appendChild(b); row.appendChild(av); }
+  else { row.appendChild(av); row.appendChild(b); }
+  msgsEl.appendChild(row);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function showTyping() {
+  var msgsEl = document.getElementById("chat-msgs");
+  var row = document.createElement("div");
+  row.className = "msg-row"; row.id = "typing-row";
+  var av = document.createElement("div");
+  av.className = "m-av"; av.style.background = "#FF6B1A"; av.textContent = "D";
+  var t = document.createElement("div");
+  t.className = "typing";
+  t.innerHTML = "<span></span><span></span><span></span>";
+  row.appendChild(av); row.appendChild(t);
+  msgsEl.appendChild(row);
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function removeTyping() { var t = document.getElementById("typing-row"); if(t) t.remove(); }
+
+function getReply(q) {
+  var lq = q.toLowerCase();
+  var rs = chatResp[activeDoc] || chatResp.bank;
+  for (var k in rs) { if (lq.indexOf(k) !== -1) return rs[k]; }
+  if (lq.indexOf("hello") !== -1 || lq.indexOf("hi") !== -1 || lq.indexOf("namaste") !== -1) return "Namaste! 🙏 Ask me anything about your " + (chatMeta[activeDoc]||chatMeta.bank).title + "!";
+  if (lq.indexOf("thank") !== -1) return "Happy to help! That's what a good dost does. 😊 Any more questions?";
+  return "Great question! In the full DataDost, I'd analyse your actual document data and give you a specific, personalised answer.<br><br>Try one of the suggested questions above, or ask about spending, savings, or how to cut costs! 😄";
+}
+
+function askQ(q) {
+  document.getElementById("chat-inp").value = q;
+  sendMsg();
+}
+
+var uploadedDocContext = "";
+var conversationHistory = [];
+
+function sendMsg() {
+  var inp = document.getElementById("chat-inp");
+  var txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = "";
+  addMsg("user", txt);
+  conversationHistory.push({ role:"user", content: txt });
+  showTyping();
+  if (uploadedDocContext) {
+    callClaudeAPI(txt);
+  } else {
+    setTimeout(function() { removeTyping(); addMsg("ai", getReply(txt)); }, 850 + Math.random() * 400);
+  }
+}
+
+async function callClaudeAPI(userMsg) {
+  var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\n\nDocument context uploaded by user:\n" + uploadedDocContext;
+  try {
+    var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
+    var resp = await fetch("/api/chat", {
+      method:"POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: messages, systemPrompt: systemPrompt })
+    });
+    var data = await resp.json();
+    removeTyping();
+    if (data.reply) {
+      var reply = data.reply;
+      conversationHistory.push({ role:"assistant", content: reply });
+      var fmt = reply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n\n/g,"<br><br>").replace(/\n/g,"<br>");
+      addMsg("ai", fmt);
+    } else if (data.error) {
+      addMsg("ai", "DataDost error: " + data.error);
+    } else {
+      addMsg("ai", "Sorry, I had trouble reading that. Please try again!");
+    }
+  } catch(err) {
+    removeTyping();
+    addMsg("ai", "I'm having a connection issue. Please check your internet and try again. 🙏");
+    console.error(err);
+  }
+}
+
+document.getElementById("chat-send").addEventListener("click", sendMsg);
+document.getElementById("chat-inp").addEventListener("keydown", function(e) { if(e.key === "Enter") sendMsg(); });
+
+// ── TOAST ──
+function toast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(function() { t.classList.remove("show"); }, 2800);
+}
+
+
+// API key managed securely on server via Vercel environment variable
+
+// ── INIT ──
+renderDash();
+renderChat();
+
+
+}); // end DOMContentLoaded
+</script>
+</body>
+</html>
