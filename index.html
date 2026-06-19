@@ -530,6 +530,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <button class="btn-sm" id="csb-add" style="font-size:.75rem;padding:.4rem .9rem">+ Add document</button>
       </div>
       <div class="csb-docs">
+        <button class="csb-doc" data-doc="general" style="background:var(--sf-l);margin-bottom:.5rem"><div class="csb-doc-em">💬</div><div><div class="csb-doc-name" style="color:var(--sf)">General Chat</div><div class="csb-doc-meta">Ask anything — no document needed</div></div></button>
         <div class="csb-sec">This month</div>
         <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">SBI Statement — May 2025</div><div class="csb-doc-meta">14 questions asked</div></div></button>
         <div class="csb-sec">Earlier</div>
@@ -1006,18 +1007,26 @@ document.getElementById("sov-chat").addEventListener("click", function() {
 
 // ── CHAT ──
 var chatMeta = {
+  general:{ico:"💬",title:"General Chat",sub:"Ask me anything about money, savings, or life admin"},
   bank:{ico:"🏦",title:"SBI Statement — May 2025",sub:"Bank statement · Uploaded just now"},
   salary:{ico:"💼",title:"Salary Slip — April 2025",sub:"Salary slip · Uploaded 2 weeks ago"},
   utility:{ico:"⚡",title:"BESCOM Bill — April 2025",sub:"Utility bill · Uploaded last month"},
   creditcard:{ico:"💳",title:"HDFC Regalia — May 2025",sub:"Credit card statement · Uploaded just now"},
 };
 var chatQs = {
+  general:["How should I start budgeting?","What's a good savings rate?","Help me plan an emergency fund","Explain SIP vs lump sum"],
   bank:["Where did my money go?","Food spending?","How to save more?","Wasted subscriptions?"],
   salary:["What's my take-home?","Effective tax rate?","How much to save?","Optimize deductions?"],
   utility:["Why is my bill high?","How to reduce it?","Compare to last month","Tips to save power?"],
   creditcard:["How many reward points do I have?","What benefits am I missing?","Best way to redeem points?","Which card for which spend?"],
 };
 var chatResp = {
+  general:{
+    "start budgeting":"Great place to start! 💪<br><br>Try the <b>50-30-20 rule</b>:<br>🏠 <b style='color:#2E75B6'>50% — Needs:</b> rent, groceries, bills, EMIs<br>🎉 <b style='color:#BA7517'>30% — Wants:</b> dining out, OTT, shopping<br>💰 <b style='color:#0F6E56'>20% — Savings:</b> SIP, emergency fund, goals<br><br>Don't worry about being perfect on day one — just track for one month first. You can't fix what you don't measure! Want help tracking? Upload a statement anytime.",
+    "good savings rate":"Good question! Here's a quick benchmark for Indian salaried folks: 📊<br><br>🟢 <b style='color:#0F6E56'>20%+</b> — Excellent, you're building real wealth<br>🟡 <b style='color:#BA7517'>10-20%</b> — Decent, room to optimise<br>🔴 <b style='color:#E24B4A'>Under 10%</b> — Time for a closer look at expenses<br><br>The number matters less than the <b>trend</b> — even going from 8% to 12% this year is real progress. Want me to help you find where to trim?",
+    "emergency fund":"Smart move — this is financial oxygen. 🫁<br><br><b>The target:</b> 3–6 months of essential expenses (rent, food, EMIs, utilities — not luxuries).<br><br><b>Where to keep it:</b> Not in a savings account losing to inflation. A liquid mutual fund or sweep-in FD gives better returns while staying accessible within 24 hours.<br><br><b>How to build it:</b> Start with even ₹2,000/month — automate it right after salary day so you don't \'feel\' it. In a year you'll have a real cushion.",
+    "sip vs lump sum":"Great question — here's the honest answer: 🎯<br><br><b style='color:#0F6E56'>SIP (Systematic Investment Plan):</b> Fixed amount every month, regardless of market price. Reduces risk through \'rupee cost averaging\' — you buy more units when prices are low automatically. Best for regular salary earners.<br><br><b style='color:#2E75B6'>Lump sum:</b> Investing a large amount at once. Works well if markets are clearly undervalued, but timing risk is real.<br><br><b>For 90% of people:</b> SIP wins — discipline beats timing. Even ₹2,000/month in an index fund, untouched for 15 years, compounds remarkably.",
+  },
   bank:{
     "where did my money go":"Let me be your financial mirror! 🪞<br><br>🏠 <b style='color:#2E75B6'>Rent: ₹14,000</b> (29%) — expected<br>🍔 <b style='color:#FF6B1A'>Food delivery: ₹4,820</b> (10%) — Swiggy + Zomato!<br>🛒 <b style='color:#0F6E56'>Groceries: ₹5,000</b> (10%) — fair<br>🚗 Transport: ₹2,230 (5%)<br>📱 <b style='color:#BA7517'>Subscriptions: ₹1,566</b> (3%) — 4 services!<br><br>Salary: ₹48,500. Spent: ₹43,045. Saved: ₹5,455 (11.3%). Food delivery + subscriptions is your biggest leak! 🎯",
     "food spending":"Full food audit! 🍱<br><br>🛵 <b style='color:#FF6B1A'>Swiggy: ₹2,840</b><br>🛵 <b style='color:#FF6B1A'>Zomato: ₹1,980</b><br>🛒 BigBasket: ₹3,200<br>🛒 DMart: ₹1,800<br><br>Total food: <b>₹9,820 = 20% of salary!</b><br><br>You're buying groceries AND ordering in 4–5 times a week. Classic! 😄 Cook 3 nights a week instead = save ₹2,000+/month = ₹24,000/year = a trip to Goa! 🏖️",
@@ -1075,7 +1084,12 @@ function renderChat() {
     btn.addEventListener("click", function() { askQ(q); });
     qbEl.appendChild(btn);
   });
-  addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
+  if (activeDoc === "general") {
+    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, slightly nosy money companion. 😄<br><br>No document needed — just talk to me! Ask about budgeting, savings, investing basics, or anything on your mind about money. What's up?");
+    uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
+  } else {
+    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
+  }
 }
 
 function addMsg(role, html) {
