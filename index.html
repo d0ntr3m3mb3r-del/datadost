@@ -468,6 +468,10 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
             <div class="file-ok-badge">✓ Ready to analyse</div>
           </div>
         </div>
+        <label style="display:flex;align-items:flex-start;gap:.6rem;padding:.75rem .9rem;background:var(--mist);border-radius:10px;cursor:pointer;font-size:.78rem;color:var(--ink-s);line-height:1.5">
+          <input type="checkbox" id="consent-check" style="margin-top:2px;flex-shrink:0;cursor:pointer">
+          <span>I choose to share this document with DataDost and consent to it being read by AI to answer my questions. I understand the file is deleted after analysis and I can withdraw this consent anytime.</span>
+        </label>
         <button class="btn-analyse" id="btn-analyse">Analyse this document →</button>
         <button class="btn-change" id="btn-change">Choose a different file</button>
         <div>
@@ -587,6 +591,11 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
             </div>
           </div>
 
+          <div style="background:#E6F1FB;border:1px solid #B5D4F4;border-radius:12px;padding:1rem 1.25rem">
+            <div style="font-weight:600;font-size:.92rem;color:#0C447C;margin-bottom:.5rem">🤝 Sharing your data is entirely your choice</div>
+            <div style="font-size:.84rem;color:#1A3A5C;line-height:1.7">Uploading a document or asking DataDost a question is always <b>voluntary, at your sole discretion, and reversible</b>. By choosing to upload a document, you are giving DataDost explicit permission to read and parse that specific document for the sole purpose of answering your question. We do not access, request, or parse any data you have not actively chosen to share with us in that moment. You may stop sharing, delete what you've shared, or close your account at any time, with no obligation to continue.</div>
+          </div>
+
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">1. What data we collect</div>
             <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">We collect only what is necessary to provide the DataDost service: your name and email address (for your account), extracted financial insights from documents you upload (spending categories, totals, balances — never the raw document), and your questions and DataDost's responses within your session. We do not collect Aadhaar numbers, PAN numbers, bank account numbers, card numbers, or any government identification.</div>
@@ -699,6 +708,7 @@ function goTo(id, tab) {
   if (id === "s-chat") renderChat();
   if (id === "s-upload") renderUpRecent();
 }
+window.goTo = goTo; // expose globally so inline onclick="" attributes can reach it
 
 // ── TABS ──
 function switchTab(tab) {
@@ -906,6 +916,10 @@ document.getElementById("btn-change").addEventListener("click", resetUpload);
 
 document.getElementById("btn-analyse").addEventListener("click", function(e) {
   e.stopPropagation();
+  if (!document.getElementById("consent-check").checked) {
+    toast("Please tick the consent box first — your choice, your data 🙏");
+    return;
+  }
   var dz = document.getElementById("dz");
   dz.classList.remove("ok"); dz.classList.add("read");
   document.getElementById("btn-analyse").disabled = true;
