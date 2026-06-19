@@ -547,7 +547,6 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="qbtns" id="qbtns"></div>
       <div class="chat-inp-row">
         <button class="chat-up-btn" id="chat-up-btn" title="Upload document"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
-        <button class="chat-up-btn" onclick="document.getElementById('api-modal').style.display='flex'" title="API settings">⚙️</button>
         <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
         <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg></button>
       </div>
@@ -676,37 +675,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 </div>
 
 
-<!-- API KEY SETUP MODAL -->
-<div id="api-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
-  <div style="background:var(--white);border-radius:20px;padding:2rem;max-width:440px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
-      <div style="width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🤖</div>
-      <div style="font-family:Sora,sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink)">Enable real AI analysis</div>
-    </div>
-    <div style="font-size:.82rem;color:var(--slate);margin-bottom:1rem;line-height:1.65">Enter your Anthropic API key to analyse real documents. The key is stored only in your browser — never on DataDost servers.</div>
-
-    <div style="background:var(--mist);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;display:flex;flex-direction:column;gap:.5rem">
-      <div style="font-size:.78rem;font-weight:600;color:var(--ink)">Where to find your key:</div>
-      <div style="font-size:.78rem;color:var(--ink-s);display:flex;gap:.5rem;align-items:flex-start"><span style="color:var(--sf);font-weight:700;flex-shrink:0">1.</span> Go to <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--sf);font-weight:600">console.anthropic.com/settings/keys</a></div>
-      <div style="font-size:.78rem;color:var(--ink-s);display:flex;gap:.5rem;align-items:flex-start"><span style="color:var(--sf);font-weight:700;flex-shrink:0">2.</span> Click <b>Create Key</b> → name it <b>datadost</b> → click Create</div>
-      <div style="font-size:.78rem;color:var(--ink-s);display:flex;gap:.5rem;align-items:flex-start"><span style="color:var(--sf);font-weight:700;flex-shrink:0">3.</span> Copy the full key starting with <code style="background:var(--white);padding:1px 5px;border-radius:4px;font-size:.75rem">sk-ant-</code></div>
-      <div style="font-size:.78rem;color:var(--ink-s);display:flex;gap:.5rem;align-items:flex-start"><span style="color:var(--sf);font-weight:700;flex-shrink:0">4.</span> Add a payment method under Billing (needed for API calls)</div>
-    </div>
-
-    <div style="position:relative;margin-bottom:.5rem">
-      <input type="text" id="api-key-input" placeholder="sk-ant-api03-..." style="width:100%;padding:.75rem 2.5rem .75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-size:.82rem;font-family:monospace;outline:none;box-sizing:border-box;color:var(--ink)" oninput="validateKey(this)">
-      <span id="key-valid-icon" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:1rem;display:none">✅</span>
-    </div>
-    <div id="key-error" style="font-size:.75rem;color:#E24B4A;margin-bottom:.75rem;display:none">Key must start with sk-ant- and be at least 40 characters</div>
-    <div id="key-hint" style="font-size:.75rem;color:var(--slate);margin-bottom:.85rem">The key is very long (~100 characters) — make sure you copy all of it</div>
-
-    <div style="display:flex;gap:.75rem">
-      <button onclick="saveApiKey()" id="save-key-btn" style="flex:1;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">Save &amp; enable AI ✓</button>
-      <button onclick="closeApiModal()" style="background:transparent;color:var(--slate);border:1.5px solid var(--border);border-radius:100px;padding:.78rem 1.25rem;font-size:.88rem;cursor:pointer;font-family:inherit">Use demo</button>
-    </div>
-    <div style="font-size:.72rem;color:var(--slate);text-align:center;margin-top:.85rem">🔒 Key never leaves your browser · Stored in browser memory only · <span onclick="showApiHelp()" style="color:var(--sf);cursor:pointer">Need help?</span></div>
-  </div>
-</div>
+<!-- API calls handled securely by /api/chat server function -->
 
 <div class="toast" id="toast"></div>
 
@@ -1178,20 +1147,22 @@ async function callClaudeAPI(userMsg) {
   var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\n\nDocument context uploaded by user:\n" + uploadedDocContext;
   try {
     var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
-    var resp = await fetch("https://api.anthropic.com/v1/messages", {
+    var resp = await fetch("/api/chat", {
       method:"POST",
-      headers:{ "Content-Type":"application/json", "anthropic-version":"2023-06-01", "anthropic-dangerous-direct-browser-access":"true", "x-api-key": localStorage.getItem("dd_api_key") || "" },
-
-      body: JSON.stringify({ model:"claude-haiku-4-5-20251001", max_tokens:1024, system: systemPrompt, messages: messages })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: messages, systemPrompt: systemPrompt })
     });
     var data = await resp.json();
     removeTyping();
-    if (data.content && data.content[0]) {
-      var reply = data.content[0].text;
+    if (data.reply) {
+      var reply = data.reply;
       conversationHistory.push({ role:"assistant", content: reply });
-      addMsg("ai", reply.replace(/\n/g,"<br>").replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/₹([\d,]+)/g,"<b style=\'color:#0F6E56\'>₹$1</b>"));
+      var fmt = reply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n\n/g,"<br><br>").replace(/\n/g,"<br>");
+      addMsg("ai", fmt);
+    } else if (data.error) {
+      addMsg("ai", "DataDost error: " + data.error);
     } else {
-      addMsg("ai", "Sorry, I had trouble reading that. Please try again! 🙏");
+      addMsg("ai", "Sorry, I had trouble reading that. Please try again!");
     }
   } catch(err) {
     removeTyping();
@@ -1212,48 +1183,12 @@ function toast(msg) {
 }
 
 
-function validateKey(inp) {
-  var val = inp.value.trim();
-  var icon = document.getElementById("key-valid-icon");
-  var err = document.getElementById("key-error");
-  var hint = document.getElementById("key-hint");
-  if (val.length === 0) { icon.style.display="none"; err.style.display="none"; hint.style.display="block"; return; }
-  if (val.startsWith("sk-ant-") && val.length > 40) {
-    icon.style.display="block"; err.style.display="none"; hint.style.display="none";
-  } else {
-    icon.style.display="none"; err.style.display="block"; hint.style.display="none";
-  }
-}
-function saveApiKey() {
-  var key = document.getElementById("api-key-input").value.trim();
-  if (!key) { toast("Please paste your API key first"); return; }
-  if (!key.startsWith("sk-ant-")) { toast("❌ Key must start with sk-ant- — check you copied the full key"); return; }
-  if (key.length < 40) { toast("❌ Key looks too short — make sure you copied all of it"); return; }
-  localStorage.setItem("dd_api_key", key);
-  document.getElementById("api-modal").style.display = "none";
-  toast("✅ Real AI enabled! Go to Upload to try with your documents.");
-}
-function closeApiModal() {
-  document.getElementById("api-modal").style.display = "none";
-  toast("Running in demo mode — upload a document to see sample responses");
-}
-function showApiHelp() {
-  toast("Key format: sk-ant-api03-[long string]. Get it at console.anthropic.com/settings/keys");
-}
-function checkApiKey() {
-  var key = localStorage.getItem("dd_api_key");
-  if (!key) { document.getElementById("api-modal").style.display = "flex"; }
-}
-function resetApiKey() {
-  localStorage.removeItem("dd_api_key");
-  document.getElementById("api-modal").style.display = "flex";
-  document.getElementById("api-key-input").value = "";
-}
+// API key managed securely on server via Vercel environment variable
 
 // ── INIT ──
 renderDash();
 renderChat();
-setTimeout(checkApiKey, 1500);
+
 
 }); // end DOMContentLoaded
 </script>
