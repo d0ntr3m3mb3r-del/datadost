@@ -951,8 +951,13 @@ document.getElementById("btn-analyse").addEventListener("click", function(e) {
   }, 700);
 });
 
+var fileBase64 = "";
+var fileMediaType = "";
+
 function readFileForAPI(file) {
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
+  fileBase64 = "";
+  fileMediaType = "";
   if (file.type === "text/csv" || file.name.endsWith(".csv")) {
     var reader = new FileReader();
     reader.onload = function(e) {
@@ -960,15 +965,19 @@ function readFileForAPI(file) {
       conversationHistory = [];
     };
     reader.readAsText(file);
-  } else if (file.type.startsWith("image/")) {
+  } else if (file.type.startsWith("image/") || file.type === "application/pdf") {
     var reader = new FileReader();
     reader.onload = function(e) {
-      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[Image uploaded — user will describe or ask questions about their " + docTypeName + ". Respond as if you can see the document and provide helpful financial coaching based on typical " + docTypeName + " analysis.]";
+      // Extract just the base64 part (strip the "data:image/png;base64," prefix)
+      var result = e.target.result;
+      fileBase64 = result.split(",")[1];
+      fileMediaType = file.type;
+      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[The actual document is attached and visible to you. Read the real figures, transactions, and details directly from it. Answer the user's questions based on what you actually see in the document.]";
       conversationHistory = [];
     };
     reader.readAsDataURL(file);
   } else {
-    uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[PDF document uploaded — the user has shared their " + docTypeName + ". Provide helpful financial coaching. Ask them to describe specific figures if needed, or answer their questions with context-appropriate advice for Indian middle-class finances.]";
+    uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[Unsupported file format for direct reading. Provide helpful general financial coaching for Indian middle-class finances, and ask the user to describe key figures if needed.]";
     conversationHistory = [];
   }
 }
@@ -1173,13 +1182,20 @@ function sendMsg() {
 }
 
 async function callClaudeAPI(userMsg) {
-  var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\n\nDocument context uploaded by user:\n" + uploadedDocContext;
+  var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\n\nDocument context:\n" + uploadedDocContext;
   try {
     var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
+    var isFirstMessage = conversationHistory.filter(function(m){ return m.role === "user"; }).length === 1;
+    var payload = { messages: messages, systemPrompt: systemPrompt };
+    // Only attach the real file on the very first question — Claude remembers it for the rest of the chat
+    if (isFirstMessage && fileBase64 && fileMediaType) {
+      payload.fileData = fileBase64;
+      payload.fileMediaType = fileMediaType;
+    }
     var resp = await fetch("/api/chat", {
       method:"POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: messages, systemPrompt: systemPrompt })
+      body: JSON.stringify(payload)
     });
     var data = await resp.json();
     removeTyping();
