@@ -414,6 +414,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   <div style="flex:1;overflow-y:auto">
     <div class="dash-body">
       <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div></div>
+      <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-val">₹48,500</div><div class="stat-lbl">Monthly income</div><div class="stat-trend t-up">↑ Same as last month</div></div>
         <div class="stat-card"><div class="stat-val">₹43,045</div><div class="stat-lbl">Total spending</div><div class="stat-trend t-up">↑ +8% vs last month</div></div>
@@ -547,17 +548,17 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="csb-docs">
         <button class="csb-doc" data-doc="general" style="background:var(--sf-l);margin-bottom:.5rem"><div class="csb-doc-em">💬</div><div><div class="csb-doc-name" style="color:var(--sf)">General Chat</div><div class="csb-doc-meta">Ask anything — no document needed</div></div></button>
         <div class="csb-sec">This month</div>
-        <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">SBI Statement — May 2025</div><div class="csb-doc-meta">14 questions asked</div></div></button>
+        <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">Bank Statement (sample)</div><div class="csb-doc-meta">Try the demo · 14 questions asked</div></div></button>
         <div class="csb-sec">Earlier</div>
-        <button class="csb-doc" data-doc="salary"><div class="csb-doc-em">💼</div><div><div class="csb-doc-name">Salary Slip — Apr 2025</div><div class="csb-doc-meta">6 questions asked</div></div></button>
-        <button class="csb-doc" data-doc="utility"><div class="csb-doc-em">⚡</div><div><div class="csb-doc-name">BESCOM Bill — Apr 2025</div><div class="csb-doc-meta">3 questions asked</div></div></button>
-        <button class="csb-doc" data-doc="creditcard"><div class="csb-doc-em">💳</div><div><div class="csb-doc-name">HDFC Regalia — May 2025</div><div class="csb-doc-meta">New · just uploaded</div></div></button>
+        <button class="csb-doc" data-doc="salary"><div class="csb-doc-em">💼</div><div><div class="csb-doc-name">Salary Slip (sample)</div><div class="csb-doc-meta">Try the demo · 6 questions asked</div></div></button>
+        <button class="csb-doc" data-doc="utility"><div class="csb-doc-em">⚡</div><div><div class="csb-doc-name">Utility Bill (sample)</div><div class="csb-doc-meta">Try the demo · 3 questions asked</div></div></button>
+        <button class="csb-doc" data-doc="creditcard"><div class="csb-doc-em">💳</div><div><div class="csb-doc-name">Credit Card Statement (sample)</div><div class="csb-doc-meta">Try the demo</div></div></button>
       </div>
     </div>
     <div class="chat-main">
       <div class="chat-hdr">
         <div class="chat-hdr-ico" id="chat-hdr-ico">🏦</div>
-        <div><div class="chat-hdr-title" id="chat-hdr-title">SBI Statement — May 2025</div><div class="chat-hdr-sub" id="chat-hdr-sub">Bank statement · Uploaded 3 days ago</div></div>
+        <div><div class="chat-hdr-title" id="chat-hdr-title">Bank Statement (sample)</div><div class="chat-hdr-sub" id="chat-hdr-sub">Try the demo · Uploaded 3 days ago</div></div>
       </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="qbtns" id="qbtns"></div>
@@ -972,28 +973,44 @@ function getInsightsData() {
   ];
 }
 var recentDocsData = [
-  {ico:"🏦",name:"SBI Statement — May 2025",meta:"3 days ago · Bank statement",doc:"bank"},
-  {ico:"💼",name:"Salary Slip — April 2025",meta:"2 weeks ago · Salary slip",doc:"salary"},
-  {ico:"⚡",name:"BESCOM Bill — April 2025",meta:"Last month · Utility bill",doc:"utility"},
-  {ico:"💳",name:"HDFC Regalia — May 2025",meta:"Just now · Credit card",doc:"creditcard"},
+  {ico:"🏦",name:"Bank Statement (sample)",meta:"Try the demo · Bank statement",doc:"bank"},
+  {ico:"💼",name:"Salary Slip (sample)",meta:"Try the demo · Salary slip",doc:"salary"},
+  {ico:"⚡",name:"Utility Bill (sample)",meta:"Try the demo · Utility bill",doc:"utility"},
+  {ico:"💳",name:"Credit Card Statement (sample)",meta:"Try the demo · Credit card",doc:"creditcard"},
 ];
 
+// Populated once a real document has been successfully analysed — null until then
+var realDashboardData = null; // { income, spending, saved, savingsRate, bars: [{l,a,c,p}], docName }
+
 function renderDash() {
+  var usingReal = realDashboardData !== null;
+  var bannerEl = document.getElementById("dash-data-banner");
+  if (bannerEl) {
+    bannerEl.innerHTML = usingReal
+      ? "📄 Showing real numbers from <b>" + realDashboardData.docName + "</b>"
+      : "🧪 Sample data — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload a real document</span> to see your own numbers here";
+    bannerEl.style.background = usingReal ? "var(--green-l)" : "var(--mist)";
+    bannerEl.style.color = usingReal ? "var(--green)" : "var(--slate)";
+  }
+
   var statVals = document.querySelectorAll(".stat-card .stat-val");
   if (statVals.length >= 4) {
-    statVals[0].textContent = fmtCurrency(48500);
-    statVals[1].textContent = fmtCurrency(43045);
-    statVals[2].textContent = fmtCurrency(5455);
+    statVals[0].textContent = fmtCurrency(usingReal ? realDashboardData.income : 48500);
+    statVals[1].textContent = fmtCurrency(usingReal ? realDashboardData.spending : 43045);
+    statVals[2].textContent = fmtCurrency(usingReal ? realDashboardData.saved : 5455);
   }
   var statTrends = document.querySelectorAll(".stat-card .stat-trend");
-  if (statTrends.length >= 3) {
+  if (statTrends.length >= 3 && !usingReal) {
     statTrends[2].innerHTML = "↓ Could be " + fmtCurrency(8000) + "+";
+  } else if (statTrends.length >= 3 && usingReal) {
+    statTrends[2].innerHTML = "From your uploaded document";
   }
 
   var sb = document.getElementById("spend-bars");
   if (sb) {
     sb.innerHTML = "";
-    spendData.forEach(function(d) {
+    var bars = usingReal ? realDashboardData.bars : spendData;
+    bars.forEach(function(d) {
       sb.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a) + "</div></div>";
     });
     setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
@@ -1168,8 +1185,27 @@ var sovInsights = {
   other:[{c:"#0F6E56",t:"Document read successfully"},{c:"#FF6B1A",t:"Key figures extracted"}],
 };
 
+var scanningQuips = [
+  "Counting your money so you don't have to 🧮",
+  "Politely judging your Swiggy orders... 🍔",
+  "Putting on my reading glasses 🤓",
+  "Talking to the numbers, they're shy at first 🔢",
+  "Definitely not snooping, just analysing 👀",
+  "Brewing chai while I read this ☕",
+];
+
+var detectedDocName = ""; // filled in if Claude can identify the institution
+
 function showSuccess() {
-  var ins = sovInsights[docType] || sovInsights.other;
+  if (fileBase64 && fileMediaType) {
+    analyseRealDocument();
+  } else {
+    var ins = sovInsights[docType] || sovInsights.other;
+    renderSuccessInsights(ins);
+  }
+}
+
+function renderSuccessInsights(ins) {
   var el = document.getElementById("sov-ins");
   el.innerHTML = "";
   ins.forEach(function(d, i) {
@@ -1182,6 +1218,85 @@ function showSuccess() {
   document.getElementById("sov").classList.add("show");
 }
 
+async function analyseRealDocument() {
+  // Show the modal immediately with a fun "still working" message so the user isn't staring at nothing
+  var el = document.getElementById("sov-ins");
+  var quip = scanningQuips[Math.floor(Math.random() * scanningQuips.length)];
+  el.innerHTML = "<div class=\"si\" style=\"opacity:1\"><div class=\"si-dot\" style=\"background:#FF6B1A\"></div><span>" + quip + "</span></div>";
+  document.getElementById("sov-sub").textContent = "Give me just a moment with your real document...";
+  document.getElementById("sov").classList.add("show");
+
+  var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
+
+  var detectPrompt = "Look at this " + docTypeName + ". Reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount as a plain number, or NONE]\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, specific, interesting finding, under 12 words]\nINSIGHT2: [a second short finding, under 12 words]\nINSIGHT3: [a third short finding or gentle observation, under 12 words]";
+
+  try {
+    var payload = {
+      messages: [{ role: "user", content: detectPrompt }],
+      systemPrompt: "You are DataDost's document scanner. Be extremely concise and follow the exact format requested. Extract real numbers from the document as plain digits only, no currency symbols or commas.",
+      fileData: fileBase64,
+      fileMediaType: fileMediaType
+    };
+    var resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    var data = await resp.json();
+    if (data.reply) {
+      var lines = data.reply.split("\n");
+      var institution = "", insights = [], income = 0, spending = 0, categories = [];
+      lines.forEach(function(line) {
+        if (line.indexOf("INSTITUTION:") === 0) institution = line.replace("INSTITUTION:", "").trim();
+        if (line.indexOf("INCOME:") === 0) { var v = line.replace("INCOME:","").trim(); income = parseFloat(v.replace(/[^\d.]/g,"")) || 0; }
+        if (line.indexOf("SPENDING:") === 0) { var v2 = line.replace("SPENDING:","").trim(); spending = parseFloat(v2.replace(/[^\d.]/g,"")) || 0; }
+        if (line.indexOf("CATEGORY") === 0) {
+          var parts = line.replace(/CATEGORY\d:/, "").trim().split("|");
+          if (parts.length === 2) {
+            var amt = parseFloat(parts[1].replace(/[^\d.]/g,"")) || 0;
+            if (amt > 0) categories.push({ l: parts[0].trim(), a: amt });
+          }
+        }
+        if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
+      });
+      detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : "";
+
+      // Populate the dashboard with real data if we got meaningful numbers
+      if (income > 0 || spending > 0 || categories.length > 0) {
+        var barColors = ["#FF6B1A", "#0F6E56", "#2E75B6", "#BA7517", "#6B3FA0", "#E24B4A"];
+        var maxCatAmt = Math.max.apply(null, categories.map(function(c){return c.a;})) || 1;
+        var bars = categories.map(function(c, i) {
+          return { l: c.l, a: c.a, c: barColors[i % barColors.length], p: Math.min(100, Math.round((c.a / maxCatAmt) * 100)) };
+        });
+        realDashboardData = {
+          income: income || spending, // fall back gracefully if one is missing
+          spending: spending || 0,
+          saved: Math.max(0, (income || 0) - (spending || 0)),
+          bars: bars.length > 0 ? bars : spendData,
+          docName: detectedDocName || docTypeName
+        };
+      }
+
+      var colors = ["#FF6B1A", "#0F6E56", "#2E75B6"];
+      var renderedInsights = insights.length > 0
+        ? insights.map(function(t, i) { return { c: colors[i % colors.length], t: t }; })
+        : sovInsights[docType] || sovInsights.other;
+      document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
+      renderSuccessInsights(renderedInsights);
+    } else {
+      detectedDocName = "";
+      document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
+      renderSuccessInsights(sovInsights[docType] || sovInsights.other);
+    }
+  } catch (err) {
+    console.error("Document detection error:", err);
+    detectedDocName = "";
+    document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
+    renderSuccessInsights(sovInsights[docType] || sovInsights.other);
+  }
+}
+
+
 document.getElementById("sov-close").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   resetUpload();
@@ -1191,17 +1306,35 @@ document.getElementById("sov-close").addEventListener("click", function() {
 document.getElementById("sov-chat").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   activeDoc = docType;
+  if (detectedDocName) {
+    addRealDocToSidebar(docType, detectedDocName);
+  }
   selectDoc(docType);
   goTo("s-chat");
 });
 
+function addRealDocToSidebar(doc, name) {
+  var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
+  var existing = document.getElementById("real-doc-entry");
+  if (existing) existing.remove();
+  var docsContainer = document.querySelector(".csb-docs");
+  var newBtn = document.createElement("button");
+  newBtn.className = "csb-doc act";
+  newBtn.id = "real-doc-entry";
+  newBtn.dataset.doc = doc;
+  newBtn.innerHTML = "<div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
+  newBtn.addEventListener("click", function() { selectDoc(doc); });
+  docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
+}
+
+
 // ── CHAT ──
 var chatMeta = {
   general:{ico:"💬",title:"General Chat",sub:"Ask me anything about money, savings, or life admin"},
-  bank:{ico:"🏦",title:"SBI Statement — May 2025",sub:"Bank statement · Uploaded just now"},
-  salary:{ico:"💼",title:"Salary Slip — April 2025",sub:"Salary slip · Uploaded 2 weeks ago"},
-  utility:{ico:"⚡",title:"BESCOM Bill — April 2025",sub:"Utility bill · Uploaded last month"},
-  creditcard:{ico:"💳",title:"HDFC Regalia — May 2025",sub:"Credit card statement · Uploaded just now"},
+  bank:{ico:"🏦",title:"Bank Statement",sub:"Sample demo · try uploading your own!"},
+  salary:{ico:"💼",title:"Salary Slip",sub:"Sample demo · try uploading your own!"},
+  utility:{ico:"⚡",title:"Utility Bill",sub:"Sample demo · try uploading your own!"},
+  creditcard:{ico:"💳",title:"Credit Card Statement",sub:"Sample demo · try uploading your own!"},
 };
 var chatQs = {
   general:["How should I start budgeting?","What's a good savings rate?","Help me plan an emergency fund","Explain SIP vs lump sum"],
@@ -1249,8 +1382,9 @@ function selectDoc(doc) {
   document.querySelectorAll(".csb-doc").forEach(function(d) { if(d.dataset.doc === doc) d.classList.add("act"); });
   var m = chatMeta[doc] || chatMeta.bank;
   document.getElementById("chat-hdr-ico").textContent = m.ico;
-  document.getElementById("chat-hdr-title").textContent = m.title;
-  document.getElementById("chat-hdr-sub").textContent = m.sub;
+  // Use the real detected name (e.g. "HDFC Bank Statement") if we found one, otherwise the generic label
+  document.getElementById("chat-hdr-title").textContent = detectedDocName ? (detectedDocName + " — " + m.title) : m.title;
+  document.getElementById("chat-hdr-sub").textContent = detectedDocName ? "Uploaded just now" : m.sub;
   renderChat();
 }
 
