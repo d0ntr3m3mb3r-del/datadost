@@ -1672,6 +1672,21 @@ function selectRealDoc(uniqueKey, realType, realName, skipRender) {
   compareDocsPayload = null; // leaving compare mode if we were in it
   clearCompareSelection(); // also clear any checked comparison boxes — we're viewing one document now
   activeDoc = uniqueKey;
+  // CRITICAL: restore THIS document's actual file data, not whatever fileBase64 happened to
+  // hold last. Without this, clicking between sidebar documents only changes what's displayed —
+  // Claude would keep receiving whichever document was most recently analysed, regardless of
+  // which one is actually selected on screen.
+  var stored = sessionDocuments[uniqueKey];
+  if (stored) {
+    fileBase64 = stored.base64;
+    fileMediaType = stored.mediaType;
+    docType = stored.type;
+  } else {
+    // Shouldn't normally happen, but fail safely rather than silently using stale data
+    fileBase64 = "";
+    fileMediaType = "";
+    console.warn("[DataDost] No stored file data found for", uniqueKey, "— chat will work from conversation history only");
+  }
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
   var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
