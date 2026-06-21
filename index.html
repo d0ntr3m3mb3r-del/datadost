@@ -1466,7 +1466,7 @@ async function analyseRealDocument() {
         }
         if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
       });
-      var fallbackLabel = {bank:"Bank Statement",salary:"Salary Slip",utility:"Utility Bill",insurance:"Insurance",tax:"Tax Document",creditcard:"Credit Card Statement",other:"Document"}[docType] || "Document";
+      var fallbackLabel = fallbackLabelFor(docType);
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}));
       // Trust Claude's real detection of the document type over whatever tile the user happened to click —
       // people often forget to change the selector or pick the wrong one by mistake.
@@ -1501,16 +1501,20 @@ async function analyseRealDocument() {
       renderSuccessInsights(renderedInsights);
       pendingFollowupQuestion = followup; // asked once the user reaches the chat
     } else {
-      detectedDocName = "";
+      detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"});
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
       renderSuccessInsights(sovInsights[docType] || sovInsights.other);
     }
   } catch (err) {
     console.error("Document detection error:", err);
-    detectedDocName = "";
+    detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"});
     document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
     renderSuccessInsights(sovInsights[docType] || sovInsights.other);
   }
+}
+
+function fallbackLabelFor(type) {
+  return {bank:"Bank Statement",salary:"Salary Slip",utility:"Utility Bill",insurance:"Insurance",tax:"Tax Document",creditcard:"Credit Card Statement",other:"Document"}[type] || "Document";
 }
 
 
@@ -1586,7 +1590,7 @@ async function startCompareChat() {
   renderCompareWelcome(docs);
 }
 
-function renderCompareWelcome(docs) {
+async function renderCompareWelcome(docs) {
   var msgsEl = document.getElementById("chat-msgs");
   msgsEl.innerHTML = "";
   var qbEl = document.getElementById("qbtns");
@@ -1599,8 +1603,21 @@ function renderCompareWelcome(docs) {
     btn.addEventListener("click", function() { askQ(q); });
     qbEl.appendChild(btn);
   });
-  var names = docs.map(function(d) { return "<b>" + d.name + "</b>"; }).join(" and ");
-  addMsg("ai", "Ooh, a crossover episode! 🎬 I've got " + names + " both open in front of me. Ask me to match transactions between them, trace where a payment actually came from, or just say \"where did my money go\" and I'll connect the dots across both. What do you want to know?");
+
+  // Check for an existing saved conversation for this exact combination of documents first
+  var savedMessages = await loadMessagesFromDb(activeDoc);
+  if (savedMessages.length > 0) {
+    conversationHistory = [];
+    savedMessages.forEach(function(msg) {
+      addMsg(msg.role === "assistant" ? "ai" : "user", msg.content, false);
+      conversationHistory.push({ role: msg.role, content: msg.content });
+    });
+    return;
+  }
+
+  var names = docs.map(function(d) { return "<b>" + d.name + "</b>"; }).join(", ");
+  var episodeWord = docs.length > 2 ? "crossover special" : "crossover episode";
+  addMsg("ai", "Ooh, a " + episodeWord + "! 🎬 I've got " + names + " all open in front of me. Ask me to match transactions between them, trace where a payment actually came from, or just say \"where did my money go\" and I'll connect the dots across all of them. What do you want to know?");
 }
 
 document.getElementById("compare-start-btn").addEventListener("click", startCompareChat);
@@ -1619,8 +1636,31 @@ function addRealDocToSidebar(doc, name) {
   newBtn.dataset.doc = uniqueKey;
   newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
   newBtn.dataset.realName = name;
-  newBtn.innerHTML = "<label style=\"display:flex;align-items:center;gap:.5rem;width:100%;cursor:pointer\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\" style=\"flex-shrink:0\" onclick=\"event.stopPropagation()\"><div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div></label>";
-  newBtn.addEventListener("click", function(e) { if (e.target.type !== "checkbox") selectRealDoc(uniqueKey, doc, name); });
+  newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
+  newBtn.style.display = "flex";
+  newBtn.style.alignItems = "center";
+  newBtn.style.gap = ".5rem";
+  // Use a SINGLE click listener on the whole row. Check explicitly whether the checkbox
+  // (or its wrapping span) was the actual click target — no labels, no double-firing,
+  // no reliance on stopPropagation working perfectly across browsers.
+  newBtn.addEventListener("click", function(e) {
+    var clickedCheckbox = e.target.classList && e.target.classList.contains("compare-check");
+    var clickedCheckboxWrap = e.target.classList && e.target.classList.contains("compare-check-wrap");
+    if (clickedCheckbox) {
+      // Let the native checkbox toggle happen naturally — just update the compare bar after.
+      setTimeout(updateCompareBarVisibility, 0);
+      return;
+    }
+    if (clickedCheckboxWrap) {
+      // Clicked the small padding area around the checkbox, not the checkbox itself —
+      // toggle it manually rather than opening the document.
+      var cb = newBtn.querySelector(".compare-check");
+      cb.checked = !cb.checked;
+      updateCompareBarVisibility();
+      return;
+    }
+    selectRealDoc(uniqueKey, doc, name);
+  });
   docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
   updateCompareBarVisibility();
   return uniqueKey;
