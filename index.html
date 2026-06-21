@@ -524,8 +524,11 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   <h2>Reading complete! 🎉</h2>
   <p id="sov-sub">I've read through your document. Here's what I found:</p>
   <div class="sov-ins" id="sov-ins"></div>
-  <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 2rem;font-size:.92rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
-  <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.2rem" id="sov-close">Upload another document</button>
+  <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
+    <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
+    <button style="background:var(--white);color:var(--ink);border:1.5px solid var(--border);border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-upload-another">+ Upload another document</button>
+  </div>
+  <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline" id="sov-close">Close</button>
 </div>
 
 <!-- CHAT -->
@@ -1398,7 +1401,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this " + docTypeName + ". First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nLOCKED: no\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1423,8 +1426,12 @@ async function analyseRealDocument() {
     }
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "";
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "";
       lines.forEach(function(line) {
+        if (line.indexOf("DOCTYPE:") === 0) {
+          var dt = line.replace("DOCTYPE:", "").trim().toLowerCase();
+          if (["bank","salary","utility","insurance","tax","creditcard","other"].indexOf(dt) !== -1) detectedRealType = dt;
+        }
         if (line.indexOf("INSTITUTION:") === 0) institution = line.replace("INSTITUTION:", "").trim();
         if (line.indexOf("INCOME:") === 0) { var v = line.replace("INCOME:","").trim(); income = parseFloat(v.replace(/[^\d.]/g,"")) || 0; }
         if (line.indexOf("SPENDING:") === 0) { var v2 = line.replace("SPENDING:","").trim(); spending = parseFloat(v2.replace(/[^\d.]/g,"")) || 0; }
@@ -1440,6 +1447,14 @@ async function analyseRealDocument() {
         if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
       });
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : "";
+      // Trust Claude's real detection of the document type over whatever tile the user happened to click —
+      // people often forget to change the selector or pick the wrong one by mistake.
+      if (detectedRealType && detectedRealType !== docType) {
+        docType = detectedRealType;
+        document.querySelectorAll(".dt").forEach(function(d) { d.classList.remove("sel"); });
+        var matchingTile = document.querySelector(".dt[data-type='" + detectedRealType + "']");
+        if (matchingTile) matchingTile.classList.add("sel");
+      }
 
       // Populate the dashboard with real data if we got meaningful numbers
       if (income > 0 || spending > 0 || categories.length > 0) {
@@ -1484,28 +1499,60 @@ document.getElementById("sov-close").addEventListener("click", function() {
   document.getElementById("dz").classList.remove("read");
 });
 
-document.getElementById("sov-chat").addEventListener("click", function() {
-  document.getElementById("sov").classList.remove("show");
-  activeDoc = docType;
+document.getElementById("sov-upload-another").addEventListener("click", function() {
+  // Preserve this document in the sidebar before clearing the upload box for the next one —
+  // this is what allows multiple documents to genuinely accumulate, not overwrite each other.
   if (detectedDocName) {
     addRealDocToSidebar(docType, detectedDocName);
   }
-  selectDoc(docType);
+  document.getElementById("sov").classList.remove("show");
+  resetUpload();
+  document.getElementById("dz").classList.remove("read");
+  toast("Ready for your next document! 📄");
+});
+
+document.getElementById("sov-chat").addEventListener("click", function() {
+  document.getElementById("sov").classList.remove("show");
+  if (detectedDocName) {
+    var newKey = addRealDocToSidebar(docType, detectedDocName);
+    selectRealDoc(newKey, docType, detectedDocName);
+  } else {
+    activeDoc = docType;
+    selectDoc(docType);
+  }
   goTo("s-chat");
 });
 
+var uploadedDocCount = 0; // gives each real upload a unique key so multiple documents can coexist
+
 function addRealDocToSidebar(doc, name) {
   var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
-  var existing = document.getElementById("real-doc-entry");
-  if (existing) existing.remove();
+  uploadedDocCount++;
+  var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
   var docsContainer = document.querySelector(".csb-docs");
+  document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
   var newBtn = document.createElement("button");
   newBtn.className = "csb-doc act";
-  newBtn.id = "real-doc-entry";
-  newBtn.dataset.doc = doc;
+  newBtn.dataset.doc = uniqueKey;
+  newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
+  newBtn.dataset.realName = name;
   newBtn.innerHTML = "<div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
-  newBtn.addEventListener("click", function() { selectDoc(doc); });
+  newBtn.addEventListener("click", function() { selectRealDoc(uniqueKey, doc, name); });
   docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
+  return uniqueKey;
+}
+
+// Selecting a real (not sample) document — uses its own unique key for chat history,
+// but borrows the underlying type's quick-question set and icon.
+function selectRealDoc(uniqueKey, realType, realName) {
+  activeDoc = uniqueKey;
+  document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
+  document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
+  var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
+  document.getElementById("chat-hdr-ico").textContent = icoMap[realType] || "📄";
+  document.getElementById("chat-hdr-title").textContent = realName;
+  document.getElementById("chat-hdr-sub").textContent = "Uploaded this session";
+  renderChat();
 }
 
 
@@ -1579,8 +1626,13 @@ async function renderChat() {
   var qbEl = document.getElementById("qbtns");
   if (!msgsEl) return;
   msgsEl.innerHTML = "";
-  var m = chatMeta[activeDoc] || chatMeta.bank;
-  var qs = chatQs[activeDoc] || chatQs.bank;
+  // Real uploaded documents use a unique activeDoc key (e.g. "real_utility_2") — resolve back
+  // to the underlying type (e.g. "utility") for quick-question and persona lookups.
+  var activeBtn = document.querySelector(".csb-doc[data-doc='" + activeDoc + "']");
+  var lookupType = (activeBtn && activeBtn.dataset.realType) ? activeBtn.dataset.realType : activeDoc;
+  var realLabel = (activeBtn && activeBtn.dataset.realName) ? activeBtn.dataset.realName : null;
+  var m = chatMeta[lookupType] || chatMeta.bank;
+  var qs = chatQs[lookupType] || chatQs.bank;
   qbEl.innerHTML = "";
   qs.forEach(function(q) {
     var btn = document.createElement("button");
@@ -1599,7 +1651,7 @@ async function renderChat() {
       conversationHistory.push({ role: msg.role, content: msg.content });
     });
     if (activeDoc !== "general" && !uploadedDocContext) {
-      uploadedDocContext = "Document type: " + (chatMeta[activeDoc] || chatMeta.bank).title + "\n[This is a restored conversation. The original document file is NOT currently attached or visible to you — you only have the text of the prior conversation shown above. Do not state any new specific figures (amounts, dates, balances) unless they were already mentioned earlier in this restored history. If the user asks about a figure not already present in the conversation history, tell them honestly that you don't have the original document anymore and ask them to re-upload it.]";
+      uploadedDocContext = "Document type: " + (realLabel || m.title) + "\n[This is a restored conversation. The original document file is NOT currently attached or visible to you — you only have the text of the prior conversation shown above. Do not state any new specific figures (amounts, dates, balances) unless they were already mentioned earlier in this restored history. If the user asks about a figure not already present in the conversation history, tell them honestly that you don't have the original document anymore and ask them to re-upload it.]";
     }
     return;
   }
@@ -1608,7 +1660,7 @@ async function renderChat() {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, slightly nosy money companion. 😄<br><br>No document needed — just talk to me! Ask about budgeting, savings, investing basics, or anything on your mind about money. What's up?");
     uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
   } else {
-    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
+    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + (realLabel || m.title) + "</b>. Ask me anything — or tap a question above!");
     if (pendingFollowupQuestion) {
       setTimeout(function() {
         addMsg("ai", pendingFollowupQuestion);
