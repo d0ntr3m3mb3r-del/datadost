@@ -27,12 +27,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Build the message list, attaching the real file to the FIRST user message only
-    // (Claude only needs to "see" the document once — it remembers it for the rest of the conversation)
+    // Attach the real file to the LAST (most recent) user message in this request.
+    // We now send the file with every API call (not just the first message of the
+    // conversation) so Claude always has the actual document in front of it,
+    // never relying on "remembering" it from many turns ago.
     const apiMessages = messages.slice(-10).map((m, idx, arr) => {
-      const isFirstUserMsg = m.role === 'user' && arr.findIndex(x => x.role === 'user') === idx;
+      const isLastUserMsg = m.role === 'user' && idx === arr.length - 1 && arr[arr.length - 1].role === 'user';
 
-      if (isFirstUserMsg && fileData && fileMediaType) {
+      if (isLastUserMsg && fileData && fileMediaType) {
         // Attach the real document/image alongside the text question
         const isPdf = fileMediaType === 'application/pdf';
         return {
