@@ -1304,7 +1304,27 @@ function showSuccess() {
   }
 }
 
+function showLockedDocumentError() {
+  document.getElementById("sov-sub").textContent = "";
+  var el = document.getElementById("sov-ins");
+  el.innerHTML =
+    "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
+    "<div style=\"font-size:2rem\">🔒</div>" +
+    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">This document looks password-protected</div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">I can't read what's inside until it's unlocked. Most banks password-protect statements with your PAN, date of birth, or account number.<br><br>" +
+    "<b>To fix this:</b> open the PDF on your phone or computer, enter the password to unlock it, then save or export an unlocked copy — then upload that one instead.</div>" +
+    "</div>";
+  document.getElementById("sov-chat").style.display = "none";
+  document.getElementById("sov-close").textContent = "Try a different document";
+  document.getElementById("sov").classList.add("show");
+  // Reset so the user can try a different (unlocked) file right away
+  resetUpload();
+  document.getElementById("dz").classList.remove("read");
+}
+
 function renderSuccessInsights(ins) {
+  document.getElementById("sov-chat").style.display = "inline-block";
+  document.getElementById("sov-close").textContent = "Upload another document";
   var el = document.getElementById("sov-ins");
   el.innerHTML = "";
   ins.forEach(function(d, i) {
@@ -1327,7 +1347,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this " + docTypeName + ". Reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, specific, interesting finding, under 12 words]\nINSIGHT2: [a second short finding, under 12 words]\nINSIGHT3: [a third short finding or gentle observation, under 12 words]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly question about the single most notable one. Otherwise write NONE.]";
+  var detectPrompt = "Look at this " + docTypeName + ". First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nLOCKED: no\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, specific, interesting finding, under 12 words]\nINSIGHT2: [a second short finding, under 12 words]\nINSIGHT3: [a third short finding or gentle observation, under 12 words]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly question about the single most notable one. Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1342,6 +1362,10 @@ async function analyseRealDocument() {
       body: JSON.stringify(payload)
     });
     var data = await resp.json();
+    if (data.reply && data.reply.trim().toUpperCase().indexOf("LOCKED: YES") === 0) {
+      showLockedDocumentError();
+      return;
+    }
     if (data.reply) {
       var lines = data.reply.split("\n");
       var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "";
