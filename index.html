@@ -282,6 +282,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   .dt-grid{grid-template-columns:1fr 1fr}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -725,9 +726,47 @@ function setUser() {
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
 }
 
+// ── SUPABASE SETUP ──
+var sb = null;
+async function initSupabase() {
+  try {
+    var resp = await fetch("/api/config");
+    var cfg = await resp.json();
+    if (cfg.supabaseUrl && cfg.supabaseAnonKey) {
+      sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      // Check if user already has an active session (returning visitor)
+      var { data } = await sb.auth.getSession();
+      if (data && data.session && data.session.user) {
+        applySessionUser(data.session.user);
+        goTo("s-dash");
+      }
+    }
+  } catch (err) {
+    console.error("Supabase init error:", err);
+  }
+}
+
+function applySessionUser(user) {
+  var meta = user.user_metadata || {};
+  var fn = meta.first_name || (user.email ? user.email.split("@")[0] : "Friend");
+  uName = fn.charAt(0).toUpperCase() + fn.slice(1);
+  uInit = uName.charAt(0).toUpperCase();
+  setUser();
+}
+
+function authErrorMessage(err) {
+  if (!err) return "Something went wrong. Please try again.";
+  var msg = err.message || String(err);
+  if (msg.includes("Invalid login credentials")) return "Incorrect email or password. Please try again.";
+  if (msg.includes("already registered") || msg.includes("already exists")) return "This email is already registered. Try logging in instead.";
+  if (msg.includes("Password should be")) return "Password must be at least 8 characters.";
+  if (msg.includes("Unable to validate email")) return "Please enter a valid email address.";
+  return msg;
+}
+
 // ── AUTH HANDLERS ──
-function doLogin() {
-  var email = document.getElementById("l-email").value;
+async function doLogin() {
+  var email = document.getElementById("l-email").value.trim();
   var pass = document.getElementById("l-pass").value;
   var ok = true;
   document.getElementById("l-email-e").classList.remove("show");
@@ -735,15 +774,31 @@ function doLogin() {
   if (!email || !email.includes("@")) { document.getElementById("l-email-e").classList.add("show"); ok = false; }
   if (!pass) { document.getElementById("l-pass-e").classList.add("show"); ok = false; }
   if (!ok) return;
-  var n = email.split("@")[0];
-  uName = n.charAt(0).toUpperCase() + n.slice(1);
-  uInit = uName.charAt(0).toUpperCase();
-  setUser(); goTo("s-dash"); toast("Welcome back, " + uName + "! 👋");
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+
+  var btn = document.getElementById("do-login");
+  var originalText = btn.textContent;
+  btn.textContent = "Logging in...";
+  btn.disabled = true;
+
+  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+
+  btn.textContent = originalText;
+  btn.disabled = false;
+
+  if (error) {
+    toast(authErrorMessage(error));
+    return;
+  }
+  applySessionUser(data.user);
+  goTo("s-dash");
+  toast("Welcome back, " + uName + "! 👋");
 }
 
-function doSignup() {
-  var fn = document.getElementById("s-fname").value || "Friend";
-  var email = document.getElementById("s-email").value;
+async function doSignup() {
+  var fn = document.getElementById("s-fname").value.trim() || "Friend";
+  var ln = document.getElementById("s-lname").value.trim() || "";
+  var email = document.getElementById("s-email").value.trim();
   var pass = document.getElementById("s-pass").value;
   var ok = true;
   document.getElementById("s-email-e").classList.remove("show");
@@ -751,14 +806,42 @@ function doSignup() {
   if (!email || !email.includes("@")) { document.getElementById("s-email-e").classList.add("show"); ok = false; }
   if (!pass || pass.length < 8) { document.getElementById("s-pass-e").classList.add("show"); ok = false; }
   if (!ok) return;
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+
+  var btn = document.getElementById("do-signup");
+  var originalText = btn.textContent;
+  btn.textContent = "Creating account...";
+  btn.disabled = true;
+
+  var { data, error } = await sb.auth.signUp({
+    email: email,
+    password: pass,
+    options: { data: { first_name: fn, last_name: ln } }
+  });
+
+  btn.textContent = originalText;
+  btn.disabled = false;
+
+  if (error) {
+    toast(authErrorMessage(error));
+    return;
+  }
   uName = fn.charAt(0).toUpperCase() + fn.slice(1);
   uInit = uName.charAt(0).toUpperCase();
-  setUser(); goTo("s-dash"); toast("Welcome to DataDost, " + uName + "! 🎉");
+  setUser();
+  goTo("s-dash");
+  toast("Welcome to DataDost, " + uName + "! 🎉");
 }
 
 function doGoogle() {
+  toast("Google sign-in is coming soon — please use email signup for now 🙏");
+}
+
+async function doLogout() {
+  if (sb) { await sb.auth.signOut(); }
   uName = "Rahul"; uInit = "R";
-  setUser(); goTo("s-dash"); toast("Welcome back, Rahul! 👋");
+  goTo("s-land");
+  toast("Logged out — see you soon! 👋");
 }
 
 // ── WIRE LANDING BUTTONS ──
@@ -801,6 +884,9 @@ document.getElementById("qa-upload").addEventListener("click", function() { goTo
 document.getElementById("qa-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("qa-report").addEventListener("click", function() { toast("Monthly report coming soon!"); });
 document.getElementById("qa-goal").addEventListener("click", function() { toast("Savings goals coming in Phase 2!"); });
+document.getElementById("user-pill-dash").addEventListener("click", function() {
+  if (confirm("Log out of DataDost?")) { doLogout(); }
+});
 document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
 document.getElementById("chat-up-btn").addEventListener("click", function() { goTo("s-upload"); });
 
@@ -1233,6 +1319,7 @@ function toast(msg) {
 // ── INIT ──
 renderDash();
 renderChat();
+initSupabase();
 
 
 }); // end DOMContentLoaded
