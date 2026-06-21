@@ -1630,6 +1630,7 @@ function addRealDocToSidebar(doc, name) {
 // but borrows the underlying type's quick-question set and icon.
 function selectRealDoc(uniqueKey, realType, realName, skipRender) {
   compareDocsPayload = null; // leaving compare mode if we were in it
+  clearCompareSelection(); // also clear any checked comparison boxes — we're viewing one document now
   activeDoc = uniqueKey;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
@@ -1638,6 +1639,12 @@ function selectRealDoc(uniqueKey, realType, realName, skipRender) {
   document.getElementById("chat-hdr-title").textContent = realName;
   document.getElementById("chat-hdr-sub").textContent = "Uploaded this session";
   if (!skipRender) renderChat();
+}
+
+function clearCompareSelection() {
+  document.querySelectorAll(".compare-check:checked").forEach(function(cb) { cb.checked = false; });
+  var bar = document.getElementById("compare-bar");
+  if (bar) bar.style.display = "none";
 }
 
 
@@ -1691,6 +1698,7 @@ var chatResp = {
 
 function selectDoc(doc, skipRender) {
   compareDocsPayload = null; // leaving compare mode if we were in it
+  clearCompareSelection(); // also clear any checked comparison boxes — we're viewing one document now
   activeDoc = doc;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if(d.dataset.doc === doc) d.classList.add("act"); });
