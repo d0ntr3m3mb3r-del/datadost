@@ -13,7 +13,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { messages, systemPrompt, fileData, fileMediaType } = req.body;
+  const { messages, systemPrompt, fileData, fileMediaType, fileDataMulti } = req.body;
 
   // Validate input
   if (!messages || !Array.isArray(messages)) {
@@ -27,15 +27,38 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Attach the real file to the LAST (most recent) user message in this request.
-    // We now send the file with every API call (not just the first message of the
-    // conversation) so Claude always has the actual document in front of it,
-    // never relying on "remembering" it from many turns ago.
+    // Attach file(s) to the LAST (most recent) user message in this request.
+    // We send file(s) with every API call (not just the first message of the
+    // conversation) so Claude always has the actual document(s) in front of it,
+    // never relying on "remembering" them from many turns ago.
+    //
+    // Two modes:
+    //  - fileDataMulti: an array of {fileData, fileMediaType, label} — used for
+    //    cross-document comparison, attaches ALL of them to the same message.
+    //  - fileData/fileMediaType: a single document — the original, simpler mode.
     const apiMessages = messages.slice(-10).map((m, idx, arr) => {
       const isLastUserMsg = m.role === 'user' && idx === arr.length - 1 && arr[arr.length - 1].role === 'user';
 
+      if (isLastUserMsg && Array.isArray(fileDataMulti) && fileDataMulti.length > 0) {
+        const fileBlocks = fileDataMulti.map((f) => {
+          const isPdf = f.fileMediaType === 'application/pdf';
+          return {
+            type: isPdf ? 'document' : 'image',
+            source: {
+              type: 'base64',
+              media_type: f.fileMediaType,
+              data: f.fileData,
+            },
+          };
+        });
+        return {
+          role: 'user',
+          content: [...fileBlocks, { type: 'text', text: m.content }],
+        };
+      }
+
       if (isLastUserMsg && fileData && fileMediaType) {
-        // Attach the real document/image alongside the text question
+        // Attach a single document/image alongside the text question
         const isPdf = fileMediaType === 'application/pdf';
         return {
           role: 'user',
