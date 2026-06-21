@@ -1515,10 +1515,10 @@ document.getElementById("sov-chat").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   if (detectedDocName) {
     var newKey = addRealDocToSidebar(docType, detectedDocName);
-    selectRealDoc(newKey, docType, detectedDocName);
+    selectRealDoc(newKey, docType, detectedDocName, true); // true = skip render, goTo below will do it once
   } else {
     activeDoc = docType;
-    selectDoc(docType);
+    selectDoc(docType, true);
   }
   goTo("s-chat");
 });
@@ -1544,7 +1544,7 @@ function addRealDocToSidebar(doc, name) {
 
 // Selecting a real (not sample) document — uses its own unique key for chat history,
 // but borrows the underlying type's quick-question set and icon.
-function selectRealDoc(uniqueKey, realType, realName) {
+function selectRealDoc(uniqueKey, realType, realName, skipRender) {
   activeDoc = uniqueKey;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
@@ -1552,7 +1552,7 @@ function selectRealDoc(uniqueKey, realType, realName) {
   document.getElementById("chat-hdr-ico").textContent = icoMap[realType] || "📄";
   document.getElementById("chat-hdr-title").textContent = realName;
   document.getElementById("chat-hdr-sub").textContent = "Uploaded this session";
-  renderChat();
+  if (!skipRender) renderChat();
 }
 
 
@@ -1604,7 +1604,7 @@ var chatResp = {
   },
 };
 
-function selectDoc(doc) {
+function selectDoc(doc, skipRender) {
   activeDoc = doc;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if(d.dataset.doc === doc) d.classList.add("act"); });
@@ -1613,7 +1613,7 @@ function selectDoc(doc) {
   // Use the real detected name (e.g. "HDFC Bank Statement") if we found one, otherwise the generic label
   document.getElementById("chat-hdr-title").textContent = detectedDocName ? (detectedDocName + " — " + m.title) : m.title;
   document.getElementById("chat-hdr-sub").textContent = detectedDocName ? "Uploaded just now" : m.sub;
-  renderChat();
+  if (!skipRender) renderChat();
 }
 
 // Wire sidebar doc buttons
