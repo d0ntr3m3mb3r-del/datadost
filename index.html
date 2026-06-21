@@ -1231,7 +1231,7 @@ function resetUploadBoxVisuals() {
 
 document.getElementById("btn-change").addEventListener("click", resetUpload);
 
-document.getElementById("btn-analyse").addEventListener("click", function(e) {
+document.getElementById("btn-analyse").addEventListener("click", async function(e) {
   e.stopPropagation();
   if (!document.getElementById("consent-check").checked) {
     toast("Please tick the consent box first — your choice, your data 🙏");
@@ -1251,8 +1251,19 @@ document.getElementById("btn-analyse").addEventListener("click", function(e) {
   var allSteps = stepsEl.querySelectorAll(".rs");
   var prog = [{p:15,t:"Reading your document...",s:"Going through every line 🔍"},{p:38,t:"Identifying figures...",s:"Finding what matters"},{p:62,t:"Categorising data...",s:"Sorting the numbers"},{p:84,t:"Spotting patterns...",s:"Almost there..."},{p:100,t:"Done! 🎉",s:"Found some interesting things!"}];
   var i = 0;
+  // Wait for the REAL file read to actually finish before starting the cosmetic animation —
+  // this prevents the animation from completing before fileBase64 is actually populated,
+  // which previously could leave the screen stuck.
   if (curFile) {
-    readFileForAPI(curFile);
+    try {
+      await readFileForAPI(curFile);
+    } catch (err) {
+      console.error("File reading error:", err);
+      toast("There was a problem reading that file — please try again or pick a different file 🙏");
+      dz.classList.remove("read");
+      document.getElementById("btn-analyse").disabled = false;
+      return;
+    }
   }
   var iv = setInterval(function() {
     if (i < prog.length) {
@@ -1272,28 +1283,35 @@ function readFileForAPI(file) {
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
   fileBase64 = "";
   fileMediaType = "";
-  if (file.type === "text/csv" || file.name.endsWith(".csv")) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (CSV):\n" + e.target.result.slice(0, 8000);
+  return new Promise(function(resolve) {
+    if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (CSV):\n" + e.target.result.slice(0, 8000);
+        conversationHistory = [];
+        resolve();
+      };
+      reader.onerror = function() { resolve(); }; // resolve anyway so the UI never hangs forever
+      reader.readAsText(file);
+    } else if (file.type.startsWith("image/") || file.type === "application/pdf") {
+      var reader2 = new FileReader();
+      reader2.onload = function(e) {
+        // Extract just the base64 part (strip the "data:image/png;base64," prefix)
+        var result = e.target.result;
+        fileBase64 = result.split(",")[1];
+        fileMediaType = file.type;
+        uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[The actual document is attached and visible to you. Read the real figures, transactions, and details directly from it. Answer the user's questions based on what you actually see in the document.]";
+        conversationHistory = [];
+        resolve();
+      };
+      reader2.onerror = function() { resolve(); };
+      reader2.readAsDataURL(file);
+    } else {
+      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[Unsupported file format for direct reading. Provide helpful general financial coaching for Indian middle-class finances, and ask the user to describe key figures if needed.]";
       conversationHistory = [];
-    };
-    reader.readAsText(file);
-  } else if (file.type.startsWith("image/") || file.type === "application/pdf") {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      // Extract just the base64 part (strip the "data:image/png;base64," prefix)
-      var result = e.target.result;
-      fileBase64 = result.split(",")[1];
-      fileMediaType = file.type;
-      uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[The actual document is attached and visible to you. Read the real figures, transactions, and details directly from it. Answer the user's questions based on what you actually see in the document.]";
-      conversationHistory = [];
-    };
-    reader.readAsDataURL(file);
-  } else {
-    uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[Unsupported file format for direct reading. Provide helpful general financial coaching for Indian middle-class finances, and ask the user to describe key figures if needed.]";
-    conversationHistory = [];
-  }
+      resolve();
+    }
+  });
 }
 
 var readMsgs = {
@@ -1389,11 +1407,15 @@ async function analyseRealDocument() {
       fileData: fileBase64,
       fileMediaType: fileMediaType
     };
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 30000); // never hang longer than 30s
     var resp = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     var data = await resp.json();
     if (data.reply && data.reply.trim().toUpperCase().indexOf("LOCKED: YES") === 0) {
       showLockedDocumentError();
