@@ -396,6 +396,16 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-upload">Upload</button>
       <button class="nl" id="nav-chat">Chat</button>
     </div>
+    <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;margin-right:.5rem">
+      <option value="INR">₹ INR</option>
+      <option value="USD">$ USD</option>
+      <option value="AED">د.إ AED</option>
+      <option value="GBP">£ GBP</option>
+      <option value="EUR">€ EUR</option>
+      <option value="SGD">S$ SGD</option>
+      <option value="AUD">A$ AUD</option>
+      <option value="CAD">C$ CAD</option>
+    </select>
     <div class="nav-pill" id="user-pill-dash">
       <div class="nav-av" id="av-dash">R</div>
       <span class="nav-nm" id="nm-dash">Rahul</span>
@@ -553,6 +563,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="qbtns" id="qbtns"></div>
       <div class="chat-inp-row">
         <button class="chat-up-btn" id="chat-up-btn" title="Upload document"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+        <button class="chat-up-btn" id="chat-cash-btn" title="Break down cash spending">💵</button>
         <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
         <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg></button>
       </div>
@@ -689,6 +700,26 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 
 <!-- API calls handled securely by /api/chat server function -->
 
+<!-- CASH BREAKDOWN MODAL -->
+<div id="cash-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
+  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">💵</div>
+      <div style="font-family:Sora,sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink)">Break down your cash spending</div>
+    </div>
+    <div style="font-size:.82rem;color:var(--slate);margin-bottom:1rem;line-height:1.6">Just like your CA would ask — tell me roughly what your cash withdrawals went toward. Add as many rows as you need.</div>
+
+    <div id="cash-rows" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.75rem"></div>
+
+    <button type="button" id="cash-add-row" style="background:var(--mist);border:1px dashed var(--border);border-radius:10px;padding:.6rem;font-size:.82rem;color:var(--ink-s);cursor:pointer;font-family:inherit;width:100%;margin-bottom:1.25rem">+ Add another row</button>
+
+    <div style="display:flex;gap:.75rem">
+      <button type="button" id="cash-submit" style="flex:1;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">Send to DataDost</button>
+      <button type="button" id="cash-cancel" style="background:transparent;color:var(--slate);border:1.5px solid var(--border);border-radius:100px;padding:.78rem 1.25rem;font-size:.88rem;cursor:pointer;font-family:inherit">Skip for now</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -734,10 +765,9 @@ async function initSupabase() {
     var cfg = await resp.json();
     if (cfg.supabaseUrl && cfg.supabaseAnonKey) {
       sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
-      // Check if user already has an active session (returning visitor)
-      var { data } = await sb.auth.getSession();
-      if (data && data.session && data.session.user) {
-        applySessionUser(data.session.user);
+      var sessionResult = await sb.auth.getSession();
+      if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
+        applySessionUser(sessionResult.data.session.user);
         goTo("s-dash");
       }
     }
@@ -781,16 +811,16 @@ async function doLogin() {
   btn.textContent = "Logging in...";
   btn.disabled = true;
 
-  var { data, error } = await sb.auth.signInWithPassword({ email: email, password: pass });
+  var result = await sb.auth.signInWithPassword({ email: email, password: pass });
 
   btn.textContent = originalText;
   btn.disabled = false;
 
-  if (error) {
-    toast(authErrorMessage(error));
+  if (result.error) {
+    toast(authErrorMessage(result.error));
     return;
   }
-  applySessionUser(data.user);
+  applySessionUser(result.data.user);
   goTo("s-dash");
   toast("Welcome back, " + uName + "! 👋");
 }
@@ -813,7 +843,7 @@ async function doSignup() {
   btn.textContent = "Creating account...";
   btn.disabled = true;
 
-  var { data, error } = await sb.auth.signUp({
+  var result = await sb.auth.signUp({
     email: email,
     password: pass,
     options: { data: { first_name: fn, last_name: ln } }
@@ -822,8 +852,8 @@ async function doSignup() {
   btn.textContent = originalText;
   btn.disabled = false;
 
-  if (error) {
-    toast(authErrorMessage(error));
+  if (result.error) {
+    toast(authErrorMessage(result.error));
     return;
   }
   uName = fn.charAt(0).toUpperCase() + fn.slice(1);
@@ -889,19 +919,58 @@ document.getElementById("user-pill-dash").addEventListener("click", function() {
 });
 document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
 document.getElementById("chat-up-btn").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("chat-cash-btn").addEventListener("click", openCashModal);
 
 // ── DASHBOARD DATA ──
+// ── CURRENCY SYSTEM ──
+// Base data is always stored in INR (since real Indian financial documents are in INR).
+// Conversion happens only at render time using approximate rates for orientation —
+// these are NOT live exchange rates, just enough to help international beta users relate.
+var CURRENCY_RATES = {
+  INR: { symbol: "₹", rate: 1,        locale: "en-IN" },
+  USD: { symbol: "$",  rate: 1/83,    locale: "en-US" },
+  AED: { symbol: "د.إ", rate: 1/22.6, locale: "en-US" },
+  GBP: { symbol: "£",  rate: 1/105,   locale: "en-GB" },
+  EUR: { symbol: "€",  rate: 1/90,    locale: "en-IE" },
+  SGD: { symbol: "S$", rate: 1/61,    locale: "en-SG" },
+  AUD: { symbol: "A$", rate: 1/54,    locale: "en-AU" },
+  CAD: { symbol: "C$", rate: 1/60,    locale: "en-CA" },
+};
+var currentCurrency = localStorage.getItem("dd_currency") || "INR";
+
+function fmtCurrency(inrAmount) {
+  var cur = CURRENCY_RATES[currentCurrency] || CURRENCY_RATES.INR;
+  var converted = inrAmount * cur.rate;
+  var rounded = currentCurrency === "INR" ? Math.round(converted) : Math.round(converted * 100) / 100;
+  var formatted = rounded.toLocaleString(cur.locale, currentCurrency === "INR" ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return cur.symbol + formatted;
+}
+
+var curSelectEl = document.getElementById("currency-select");
+if (curSelectEl) {
+  curSelectEl.value = currentCurrency;
+  curSelectEl.addEventListener("change", function() {
+    currentCurrency = this.value;
+    localStorage.setItem("dd_currency", currentCurrency);
+    renderDash();
+    toast("Showing approximate amounts in " + currentCurrency + " — your real documents are still read in their original currency");
+  });
+}
+
+// ── DASHBOARD DATA — all base amounts stored in INR ──
 var spendData = [
   {l:"Rent",a:14000,c:"#2E75B6",p:32},{l:"Food delivery",a:4820,c:"#FF6B1A",p:11},
   {l:"Groceries",a:5000,c:"#0F6E56",p:12},{l:"Transport",a:2230,c:"#BA7517",p:5},
   {l:"Subscriptions",a:1566,c:"#6B3FA0",p:4},{l:"Medical",a:890,c:"#E24B4A",p:2},
 ];
-var insightsData = [
-  {e:"🍔",t:"<b>Food delivery: ₹4,820</b> — 10% of salary on Swiggy &amp; Zomato. Cooking twice a week saves ₹2,000+/month."},
-  {e:"📱",t:"<b>4 streaming subscriptions: ₹1,566/month.</b> Pick 2, drop 2 → save ₹618/month = ₹7,400/year."},
-  {e:"💰",t:"Savings rate <b>11.3%</b> — target is 20%. You need ₹4,180 more saved monthly to hit it."},
-  {e:"🎯",t:"<b>Quick win:</b> Set up a ₹2,000 SIP today. In 10 years at 12% CAGR that becomes ₹4.6 lakh."},
-];
+function getInsightsData() {
+  return [
+    {e:"🍔",t:"<b>Food delivery: " + fmtCurrency(4820) + "</b> — 10% of salary on Swiggy &amp; Zomato. Cooking twice a week saves " + fmtCurrency(2000) + "+/month."},
+    {e:"📱",t:"<b>4 streaming subscriptions: " + fmtCurrency(1566) + "/month.</b> Pick 2, drop 2 → save " + fmtCurrency(618) + "/month = " + fmtCurrency(7400) + "/year."},
+    {e:"💰",t:"Savings rate <b>11.3%</b> — target is 20%. You need " + fmtCurrency(4180) + " more saved monthly to hit it."},
+    {e:"🎯",t:"<b>Quick win:</b> Set aside " + fmtCurrency(2000) + " today toward savings. In 10 years at 12% CAGR that becomes " + fmtCurrency(460000) + "."},
+  ];
+}
 var recentDocsData = [
   {ico:"🏦",name:"SBI Statement — May 2025",meta:"3 days ago · Bank statement",doc:"bank"},
   {ico:"💼",name:"Salary Slip — April 2025",meta:"2 weeks ago · Salary slip",doc:"salary"},
@@ -910,18 +979,29 @@ var recentDocsData = [
 ];
 
 function renderDash() {
+  var statVals = document.querySelectorAll(".stat-card .stat-val");
+  if (statVals.length >= 4) {
+    statVals[0].textContent = fmtCurrency(48500);
+    statVals[1].textContent = fmtCurrency(43045);
+    statVals[2].textContent = fmtCurrency(5455);
+  }
+  var statTrends = document.querySelectorAll(".stat-card .stat-trend");
+  if (statTrends.length >= 3) {
+    statTrends[2].innerHTML = "↓ Could be " + fmtCurrency(8000) + "+";
+  }
+
   var sb = document.getElementById("spend-bars");
   if (sb) {
     sb.innerHTML = "";
     spendData.forEach(function(d) {
-      sb.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">₹" + d.a.toLocaleString("en-IN") + "</div></div>";
+      sb.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a) + "</div></div>";
     });
     setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
   }
   var ins = document.getElementById("insights");
   if (ins) {
     ins.innerHTML = "";
-    insightsData.forEach(function(d) {
+    getInsightsData().forEach(function(d) {
       var el = document.createElement("div");
       el.className = "ins-card";
       el.innerHTML = "<div class=\"ins-em\">" + d.e + "</div><div class=\"ins-text\">" + d.t + "</div>";
@@ -1202,6 +1282,83 @@ function renderChat() {
   }
 }
 
+// Automatically finds every rupee amount in a string (e.g. ₹4,820 or ₹1.5L or ₹4.6 lakh)
+// and converts it to the user's selected display currency — works on ANY text,
+// whether it's a hardcoded demo string or a live Claude response.
+// ── CASH BREAKDOWN TABLE ──
+var cashRowCount = 0;
+function addCashRow() {
+  cashRowCount++;
+  var id = cashRowCount;
+  var wrap = document.createElement("div");
+  wrap.id = "cash-row-" + id;
+  wrap.style.display = "grid";
+  wrap.style.gridTemplateColumns = "100px 110px 1fr auto";
+  wrap.style.gap = "6px";
+  wrap.innerHTML =
+    '<input type="date" id="cash-date-' + id + '" style="border:1.5px solid var(--border);border-radius:8px;padding:.5rem .4rem;font-size:.78rem;font-family:inherit;color:var(--ink)">' +
+    '<input type="number" id="cash-amt-' + id + '" placeholder="Amount" style="border:1.5px solid var(--border);border-radius:8px;padding:.5rem .5rem;font-size:.78rem;font-family:inherit;color:var(--ink)">' +
+    '<input type="text" id="cash-desc-' + id + '" placeholder="What was it for? (e.g. groceries, rent)" style="border:1.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;font-size:.78rem;font-family:inherit;color:var(--ink)">' +
+    '<button type="button" onclick="document.getElementById(\'cash-row-' + id + '\').remove()" style="background:none;border:none;color:var(--slate);cursor:pointer;font-size:1rem;padding:0 .3rem">✕</button>';
+  document.getElementById("cash-rows").appendChild(wrap);
+}
+
+function openCashModal() {
+  document.getElementById("cash-rows").innerHTML = "";
+  cashRowCount = 0;
+  addCashRow(); addCashRow(); addCashRow();
+  document.getElementById("cash-modal").style.display = "flex";
+}
+
+function submitCashTable() {
+  var rows = document.querySelectorAll("#cash-rows > div");
+  var entries = [];
+  rows.forEach(function(row) {
+    var idMatch = row.id.match(/cash-row-(\d+)/);
+    if (!idMatch) return;
+    var id = idMatch[1];
+    var date = document.getElementById("cash-date-" + id).value;
+    var amt = document.getElementById("cash-amt-" + id).value;
+    var desc = document.getElementById("cash-desc-" + id).value.trim();
+    if (amt && desc) {
+      entries.push((date ? date + " — " : "") + fmtCurrency(parseFloat(amt)) + " — " + desc);
+    }
+  });
+  document.getElementById("cash-modal").style.display = "none";
+  if (entries.length === 0) {
+    toast("No entries added — that's okay, you can do this anytime!");
+    return;
+  }
+  var summary = "Here's my cash spending breakdown:\n" + entries.join("\n");
+  document.getElementById("chat-inp").value = summary;
+  sendMsg();
+}
+
+document.getElementById("cash-add-row").addEventListener("click", addCashRow);
+document.getElementById("cash-submit").addEventListener("click", submitCashTable);
+document.getElementById("cash-cancel").addEventListener("click", function() {
+  document.getElementById("cash-modal").style.display = "none";
+  toast("No problem — ask me to break it down anytime you're ready 🙏");
+});
+
+function convertRupeeAmounts(text) {
+  if (currentCurrency === "INR") return text; // nothing to convert
+  // Handle "₹1.5L" / "₹4.6 lakh" style shorthand first
+  text = text.replace(/₹\s?([\d.]+)\s?(lakh|lac|L)\b/gi, function(match, num) {
+    return fmtCurrency(parseFloat(num) * 100000);
+  });
+  text = text.replace(/₹\s?([\d.]+)\s?(crore|cr)\b/gi, function(match, num) {
+    return fmtCurrency(parseFloat(num) * 10000000);
+  });
+  // Handle plain "₹4,820" or "₹48,500.50" style amounts
+  text = text.replace(/₹\s?([\d,]+(?:\.\d+)?)/g, function(match, num) {
+    var clean = parseFloat(num.replace(/,/g, ""));
+    if (isNaN(clean)) return match;
+    return fmtCurrency(clean);
+  });
+  return text;
+}
+
 function addMsg(role, html) {
   var msgsEl = document.getElementById("chat-msgs");
   var row = document.createElement("div");
@@ -1212,7 +1369,7 @@ function addMsg(role, html) {
   av.textContent = role === "user" ? uInit : "D";
   var b = document.createElement("div");
   b.className = "bubble " + role;
-  b.innerHTML = html;
+  b.innerHTML = role === "ai" ? convertRupeeAmounts(html) : html;
   if (role === "user") { row.appendChild(b); row.appendChild(av); }
   else { row.appendChild(av); row.appendChild(b); }
   msgsEl.appendChild(row);
@@ -1268,7 +1425,7 @@ function sendMsg() {
 }
 
 async function callClaudeAPI(userMsg) {
-  var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\n\nDocument context:\n" + uploadedDocContext;
+  var systemPrompt = "You are DataDost, a friendly, warm, and slightly humorous AI financial companion built specifically for Indian middle-class families. You speak like a smart older sibling who knows a lot about money — honest, caring, never preachy. Use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Keep answers concise, specific, and actionable. End responses with a gentle nudge or follow-up question. Never give specific investment product recommendations — keep advice general and educational.\\n\\nIMPORTANT — Duplicate charge detection: When reading a real document, actively watch for transactions to the SAME merchant or service provider with the SAME or very similar amount appearing more than once in a short period (e.g. same week or billing cycle). Do NOT assume these are errors or automatically flag them as 'double charged'. Instead, gently surface the pattern and ask the user to confirm — for example: 'I noticed two charges to [merchant] for [amount] on [dates] — does that look right to you, or could one have been a retry, a refund-and-rebill, or a genuine separate purchase?' Many legitimate reasons exist (failed payment retries, two different orders, partial refunds followed by rebilling). Never state with certainty that a user was wrongly charged twice — always ask, never accuse.\\n\\nIMPORTANT — Currency awareness: If the user mentions they are outside India or asks about a non-Indian document, respond using their stated currency and do not assume INR. If unsure of their currency, ask once rather than assuming.\\n\\nIMPORTANT — Cash withdrawal handling: When you spot ATM withdrawals or 'cash withdrawal' line items in a bank statement, never treat that money as unexplained or wasted. Just like a Chartered Accountant always asks a client what cash was used for, you must do the same. The FIRST time you mention a cash withdrawal in a conversation, ask the user conversationally what it was generally for (e.g. 'I see a ₹5,000 cash withdrawal on the 12th — was that for groceries, rent, an emergency, or something else?'). If the user indicates there were MULTIPLE cash withdrawals or says something like 'there were a few' or 'let me list them', respond with exactly this phrase on its own line so the app can detect it and show a table: SHOW_CASH_TABLE. Do not explain or describe the table yourself — just say that phrase and a brief friendly lead-in sentence before it. Once the user has provided a breakdown (either conversationally or via the table), incorporate those categorised cash amounts into your spending analysis as if they were regular tracked transactions, and never refer to that cash as 'untracked' or 'mystery' spending again in that conversation.\\n\\nDocument context:\\n" + uploadedDocContext;
   try {
     var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
     var isFirstMessage = conversationHistory.filter(function(m){ return m.role === "user"; }).length === 1;
@@ -1288,8 +1445,13 @@ async function callClaudeAPI(userMsg) {
     if (data.reply) {
       var reply = data.reply;
       conversationHistory.push({ role:"assistant", content: reply });
-      var fmt = reply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n\n/g,"<br><br>").replace(/\n/g,"<br>");
+      var shouldShowCashTable = reply.indexOf("SHOW_CASH_TABLE") !== -1;
+      var cleanReply = reply.replace("SHOW_CASH_TABLE", "").trim();
+      var fmt = cleanReply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n\n/g,"<br><br>").replace(/\n/g,"<br>");
       addMsg("ai", fmt);
+      if (shouldShowCashTable) {
+        setTimeout(openCashModal, 600);
+      }
     } else if (data.error) {
       addMsg("ai", "DataDost error: " + data.error);
     } else {
