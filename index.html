@@ -702,6 +702,36 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 <!-- API calls handled securely by /api/chat server function -->
 
 <!-- CASH BREAKDOWN MODAL -->
+<!-- FIRST-LOGIN ONBOARDING TOOLTIP -->
+<div id="onboard-tooltip" style="display:none;position:fixed;z-index:600;background:var(--ink);color:#fff;border-radius:14px;padding:1rem 1.2rem;max-width:280px;box-shadow:0 10px 32px rgba(0,0,0,0.25);font-size:.85rem;line-height:1.5">
+  <div id="onboard-text"></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.8rem">
+    <span id="onboard-skip" style="font-size:.75rem;color:rgba(255,255,255,.6);cursor:pointer">Skip tour</span>
+    <button type="button" id="onboard-next" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.4rem 1rem;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit">Next →</button>
+  </div>
+</div>
+
+<!-- FIRST-LOGIN CURRENCY MODAL -->
+<div id="welcome-currency-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
+  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:420px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2);text-align:center">
+    <div style="font-size:2rem;margin-bottom:.5rem">👋</div>
+    <div style="font-family:Sora,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">Welcome to DataDost!</div>
+    <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem;line-height:1.6">First — what currency should I use to talk to you about money?</div>
+    <select id="welcome-currency-select" style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:.7rem;font-size:.9rem;font-family:inherit;color:var(--ink);margin-bottom:1rem;cursor:pointer">
+      <option value="INR">₹ Indian Rupee (INR)</option>
+      <option value="USD">$ US Dollar (USD)</option>
+      <option value="AED">د.إ UAE Dirham (AED)</option>
+      <option value="GBP">£ British Pound (GBP)</option>
+      <option value="EUR">€ Euro (EUR)</option>
+      <option value="SGD">S$ Singapore Dollar (SGD)</option>
+      <option value="AUD">A$ Australian Dollar (AUD)</option>
+      <option value="CAD">C$ Canadian Dollar (CAD)</option>
+    </select>
+    <button type="button" id="welcome-currency-confirm" style="width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">Continue</button>
+    <div style="font-size:.74rem;color:var(--slate);margin-top:.7rem">You can always change this later from the dashboard</div>
+  </div>
+</div>
+
 <div id="cash-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
   <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
@@ -862,6 +892,7 @@ async function doSignup() {
   setUser();
   goTo("s-dash");
   toast("Welcome to DataDost, " + uName + "! 🎉");
+  setTimeout(function() { document.getElementById("welcome-currency-modal").style.display = "flex"; }, 800);
 }
 
 function doGoogle() {
@@ -957,6 +988,73 @@ if (curSelectEl) {
     toast("Showing approximate amounts in " + currentCurrency + " — your real documents are still read in their original currency");
   });
 }
+
+var welcomeCurSelectEl = document.getElementById("welcome-currency-select");
+var welcomeCurConfirmBtn = document.getElementById("welcome-currency-confirm");
+if (welcomeCurConfirmBtn) {
+  welcomeCurConfirmBtn.addEventListener("click", function() {
+    currentCurrency = welcomeCurSelectEl.value;
+    localStorage.setItem("dd_currency", currentCurrency);
+    if (curSelectEl) curSelectEl.value = currentCurrency;
+    document.getElementById("welcome-currency-modal").style.display = "none";
+    renderDash();
+    toast("Great! I'll speak " + currentCurrency + " with you from now on 💬");
+    setTimeout(startOnboardTour, 500);
+  });
+}
+
+// ── FIRST-LOGIN GUIDED TOUR ──
+var onboardSteps = [
+  { selector: "#qa-upload", text: "👋 Start here — upload your first real document (bank statement, bill, anything) and I'll read it instantly." },
+  { selector: "#nav-chat", text: "💬 Then come here to chat — ask me anything about what I found, or just talk about your finances generally." },
+  { selector: "#currency-select", text: "💱 You can always change your currency here later if needed." },
+];
+var onboardIdx = 0;
+
+function startOnboardTour() {
+  if (localStorage.getItem("dd_tour_done")) return;
+  onboardIdx = 0;
+  showOnboardStep();
+}
+
+function showOnboardStep() {
+  if (onboardIdx >= onboardSteps.length) { endOnboardTour(); return; }
+  var step = onboardSteps[onboardIdx];
+  var target = document.querySelector(step.selector);
+  var tip = document.getElementById("onboard-tooltip");
+  if (!target) { onboardIdx++; showOnboardStep(); return; }
+  document.getElementById("onboard-text").textContent = step.text;
+  var rect = target.getBoundingClientRect();
+  tip.style.display = "block";
+  var top = rect.bottom + 10;
+  var left = Math.min(rect.left, window.innerWidth - 300);
+  tip.style.top = top + "px";
+  tip.style.left = Math.max(10, left) + "px";
+  target.style.outline = "3px solid #FF6B1A";
+  target.style.outlineOffset = "3px";
+  target.style.borderRadius = "8px";
+  target._onboardHighlighted = true;
+}
+
+function clearOnboardHighlight() {
+  onboardSteps.forEach(function(s) {
+    var el = document.querySelector(s.selector);
+    if (el && el._onboardHighlighted) { el.style.outline = "none"; }
+  });
+}
+
+function endOnboardTour() {
+  clearOnboardHighlight();
+  document.getElementById("onboard-tooltip").style.display = "none";
+  localStorage.setItem("dd_tour_done", "1");
+}
+
+document.getElementById("onboard-next").addEventListener("click", function() {
+  clearOnboardHighlight();
+  onboardIdx++;
+  showOnboardStep();
+});
+document.getElementById("onboard-skip").addEventListener("click", endOnboardTour);
 
 // ── DASHBOARD DATA — all base amounts stored in INR ──
 var spendData = [
@@ -1067,7 +1165,7 @@ document.querySelectorAll(".dt").forEach(function(el) {
 var dzEl = document.getElementById("dz");
 var fileInp = document.getElementById("file-inp");
 
-dzEl.addEventListener("click", function() { fileInp.click(); });
+dzEl.addEventListener("click", function() { if (!curFile) { fileInp.click(); } });
 fileInp.addEventListener("change", function() { if(this.files[0]) handleFile(this.files[0]); });
 dzEl.addEventListener("dragover", function(e) { e.preventDefault(); dzEl.classList.add("drag"); });
 dzEl.addEventListener("dragleave", function() { dzEl.classList.remove("drag"); });
@@ -1166,12 +1264,12 @@ function readFileForAPI(file) {
 }
 
 var readMsgs = {
-  bank:["Found salary credit ₹48,500","Identified 47 debit transactions","Spotted food delivery: ₹4,820","Detected 4 subscriptions","Analysed closing balance"],
-  salary:["Confirmed gross salary","Calculated net take-home","Identified PF & TDS","Computed effective tax rate","Built salary summary"],
-  utility:["Read billing period","Found units consumed: 387","Compared to last month","Flagged 30% usage spike","Estimated savings potential"],
-  insurance:["Identified policy type","Read premium & due date","Noted coverage amount","Checked policy term","Built insurance summary"],
-  tax:["Found gross total income","Read TDS deducted","Checked 80C deductions","Estimated net liability","Identified refund/dues"],
-  creditcard:["Found card: HDFC Regalia","Reading reward points: 14,820","Checking expiry: 47 days","Scanning hidden benefits","Identifying missed rewards"],
+  bank:["Reading transaction history","Identifying income & spending","Categorising your expenses","Checking for patterns","Preparing your summary"],
+  salary:["Reading salary components","Calculating net take-home","Checking deductions","Reviewing tax details","Preparing your summary"],
+  utility:["Reading billing details","Checking consumption","Comparing usage trends","Looking for savings tips","Preparing your summary"],
+  insurance:["Reading policy details","Checking coverage terms","Reviewing premium details","Checking renewal dates","Preparing your summary"],
+  tax:["Reading income details","Checking deductions claimed","Reviewing tax computation","Checking refund status","Preparing your summary"],
+  creditcard:["Reading card statement","Checking reward points","Looking for hidden benefits","Reviewing your spending","Preparing your summary"],
   other:["Scanning document","Identifying figures","Extracting key data","Cross-referencing","Building summary"],
 };
 
@@ -1195,6 +1293,7 @@ var scanningQuips = [
 ];
 
 var detectedDocName = ""; // filled in if Claude can identify the institution
+var pendingFollowupQuestion = ""; // a question DataDost wants to ask about an unusual transaction
 
 function showSuccess() {
   if (fileBase64 && fileMediaType) {
@@ -1228,7 +1327,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this " + docTypeName + ". Reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount as a plain number, or NONE]\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, specific, interesting finding, under 12 words]\nINSIGHT2: [a second short finding, under 12 words]\nINSIGHT3: [a third short finding or gentle observation, under 12 words]";
+  var detectPrompt = "Look at this " + docTypeName + ". Reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, specific, interesting finding, under 12 words]\nINSIGHT2: [a second short finding, under 12 words]\nINSIGHT3: [a third short finding or gentle observation, under 12 words]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly question about the single most notable one. Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1245,11 +1344,13 @@ async function analyseRealDocument() {
     var data = await resp.json();
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, categories = [];
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "";
       lines.forEach(function(line) {
         if (line.indexOf("INSTITUTION:") === 0) institution = line.replace("INSTITUTION:", "").trim();
         if (line.indexOf("INCOME:") === 0) { var v = line.replace("INCOME:","").trim(); income = parseFloat(v.replace(/[^\d.]/g,"")) || 0; }
         if (line.indexOf("SPENDING:") === 0) { var v2 = line.replace("SPENDING:","").trim(); spending = parseFloat(v2.replace(/[^\d.]/g,"")) || 0; }
+        if (line.indexOf("SAVINGS:") === 0) { var v3 = line.replace("SAVINGS:","").trim(); savings = parseFloat(v3.replace(/[^\d.]/g,"")) || 0; }
+        if (line.indexOf("FOLLOWUP:") === 0) { var v4 = line.replace("FOLLOWUP:","").trim(); followup = (v4.toUpperCase() === "NONE") ? "" : v4; }
         if (line.indexOf("CATEGORY") === 0) {
           var parts = line.replace(/CATEGORY\d:/, "").trim().split("|");
           if (parts.length === 2) {
@@ -1271,7 +1372,7 @@ async function analyseRealDocument() {
         realDashboardData = {
           income: income || spending, // fall back gracefully if one is missing
           spending: spending || 0,
-          saved: Math.max(0, (income || 0) - (spending || 0)),
+          saved: savings, // use the REAL detected savings/SIP/RD figure, never a leftover calculation
           bars: bars.length > 0 ? bars : spendData,
           docName: detectedDocName || docTypeName
         };
@@ -1283,6 +1384,7 @@ async function analyseRealDocument() {
         : sovInsights[docType] || sovInsights.other;
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
       renderSuccessInsights(renderedInsights);
+      pendingFollowupQuestion = followup; // asked once the user reaches the chat
     } else {
       detectedDocName = "";
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
@@ -1413,6 +1515,12 @@ function renderChat() {
     uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
   } else {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
+    if (pendingFollowupQuestion) {
+      setTimeout(function() {
+        addMsg("ai", "Oh, one more thing — " + pendingFollowupQuestion);
+        pendingFollowupQuestion = ""; // only ask once
+      }, 900);
+    }
   }
 }
 
