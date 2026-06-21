@@ -1525,7 +1525,7 @@ document.querySelectorAll(".csb-doc").forEach(function(el) {
   el.addEventListener("click", function() { selectDoc(el.dataset.doc); });
 });
 
-function renderChat() {
+async function renderChat() {
   var msgsEl = document.getElementById("chat-msgs");
   var qbEl = document.getElementById("qbtns");
   if (!msgsEl) return;
@@ -1540,6 +1540,21 @@ function renderChat() {
     btn.addEventListener("click", function() { askQ(q); });
     qbEl.appendChild(btn);
   });
+
+  // Check if we have a real saved conversation for this document — if so, restore it instead of starting fresh
+  var savedMessages = await loadMessagesFromDb(activeDoc);
+  if (savedMessages.length > 0) {
+    conversationHistory = [];
+    savedMessages.forEach(function(msg) {
+      addMsg(msg.role === "assistant" ? "ai" : "user", msg.content, false);
+      conversationHistory.push({ role: msg.role, content: msg.content });
+    });
+    if (activeDoc !== "general" && !uploadedDocContext) {
+      uploadedDocContext = "Document type: " + (chatMeta[activeDoc] || chatMeta.bank).title + "\n[This is a restored conversation — the original document is no longer attached, but the conversation history above gives context. Continue naturally based on what was already discussed.]";
+    }
+    return;
+  }
+
   if (activeDoc === "general") {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, slightly nosy money companion. 😄<br><br>No document needed — just talk to me! Ask about budgeting, savings, investing basics, or anything on your mind about money. What's up?");
     uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
@@ -1631,7 +1646,45 @@ function convertRupeeAmounts(text) {
   return text;
 }
 
-function addMsg(role, html) {
+// ── CHAT PERSISTENCE (Supabase) ──
+async function saveMessageToDb(role, content) {
+  if (!sb) return; // not logged in / Supabase not ready yet — message still shows, just won't persist
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) return; // not logged in — skip silently, this is fine for demo browsing
+    await sb.from("messages").insert({
+      user_id: user.id,
+      doc_key: activeDoc,
+      role: role,
+      content: content
+    });
+  } catch (err) {
+    console.error("Could not save message:", err);
+    // Never block the chat experience if saving fails — fail silently
+  }
+}
+
+async function loadMessagesFromDb(docKey) {
+  if (!sb) return [];
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) return [];
+    var result = await sb.from("messages")
+      .select("role, content, created_at")
+      .eq("user_id", user.id)
+      .eq("doc_key", docKey)
+      .order("created_at", { ascending: true });
+    return result.data || [];
+  } catch (err) {
+    console.error("Could not load messages:", err);
+    return [];
+  }
+}
+
+function addMsg(role, html, shouldSave) {
+  if (shouldSave === undefined) shouldSave = true; // default: save new messages, but restored history shouldn't re-save
   var msgsEl = document.getElementById("chat-msgs");
   var row = document.createElement("div");
   row.className = "msg-row" + (role === "user" ? " user" : "");
@@ -1646,6 +1699,9 @@ function addMsg(role, html) {
   else { row.appendChild(av); row.appendChild(b); }
   msgsEl.appendChild(row);
   msgsEl.scrollTop = msgsEl.scrollHeight;
+  if (shouldSave) {
+    saveMessageToDb(role === "ai" ? "assistant" : "user", html);
+  }
 }
 
 function showTyping() {
@@ -1749,8 +1805,7 @@ function toast(msg) {
 
 // ── INIT ──
 renderDash();
-renderChat();
-initSupabase();
+initSupabase().then(function() { renderChat(); });
 
 
 }); // end DOMContentLoaded
