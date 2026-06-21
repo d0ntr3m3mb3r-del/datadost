@@ -758,6 +758,12 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 document.addEventListener("DOMContentLoaded", function() {
 
 var uName="Rahul", uInit="R", activeDoc="bank", docType="bank", curFile=null;
+var fileBase64 = "";
+var fileMediaType = "";
+var detectedDocName = ""; // filled in if Claude can identify the institution
+var pendingFollowupQuestion = ""; // a question DataDost wants to ask about an unusual transaction
+var uploadedDocContext = "";
+var conversationHistory = [];
 
 // ── NAVIGATE ──
 function goTo(id, tab) {
@@ -1185,11 +1191,17 @@ function handleFile(f) {
 
 function resetUpload() {
   curFile = null;
+  fileBase64 = "";
+  fileMediaType = "";
+  detectedDocName = "";
+  uploadedDocContext = "";
+  conversationHistory = [];
   var dz = document.getElementById("dz");
   dz.classList.remove("ok","read");
   document.getElementById("btn-analyse").classList.remove("vis");
   document.getElementById("btn-change").classList.remove("vis");
   document.getElementById("btn-analyse").disabled = false;
+  document.getElementById("consent-check").checked = false;
   fileInp.value = "";
 }
 
@@ -1231,9 +1243,6 @@ document.getElementById("btn-analyse").addEventListener("click", function(e) {
     }
   }, 700);
 });
-
-var fileBase64 = "";
-var fileMediaType = "";
 
 function readFileForAPI(file) {
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
@@ -1291,9 +1300,6 @@ var scanningQuips = [
   "Definitely not snooping, just analysing 👀",
   "Brewing chai while I read this ☕",
 ];
-
-var detectedDocName = ""; // filled in if Claude can identify the institution
-var pendingFollowupQuestion = ""; // a question DataDost wants to ask about an unusual transaction
 
 function showSuccess() {
   if (fileBase64 && fileMediaType) {
@@ -1541,7 +1547,7 @@ function renderChat() {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + m.title + "</b>. Ask me anything — or tap a question above!");
     if (pendingFollowupQuestion) {
       setTimeout(function() {
-        addMsg("ai", "Oh, one more thing — " + pendingFollowupQuestion);
+        addMsg("ai", pendingFollowupQuestion);
         pendingFollowupQuestion = ""; // only ask once
       }, 900);
     }
@@ -1671,9 +1677,6 @@ function askQ(q) {
   document.getElementById("chat-inp").value = q;
   sendMsg();
 }
-
-var uploadedDocContext = "";
-var conversationHistory = [];
 
 function sendMsg() {
   var inp = document.getElementById("chat-inp");
