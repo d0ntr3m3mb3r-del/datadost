@@ -1711,6 +1711,13 @@ async function renderChat() {
   var msgsEl = document.getElementById("chat-msgs");
   var qbEl = document.getElementById("qbtns");
   if (!msgsEl) return;
+
+  // Compare mode already set up its own header, quick-questions and welcome message
+  // in startCompareChat() / renderCompareWelcome() — don't let this function overwrite them.
+  if (activeDoc && activeDoc.indexOf("compare_") === 0) {
+    return;
+  }
+
   msgsEl.innerHTML = "";
   // Real uploaded documents use a unique activeDoc key (e.g. "real_utility_2") — resolve back
   // to the underlying type (e.g. "utility") for quick-question and persona lookups.
