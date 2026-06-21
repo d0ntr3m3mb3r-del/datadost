@@ -486,6 +486,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         </label>
         <button class="btn-analyse" id="btn-analyse">Analyse this document →</button>
         <button class="btn-change" id="btn-change">Choose a different file</button>
+        <button type="button" id="btn-force-reset" style="font-size:.78rem;color:var(--slate);text-align:center;cursor:pointer;text-decoration:underline;border:none;background:none;font-family:inherit;width:100%">Upload a different document</button>
         <div>
           <div style="font-size:.72rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.55rem">What kind of document is this?</div>
           <div class="dt-grid">
@@ -524,11 +525,8 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   <h2>Reading complete! 🎉</h2>
   <p id="sov-sub">I've read through your document. Here's what I found:</p>
   <div class="sov-ins" id="sov-ins"></div>
-  <div style="display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center">
-    <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
-    <button style="background:var(--white);color:var(--ink);border:1.5px solid var(--border);border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-upload-another">+ Upload another document</button>
-  </div>
-  <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline" id="sov-close">Close</button>
+  <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
+  <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline" id="sov-close">Upload a different document</button>
 </div>
 
 <!-- CHAT -->
@@ -556,6 +554,10 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <button class="csb-doc" data-doc="salary"><div class="csb-doc-em">💼</div><div><div class="csb-doc-name">Salary Slip (sample)</div><div class="csb-doc-meta">Try the demo · 6 questions asked</div></div></button>
         <button class="csb-doc" data-doc="utility"><div class="csb-doc-em">⚡</div><div><div class="csb-doc-name">Utility Bill (sample)</div><div class="csb-doc-meta">Try the demo · 3 questions asked</div></div></button>
         <button class="csb-doc" data-doc="creditcard"><div class="csb-doc-em">💳</div><div><div class="csb-doc-name">Credit Card Statement (sample)</div><div class="csb-doc-meta">Try the demo</div></div></button>
+      </div>
+      <div id="compare-bar" style="display:none;padding:.75rem;border-top:1px solid var(--border);background:var(--sf-l)">
+        <div style="font-size:.74rem;color:var(--ink-s);margin-bottom:.5rem" id="compare-count">2 documents selected</div>
+        <button type="button" id="compare-start-btn" style="width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.55rem;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit">Compare these →</button>
       </div>
     </div>
     <div class="chat-main">
@@ -763,6 +765,10 @@ document.addEventListener("DOMContentLoaded", function() {
 var uName="Rahul", uInit="R", activeDoc="bank", docType="bank", curFile=null;
 var fileBase64 = "";
 var fileMediaType = "";
+// Stores every successfully analysed document this session, keyed by its sidebar uniqueKey,
+// so multiple documents can be cross-referenced together later — not just used one at a time.
+var sessionDocuments = {}; // { uniqueKey: { base64, mediaType, name, type } }
+var compareDocsPayload = null; // set when starting a multi-document comparison conversation
 var detectedDocName = ""; // filled in if Claude can identify the institution
 var pendingFollowupQuestion = ""; // a question DataDost wants to ask about an unusual transaction
 var uploadedDocContext = "";
@@ -1234,6 +1240,18 @@ function resetUploadBoxVisuals() {
 
 document.getElementById("btn-change").addEventListener("click", resetUpload);
 
+document.getElementById("btn-force-reset").addEventListener("click", function() {
+  // Always-available escape hatch — works no matter what state the box is stuck in.
+  // Preserve the previously analysed document in the sidebar if we have one, same as
+  // the normal success-screen close button does, so nothing gets silently lost.
+  if (detectedDocName) {
+    addRealDocToSidebar(docType, detectedDocName);
+  }
+  document.getElementById("sov").classList.remove("show");
+  resetUpload();
+  toast("Ready for your next document! 📄");
+});
+
 document.getElementById("btn-analyse").addEventListener("click", async function(e) {
   e.stopPropagation();
   if (!document.getElementById("consent-check").checked) {
@@ -1392,12 +1410,14 @@ function renderSuccessInsights(ins) {
 }
 
 async function analyseRealDocument() {
+  console.log("[DataDost] analyseRealDocument started");
   // Show the modal immediately with a fun "still working" message so the user isn't staring at nothing
   var el = document.getElementById("sov-ins");
   var quip = scanningQuips[Math.floor(Math.random() * scanningQuips.length)];
   el.innerHTML = "<div class=\"si\" style=\"opacity:1\"><div class=\"si-dot\" style=\"background:#FF6B1A\"></div><span>" + quip + "</span></div>";
   document.getElementById("sov-sub").textContent = "Give me just a moment with your real document...";
   document.getElementById("sov").classList.add("show");
+  console.log("[DataDost] success modal shown, fileBase64 length:", fileBase64 ? fileBase64.length : 0);
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
@@ -1494,13 +1514,7 @@ async function analyseRealDocument() {
 
 
 document.getElementById("sov-close").addEventListener("click", function() {
-  document.getElementById("sov").classList.remove("show");
-  resetUpload();
-  document.getElementById("dz").classList.remove("read");
-});
-
-document.getElementById("sov-upload-another").addEventListener("click", function() {
-  // Preserve this document in the sidebar before clearing the upload box for the next one —
+  // Preserve this document in the sidebar before clearing the upload box —
   // this is what allows multiple documents to genuinely accumulate, not overwrite each other.
   if (detectedDocName) {
     addRealDocToSidebar(docType, detectedDocName);
@@ -1525,10 +1539,78 @@ document.getElementById("sov-chat").addEventListener("click", function() {
 
 var uploadedDocCount = 0; // gives each real upload a unique key so multiple documents can coexist
 
+// ── MULTI-DOCUMENT COMPARE MODE ──
+function updateCompareBarVisibility() {
+  var checked = document.querySelectorAll(".compare-check:checked");
+  var bar = document.getElementById("compare-bar");
+  if (checked.length >= 2) {
+    bar.style.display = "block";
+    document.getElementById("compare-count").textContent = checked.length + " documents selected";
+  } else {
+    bar.style.display = "none";
+  }
+}
+
+// Delegate checkbox change events (checkboxes are added dynamically, so we listen on the container)
+document.addEventListener("change", function(e) {
+  if (e.target.classList && e.target.classList.contains("compare-check")) {
+    updateCompareBarVisibility();
+  }
+});
+
+async function startCompareChat() {
+  var checked = document.querySelectorAll(".compare-check:checked");
+  var keys = Array.prototype.map.call(checked, function(cb) { return cb.dataset.key; });
+  if (keys.length < 2) { toast("Select at least 2 documents to compare 🙏"); return; }
+
+  var docs = keys.map(function(k) { return sessionDocuments[k]; }).filter(Boolean);
+  if (docs.length < 2) {
+    toast("Those documents aren't available for comparison anymore — try re-uploading them 🙏");
+    return;
+  }
+
+  // Build a unique compare key so this gets its own conversation, separate from each document's own chat
+  var compareKey = "compare_" + keys.join("_");
+  activeDoc = compareKey;
+  compareDocsPayload = docs; // picked up by callClaudeAPI for this conversation
+
+  var names = docs.map(function(d) { return d.name; }).join(", ");
+  document.getElementById("chat-hdr-ico").textContent = "🔗";
+  document.getElementById("chat-hdr-title").textContent = "Comparing: " + names;
+  document.getElementById("chat-hdr-sub").textContent = docs.length + " documents · cross-referenced";
+
+  uploadedDocContext = "COMPARISON MODE: The user has selected " + docs.length + " documents to cross-reference together: " + names + ". All of these documents are attached to this message. Actively look for the SAME transaction appearing across different documents — for example, a credit card bill payment debited from a bank statement, or a utility bill paid via a credit card showing up as a matching transaction on that card's statement. Point out specific matches with dates and amounts. If asked a general question, use whichever document(s) are actually relevant. If something doesn't have a clear match across documents, say so honestly rather than assuming a connection.";
+
+  goTo("s-chat");
+  renderCompareWelcome(docs);
+}
+
+function renderCompareWelcome(docs) {
+  var msgsEl = document.getElementById("chat-msgs");
+  msgsEl.innerHTML = "";
+  var qbEl = document.getElementById("qbtns");
+  var compareQs = ["Do any transactions match across these?", "Where did money actually go end-to-end?", "Any payments I'm double counting?"];
+  qbEl.innerHTML = "";
+  compareQs.forEach(function(q) {
+    var btn = document.createElement("button");
+    btn.className = "qb";
+    btn.textContent = q;
+    btn.addEventListener("click", function() { askQ(q); });
+    qbEl.appendChild(btn);
+  });
+  var names = docs.map(function(d) { return "<b>" + d.name + "</b>"; }).join(" and ");
+  addMsg("ai", "Ooh, a crossover episode! 🎬 I've got " + names + " both open in front of me. Ask me to match transactions between them, trace where a payment actually came from, or just say \"where did my money go\" and I'll connect the dots across both. What do you want to know?");
+}
+
+document.getElementById("compare-start-btn").addEventListener("click", startCompareChat);
+
 function addRealDocToSidebar(doc, name) {
   var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
   uploadedDocCount++;
   var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
+  // Save this document's actual file data so it can be cross-referenced with others later —
+  // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
+  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc };
   var docsContainer = document.querySelector(".csb-docs");
   document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
   var newBtn = document.createElement("button");
@@ -1536,15 +1618,17 @@ function addRealDocToSidebar(doc, name) {
   newBtn.dataset.doc = uniqueKey;
   newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
   newBtn.dataset.realName = name;
-  newBtn.innerHTML = "<div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
-  newBtn.addEventListener("click", function() { selectRealDoc(uniqueKey, doc, name); });
+  newBtn.innerHTML = "<label style=\"display:flex;align-items:center;gap:.5rem;width:100%;cursor:pointer\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\" style=\"flex-shrink:0\" onclick=\"event.stopPropagation()\"><div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div></label>";
+  newBtn.addEventListener("click", function(e) { if (e.target.type !== "checkbox") selectRealDoc(uniqueKey, doc, name); });
   docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
+  updateCompareBarVisibility();
   return uniqueKey;
 }
 
 // Selecting a real (not sample) document — uses its own unique key for chat history,
 // but borrows the underlying type's quick-question set and icon.
 function selectRealDoc(uniqueKey, realType, realName, skipRender) {
+  compareDocsPayload = null; // leaving compare mode if we were in it
   activeDoc = uniqueKey;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
@@ -1605,6 +1689,7 @@ var chatResp = {
 };
 
 function selectDoc(doc, skipRender) {
+  compareDocsPayload = null; // leaving compare mode if we were in it
   activeDoc = doc;
   document.querySelectorAll(".csb-doc").forEach(function(d) { d.classList.remove("act"); });
   document.querySelectorAll(".csb-doc").forEach(function(d) { if(d.dataset.doc === doc) d.classList.add("act"); });
@@ -1855,9 +1940,15 @@ async function callClaudeAPI(userMsg) {
   try {
     var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
     var payload = { messages: messages, systemPrompt: systemPrompt };
-    // Attach the real file on EVERY request if we have one — this guarantees Claude always
-    // has the actual document in front of it, not just a memory of having seen it once.
-    if (fileBase64 && fileMediaType) {
+    // Compare mode: send ALL selected documents together, every single request, so Claude
+    // can genuinely cross-reference transactions between them (e.g. a credit card payment
+    // debited from the bank statement, matched against a utility bill paid via that card).
+    if (compareDocsPayload && compareDocsPayload.length > 0) {
+      payload.fileDataMulti = compareDocsPayload.map(function(d) {
+        return { fileData: d.base64, fileMediaType: d.mediaType, label: d.name };
+      });
+    } else if (fileBase64 && fileMediaType) {
+      // Single-document mode — attach the real file on EVERY request if we have one.
       payload.fileData = fileBase64;
       payload.fileMediaType = fileMediaType;
     }
