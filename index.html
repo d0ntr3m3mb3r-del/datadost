@@ -1404,6 +1404,48 @@ document.getElementById("btn-analyse").addEventListener("click", async function(
   }, 700);
 });
 
+// Compresses an image file before upload — phone camera photos are often 3-8MB,
+// which is slow to upload on typical mobile connections in India. This resizes to a
+// sensible max dimension and re-encodes at a slightly lower quality, while staying
+// completely readable for Claude to extract text and numbers from. PDFs are NOT
+// touched by this — only actual image files (jpg/png from camera or gallery).
+function compressImage(file, maxDimension, quality) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    var objectUrl = URL.createObjectURL(file);
+    img.onload = function() {
+      URL.revokeObjectURL(objectUrl);
+      var width = img.width;
+      var height = img.height;
+      // Only scale down if the image is actually larger than our target — never upscale
+      if (width > height && width > maxDimension) {
+        height = Math.round(height * (maxDimension / width));
+        width = maxDimension;
+      } else if (height > maxDimension) {
+        width = Math.round(width * (maxDimension / height));
+        height = maxDimension;
+      }
+      var canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      var ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(function(blob) {
+        if (blob) {
+          resolve(blob);
+        } else {
+          resolve(file); // fall back to the original file if compression somehow fails
+        }
+      }, "image/jpeg", quality);
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file); // fall back to the original file rather than blocking the upload
+    };
+    img.src = objectUrl;
+  });
+}
+
 function readFileForAPI(file) {
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
   fileBase64 = "";
@@ -1418,10 +1460,34 @@ function readFileForAPI(file) {
       };
       reader.onerror = function() { resolve(); }; // resolve anyway so the UI never hangs forever
       reader.readAsText(file);
-    } else if (file.type.startsWith("image/") || file.type === "application/pdf") {
+    } else if (file.type.startsWith("image/")) {
+      // Compress the image first — only if it's reasonably large, to avoid wasting time
+      // re-encoding an already-small file (e.g. a clean screenshot under 1MB).
+      var compressPromise = file.size > 1000000
+        ? compressImage(file, 1600, 0.75)
+        : Promise.resolve(file);
+      compressPromise.then(function(processedFile) {
+        var reader2 = new FileReader();
+        reader2.onload = function(e) {
+          var result = e.target.result;
+          fileBase64 = result.split(",")[1];
+          fileMediaType = "image/jpeg"; // compressed output is always jpeg; original files pass through as-is below if untouched
+          if (processedFile === file) {
+            // Wasn't compressed (was already small) — use the file's real original type
+            fileMediaType = file.type;
+          }
+          uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[The actual document is attached and visible to you. Read the real figures, transactions, and details directly from it. Answer the user's questions based on what you actually see in the document.]";
+          conversationHistory = [];
+          resolve();
+        };
+        reader2.onerror = function() { resolve(); };
+        reader2.readAsDataURL(processedFile);
+      });
+    } else if (file.type === "application/pdf") {
+      // PDFs are never compressed this way — Canvas-based resizing would corrupt them.
+      // They pass straight through exactly as before.
       var reader2 = new FileReader();
       reader2.onload = function(e) {
-        // Extract just the base64 part (strip the "data:image/png;base64," prefix)
         var result = e.target.result;
         fileBase64 = result.split(",")[1];
         fileMediaType = file.type;
