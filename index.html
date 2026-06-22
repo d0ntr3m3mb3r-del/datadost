@@ -1272,9 +1272,26 @@ document.getElementById("choice-cancel-btn").addEventListener("click", function(
   document.getElementById("upload-choice-modal").style.display = "none";
 });
 document.getElementById("file-inp-camera").addEventListener("change", function() {
+  // Safety net: explicitly hide the choice modal again here too, in case the browser
+  // (notably iOS Safari) delayed repainting the earlier display:none while the native
+  // camera UI was on top of the page.
+  document.getElementById("upload-choice-modal").style.display = "none";
   if (this.files[0]) handleFile(this.files[0]);
 });
-fileInp.addEventListener("change", function() { if(this.files[0]) handleFile(this.files[0]); });
+fileInp.addEventListener("change", function() {
+  document.getElementById("upload-choice-modal").style.display = "none";
+  if(this.files[0]) handleFile(this.files[0]);
+});
+
+// Final safety net: if the page regains focus (e.g. returning from the native camera
+// view on iOS/Android) and a file was actually selected, make sure the choice modal
+// isn't still visually stuck open.
+window.addEventListener("focus", function() {
+  var modal = document.getElementById("upload-choice-modal");
+  if (modal && modal.style.display === "flex" && (curFile || (fileInp.files && fileInp.files[0]) || (document.getElementById("file-inp-camera").files && document.getElementById("file-inp-camera").files[0]))) {
+    modal.style.display = "none";
+  }
+});
 dzEl.addEventListener("dragover", function(e) { e.preventDefault(); dzEl.classList.add("drag"); });
 dzEl.addEventListener("dragleave", function() { dzEl.classList.remove("drag"); });
 dzEl.addEventListener("drop", function(e) { e.preventDefault(); dzEl.classList.remove("drag"); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
