@@ -278,9 +278,14 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 @media(max-width:660px){
   .stats-row{grid-template-columns:1fr 1fr}
   .dash-grid,.upload-body,.chat-wrap{grid-template-columns:1fr}
-  .csb,.upload-side{display:none}
+  .csb{display:none;position:fixed;top:0;left:0;bottom:0;width:82vw;max-width:320px;z-index:400;box-shadow:4px 0 24px rgba(0,0,0,0.18)}
+  .csb.mobile-open{display:flex}
+  .upload-side{display:none}
   .dt-grid{grid-template-columns:1fr 1fr}
+  #mobile-doc-menu-btn{display:flex !important;align-items:center}
 }
+#mobile-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:399}
+#mobile-sidebar-overlay.show{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
@@ -541,6 +546,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     </div>
     <div class="nav-pill"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
+  <div id="mobile-sidebar-overlay"></div>
   <div class="chat-wrap">
     <div class="csb">
       <div class="csb-head">
@@ -563,6 +569,9 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     </div>
     <div class="chat-main">
       <div class="chat-hdr">
+        <button type="button" id="mobile-doc-menu-btn" style="display:none;background:none;border:none;cursor:pointer;padding:0;margin-right:.3rem;flex-shrink:0">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
         <div class="chat-hdr-ico" id="chat-hdr-ico">🏦</div>
         <div><div class="chat-hdr-title" id="chat-hdr-title">Bank Statement (sample)</div><div class="chat-hdr-sub" id="chat-hdr-sub">Try the demo · Uploaded 3 days ago</div></div>
       </div>
@@ -1010,6 +1019,24 @@ document.getElementById("user-pill-dash").addEventListener("click", function() {
   if (confirm("Log out of DataDost?")) { doLogout(); }
 });
 document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
+
+// ── MOBILE SIDEBAR TOGGLE ──
+function openMobileSidebar() {
+  document.querySelector(".csb").classList.add("mobile-open");
+  document.getElementById("mobile-sidebar-overlay").classList.add("show");
+}
+function closeMobileSidebar() {
+  document.querySelector(".csb").classList.remove("mobile-open");
+  document.getElementById("mobile-sidebar-overlay").classList.remove("show");
+}
+document.getElementById("mobile-doc-menu-btn").addEventListener("click", openMobileSidebar);
+document.getElementById("mobile-sidebar-overlay").addEventListener("click", closeMobileSidebar);
+// Close the slide-over automatically once a document is tapped, so the user lands
+// straight in that conversation instead of the menu staying open over it.
+document.querySelectorAll(".csb-doc").forEach(function(el) {
+  el.addEventListener("click", closeMobileSidebar);
+});
+
 document.getElementById("chat-up-btn").addEventListener("click", function() { goTo("s-upload"); });
 document.getElementById("chat-cash-btn").addEventListener("click", openCashModal);
 
@@ -1720,6 +1747,7 @@ function addRealDocToSidebar(doc, name) {
       return;
     }
     selectRealDoc(uniqueKey, doc, name);
+    closeMobileSidebar();
   });
   docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
   updateCompareBarVisibility();
