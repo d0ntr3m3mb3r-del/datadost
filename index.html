@@ -456,14 +456,15 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="upload-left">
         <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
         <div class="dz" id="dz">
-          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" capture="environment" style="display:none">
+          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" style="display:none">
+          <input type="file" id="file-inp-camera" accept="image/*" capture="environment" style="display:none">
           <div class="scan"></div>
           <div class="dz-def">
             <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center">
               <div class="dz-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-              <div><div class="dz-title">📸 Snap a photo or drop a file</div><div class="dz-sub">Bank statement, salary slip, utility bill, LIC receipt — even a quick photo works</div></div>
+              <div><div class="dz-title">Add your document</div><div class="dz-sub">Bank statement, salary slip, utility bill, LIC receipt — photo or file, your choice</div></div>
               <div class="dz-fmts"><span class="dz-fmt">PDF</span><span class="dz-fmt">JPG/PNG</span><span class="dz-fmt">CSV</span></div>
-              <span class="dz-browse">tap to open camera or choose a file</span>
+              <span class="dz-browse">tap to choose how to add it</span>
             </div>
           </div>
           <div class="read-st" id="read-st">
@@ -739,6 +740,24 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     </select>
     <button type="button" id="welcome-currency-confirm" style="width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">Continue</button>
     <div style="font-size:.74rem;color:var(--slate);margin-top:.7rem">You can always change this later from the dashboard</div>
+  </div>
+</div>
+
+<!-- UPLOAD CHOICE MODAL -->
+<div id="upload-choice-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
+  <div style="background:var(--white);border-radius:20px;padding:1.5rem;max-width:340px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
+    <div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:1.1rem;text-align:center">How do you want to add your document?</div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button type="button" id="choice-camera-btn" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--sf-l);border:1.5px solid var(--sf-m);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">📸</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Take a photo</span><span style="display:block;font-size:.74rem;color:var(--slate)">Opens your camera</span></span>
+      </button>
+      <button type="button" id="choice-file-btn" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--mist);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">📁</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Choose a file</span><span style="display:block;font-size:.74rem;color:var(--slate)">From photos, downloads, or files</span></span>
+      </button>
+    </div>
+    <button type="button" id="choice-cancel-btn" style="width:100%;margin-top:.9rem;background:none;border:none;font-size:.8rem;color:var(--slate);cursor:pointer;font-family:inherit">Cancel</button>
   </div>
 </div>
 
@@ -1206,7 +1225,28 @@ document.querySelectorAll(".dt").forEach(function(el) {
 var dzEl = document.getElementById("dz");
 var fileInp = document.getElementById("file-inp");
 
-dzEl.addEventListener("click", function() { fileInp.click(); });
+dzEl.addEventListener("click", function() {
+  // Only show the choice if there isn't already a file selected (clicking an already-loaded
+  // box should let the user just click Analyse, not re-prompt them every time).
+  if (!curFile) {
+    document.getElementById("upload-choice-modal").style.display = "flex";
+  }
+});
+
+document.getElementById("choice-camera-btn").addEventListener("click", function() {
+  document.getElementById("upload-choice-modal").style.display = "none";
+  document.getElementById("file-inp-camera").click();
+});
+document.getElementById("choice-file-btn").addEventListener("click", function() {
+  document.getElementById("upload-choice-modal").style.display = "none";
+  fileInp.click();
+});
+document.getElementById("choice-cancel-btn").addEventListener("click", function() {
+  document.getElementById("upload-choice-modal").style.display = "none";
+});
+document.getElementById("file-inp-camera").addEventListener("change", function() {
+  if (this.files[0]) handleFile(this.files[0]);
+});
 fileInp.addEventListener("change", function() { if(this.files[0]) handleFile(this.files[0]); });
 dzEl.addEventListener("dragover", function(e) { e.preventDefault(); dzEl.classList.add("drag"); });
 dzEl.addEventListener("dragleave", function() { dzEl.classList.remove("drag"); });
@@ -1255,6 +1295,7 @@ function resetUploadBoxVisuals() {
   document.getElementById("btn-analyse").disabled = false;
   document.getElementById("consent-check").checked = false;
   fileInp.value = "";
+  document.getElementById("file-inp-camera").value = "";
 }
 
 document.getElementById("btn-change").addEventListener("click", resetUpload);
