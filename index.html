@@ -456,14 +456,14 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="upload-left">
         <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
         <div class="dz" id="dz">
-          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" style="display:none">
+          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" capture="environment" style="display:none">
           <div class="scan"></div>
           <div class="dz-def">
             <div style="display:flex;flex-direction:column;align-items:center;gap:.75rem;text-align:center">
               <div class="dz-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
-              <div><div class="dz-title">Drop your document here</div><div class="dz-sub">Bank statement, salary slip, utility bill, LIC receipt</div></div>
+              <div><div class="dz-title">📸 Snap a photo or drop a file</div><div class="dz-sub">Bank statement, salary slip, utility bill, LIC receipt — even a quick photo works</div></div>
               <div class="dz-fmts"><span class="dz-fmt">PDF</span><span class="dz-fmt">JPG/PNG</span><span class="dz-fmt">CSV</span></div>
-              <span class="dz-browse">or browse to choose a file</span>
+              <span class="dz-browse">tap to open camera or choose a file</span>
             </div>
           </div>
           <div class="read-st" id="read-st">
