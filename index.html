@@ -400,6 +400,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl act" id="nav-dash">Dashboard</button>
       <button class="nl" id="nav-upload">Upload</button>
       <button class="nl" id="nav-chat">Chat</button>
+      <button class="nl" id="nav-history">History</button>
     </div>
     <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;margin-right:.5rem">
       <option value="INR">₹ INR</option>
@@ -453,6 +454,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-dash2">Dashboard</button>
       <button class="nl act" id="nav-upload2">Upload</button>
       <button class="nl" id="nav-chat2">Chat</button>
+      <button class="nl" id="nav-history2">History</button>
     </div>
     <div class="nav-pill"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
   </nav>
@@ -543,6 +545,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-dash3">Dashboard</button>
       <button class="nl" id="nav-upload3">Upload</button>
       <button class="nl act" id="nav-chat3">Chat</button>
+      <button class="nl" id="nav-history3">History</button>
     </div>
     <div class="nav-pill"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
@@ -583,6 +586,33 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
         <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg></button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PAST CONVERSATIONS (VISIBLE CHAT HISTORY) ═══ -->
+<div class="screen" id="s-history">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl" id="nav-dash-h">Dashboard</button>
+      <button class="nl" id="nav-upload-h">Upload</button>
+      <button class="nl" id="nav-chat-h">Chat</button>
+      <button class="nl act" id="nav-history-h">History</button>
+    </div>
+    <div class="nav-pill"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
+  </nav>
+  <div style="flex:1;overflow-y:auto;background:var(--mist)">
+    <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
+      <div style="font-family:Sora,sans-serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:.3rem">Past Conversations</div>
+      <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem">Every conversation you've had with DataDost, saved and ready to reopen anytime.</div>
+      <div id="history-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      <div id="history-empty" style="display:none;text-align:center;padding:3rem 1rem;color:var(--slate)">
+        <div style="font-size:2rem;margin-bottom:.5rem">💬</div>
+        <div style="font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:.3rem">No conversations yet</div>
+        <div style="font-size:.82rem">Upload a document or start a General Chat to begin — it'll show up here once you do.</div>
+      </div>
+      <div id="history-loading" style="text-align:center;padding:3rem 1rem;color:var(--slate);font-size:.85rem">Loading your conversations...</div>
     </div>
   </div>
 </div>
@@ -839,6 +869,7 @@ function goTo(id, tab) {
       resetUploadBoxVisuals();
     }
   }
+  if (id === "s-history") renderHistoryList();
 }
 window.goTo = goTo; // expose globally so inline onclick="" attributes can reach it
 
@@ -1008,6 +1039,12 @@ document.getElementById("nav-chat2").addEventListener("click", function() { goTo
 document.getElementById("nav-dash3").addEventListener("click", function() { goTo("s-dash"); });
 document.getElementById("nav-upload3").addEventListener("click", function() { goTo("s-upload"); });
 document.getElementById("nav-chat3").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("nav-history").addEventListener("click", function() { goTo("s-history"); });
+document.getElementById("nav-history2").addEventListener("click", function() { goTo("s-history"); });
+document.getElementById("nav-history3").addEventListener("click", function() { goTo("s-history"); });
+document.getElementById("nav-dash-h").addEventListener("click", function() { goTo("s-dash"); });
+document.getElementById("nav-upload-h").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("nav-chat-h").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-ask").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-add").addEventListener("click", function() { goTo("s-upload"); });
@@ -2091,6 +2128,142 @@ async function saveMessageToDb(role, content) {
     console.error("Could not save message:", err);
     // Never block the chat experience if saving fails — fail silently
   }
+}
+
+async function loadAllConversationsFromDb() {
+  if (!sb) return [];
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) return [];
+    // Fetch all messages for this user, newest first — we'll group by doc_key in JS
+    // since Supabase's free-tier query builder doesn't easily do "distinct + latest" in one call.
+    var result = await sb.from("messages")
+      .select("doc_key, role, content, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    var rows = result.data || [];
+    var seen = {};
+    var conversations = [];
+    rows.forEach(function(row) {
+      if (!seen[row.doc_key]) {
+        seen[row.doc_key] = true;
+        conversations.push({
+          docKey: row.doc_key,
+          lastMessage: row.content,
+          lastRole: row.role,
+          lastActive: row.created_at
+        });
+      }
+    });
+    return conversations;
+  } catch (err) {
+    console.error("Could not load conversation list:", err);
+    return [];
+  }
+}
+
+function docKeyToDisplay(docKey) {
+  var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄",general:"💬"};
+  if (docKey === "general") {
+    return { name: "General Chat", icon: "💬" };
+  }
+  if (docKey.indexOf("compare_") === 0) {
+    return { name: "Document Comparison", icon: "🔗" };
+  }
+  if (docKey.indexOf("real_") === 0) {
+    // Format: real_<type>_<number> — try to find the matching sidebar entry for its real name,
+    // otherwise fall back to a clean generic label built from the type.
+    var parts = docKey.split("_");
+    var type = parts[1] || "other";
+    var existingBtn = document.querySelector(".csb-doc[data-doc='" + docKey + "']");
+    var realName = existingBtn && existingBtn.dataset.realName ? existingBtn.dataset.realName : fallbackLabelFor(type);
+    return { name: realName, icon: icoMap[type] || "📄" };
+  }
+  // Sample document keys like "bank", "salary" etc.
+  var sampleMeta = chatMeta[docKey];
+  return { name: sampleMeta ? sampleMeta.title + " (sample)" : docKey, icon: icoMap[docKey] || "📄" };
+}
+
+function formatRelativeTime(isoString) {
+  var then = new Date(isoString);
+  var now = new Date();
+  var diffMs = now - then;
+  var diffMins = Math.round(diffMs / 60000);
+  var diffHours = Math.round(diffMs / 3600000);
+  var diffDays = Math.round(diffMs / 86400000);
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return diffMins + " min ago";
+  if (diffHours < 24) return diffHours + " hr ago";
+  if (diffDays < 7) return diffDays + " day" + (diffDays > 1 ? "s" : "") + " ago";
+  return then.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+async function renderHistoryList() {
+  var listEl = document.getElementById("history-list");
+  var emptyEl = document.getElementById("history-empty");
+  var loadingEl = document.getElementById("history-loading");
+  listEl.innerHTML = "";
+  emptyEl.style.display = "none";
+  loadingEl.style.display = "block";
+
+  var conversations = await loadAllConversationsFromDb();
+  loadingEl.style.display = "none";
+
+  if (conversations.length === 0) {
+    emptyEl.style.display = "block";
+    return;
+  }
+
+  conversations.forEach(function(conv) {
+    var display = docKeyToDisplay(conv.docKey);
+    var preview = conv.lastMessage.replace(/<[^>]*>/g, "").slice(0, 90);
+    var card = document.createElement("button");
+    card.type = "button";
+    card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit";
+    card.innerHTML =
+      "<div style=\"width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0\">" + display.icon + "</div>" +
+      "<div style=\"flex:1;min-width:0\">" +
+        "<div style=\"display:flex;justify-content:space-between;align-items:baseline;gap:.5rem\">" +
+          "<div style=\"font-size:.88rem;font-weight:600;color:var(--ink)\">" + display.name + "</div>" +
+          "<div style=\"font-size:.72rem;color:var(--slate);flex-shrink:0;white-space:nowrap\">" + formatRelativeTime(conv.lastActive) + "</div>" +
+        "</div>" +
+        "<div style=\"font-size:.78rem;color:var(--slate);margin-top:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (conv.lastRole === "user" ? "You: " : "") + preview + "</div>" +
+      "</div>";
+    card.addEventListener("click", function() {
+      reopenConversation(conv.docKey);
+    });
+    listEl.appendChild(card);
+  });
+}
+
+function reopenConversation(docKey) {
+  if (docKey === "general") {
+    activeDoc = "general";
+    selectDoc("general", true);
+  } else if (docKey.indexOf("compare_") === 0) {
+    activeDoc = docKey;
+    // Compare conversations need their header rebuilt from the stored history itself,
+    // since the original document selection from that session may no longer exist.
+    document.getElementById("chat-hdr-ico").textContent = "🔗";
+    document.getElementById("chat-hdr-title").textContent = "Document Comparison";
+    document.getElementById("chat-hdr-sub").textContent = "Reopened from history";
+  } else if (docKey.indexOf("real_") === 0) {
+    var parts = docKey.split("_");
+    var type = parts[1] || "other";
+    var existingBtn = document.querySelector(".csb-doc[data-doc='" + docKey + "']");
+    var realName = existingBtn && existingBtn.dataset.realName ? existingBtn.dataset.realName : fallbackLabelFor(type) + " (reopened)";
+    activeDoc = docKey;
+    docType = type;
+    var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
+    document.getElementById("chat-hdr-ico").textContent = icoMap[type] || "📄";
+    document.getElementById("chat-hdr-title").textContent = realName;
+    document.getElementById("chat-hdr-sub").textContent = "Reopened from history";
+  } else {
+    activeDoc = docKey;
+    selectDoc(docKey, true);
+  }
+  goTo("s-chat");
 }
 
 async function loadMessagesFromDb(docKey) {
