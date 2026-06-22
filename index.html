@@ -337,7 +337,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <p>Free for life for the first 500 signups.</p>
       <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Join the waitlist →</button>
     </div>
-    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
+    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
   </div>
 </div>
 
@@ -376,7 +376,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Continue with Google
       </button>
-      <div class="auth-note">By signing up you agree to our <a href="javascript:void(0)" onclick="goTo('s-terms')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Terms of Use</a> &amp; <a href="javascript:void(0)" onclick="goTo('s-terms')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Privacy Policy</a> · Built on DPDP Act principles</div>
+      <div class="auth-note">By signing up you agree to our <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-terms')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Terms of Use</a> &amp; <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-privacy')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Privacy Policy</a> · Built on DPDP Act principles</div>
       <div class="auth-note">Already have an account? <a id="sw-login">Log in →</a></div>
     </div>
     <div class="trust-row">
@@ -591,7 +591,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     <div style="max-width:720px;margin:0 auto;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:2rem">
 
       <!-- PRIVACY POLICY -->
-      <div class="card" style="padding:2rem">
+      <div class="card" style="padding:2rem" id="anchor-privacy">
         <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">PRIVACY POLICY · DRAFT</div>
         <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Privacy Policy</h1>
         <p style="font-size:.8rem;color:var(--slate);margin-bottom:1rem">Last updated: June 2026 · Designed in alignment with India's Digital Personal Data Protection Act 2023</p>
@@ -648,7 +648,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       </div>
 
       <!-- TERMS OF USE -->
-      <div class="card" style="padding:2rem">
+      <div class="card" style="padding:2rem" id="anchor-terms">
         <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">TERMS OF USE</div>
         <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Terms of Use</h1>
         <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">Last updated: June 2026 · Governing law: Republic of India</p>
@@ -690,7 +690,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
             <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Bengaluru, Karnataka, India. For any concerns, contact us at legal@datadost.in before initiating legal proceedings.</div>
           </div>
 
-          <div style="background:var(--mist);border-radius:10px;padding:1rem 1.1rem">
+          <div style="background:var(--mist);border-radius:10px;padding:1rem 1.1rem" id="anchor-contact">
             <div style="font-size:.84rem;font-weight:600;color:var(--ink);margin-bottom:.7rem;text-align:center">Get in touch</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
               <div style="text-align:center"><div style="font-size:.74rem;color:var(--slate)">General enquiries</div><div style="font-size:.82rem;font-weight:600;color:var(--sf)">info@datadost.in</div></div>
@@ -785,7 +785,21 @@ function goTo(id, tab) {
     if (s.id === id) { s.classList.add("active"); }
     else { s.classList.remove("active"); }
   });
-  window.scrollTo(0,0);
+  // For the Terms/Privacy screen, "tab" is reused as an anchor id (e.g. "anchor-contact")
+  // so links like Privacy Policy / Terms of Use / Contact jump straight to their section
+  // instead of always landing at the top of this long combined page.
+  if (id === "s-terms" && tab) {
+    setTimeout(function() {
+      var anchorEl = document.getElementById(tab);
+      if (anchorEl) {
+        anchorEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.scrollTo(0,0);
+      }
+    }, 50);
+  } else {
+    window.scrollTo(0,0);
+  }
   if (id === "s-auth" && tab) switchTab(tab);
   if (id === "s-dash") renderDash();
   if (id === "s-chat") renderChat();
