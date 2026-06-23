@@ -402,19 +402,21 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-chat">Chat</button>
       <button class="nl" id="nav-history">History</button>
     </div>
-    <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;margin-right:.5rem">
-      <option value="INR">₹ INR</option>
-      <option value="USD">$ USD</option>
-      <option value="AED">د.إ AED</option>
-      <option value="GBP">£ GBP</option>
-      <option value="EUR">€ EUR</option>
-      <option value="SGD">S$ SGD</option>
-      <option value="AUD">A$ AUD</option>
-      <option value="CAD">C$ CAD</option>
-    </select>
-    <div class="nav-pill" id="user-pill-dash">
-      <div class="nav-av" id="av-dash">R</div>
-      <span class="nav-nm" id="nm-dash">Rahul</span>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer">
+        <option value="INR">₹ INR</option>
+        <option value="USD">$ USD</option>
+        <option value="AED">د.إ AED</option>
+        <option value="GBP">£ GBP</option>
+        <option value="EUR">€ EUR</option>
+        <option value="SGD">S$ SGD</option>
+        <option value="AUD">A$ AUD</option>
+        <option value="CAD">C$ CAD</option>
+      </select>
+      <div class="nav-pill" id="user-pill-dash">
+        <div class="nav-av" id="av-dash">R</div>
+        <span class="nav-nm" id="nm-dash">Rahul</span>
+      </div>
     </div>
   </nav>
   <div style="flex:1;overflow-y:auto">
@@ -2329,18 +2331,26 @@ async function saveMessageToDb(role, content) {
 }
 
 async function loadAllConversationsFromDb() {
-  if (!sb) return [];
+  if (!sb) { console.warn("[DataDost] Cannot load history — Supabase not initialised yet"); return []; }
   try {
     var sessionResult = await sb.auth.getSession();
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
-    if (!user) return [];
+    if (!user) { console.warn("[DataDost] Cannot load history — no logged-in user session"); return []; }
     // Fetch all messages for this user, newest first — we'll group by doc_key in JS
     // since Supabase's free-tier query builder doesn't easily do "distinct + latest" in one call.
     var result = await sb.from("messages")
       .select("doc_key, role, content, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
+    if (result.error) {
+      // This was the actual missing piece — a real query failure (bad table/column name,
+      // missing RLS permission, etc.) was being silently swallowed, returning an empty
+      // list that looked identical to "genuinely no conversations yet".
+      console.error("[DataDost] Supabase query error loading history:", result.error.message);
+      return [];
+    }
     var rows = result.data || [];
+    console.log("[DataDost] loadAllConversationsFromDb fetched", rows.length, "message rows for user", user.id);
     var seen = {};
     var conversations = [];
     rows.forEach(function(row) {
@@ -2356,7 +2366,7 @@ async function loadAllConversationsFromDb() {
     });
     return conversations;
   } catch (err) {
-    console.error("Could not load conversation list:", err);
+    console.error("[DataDost] Could not load conversation list:", err);
     return [];
   }
 }
@@ -2465,19 +2475,23 @@ function reopenConversation(docKey) {
 }
 
 async function loadMessagesFromDb(docKey) {
-  if (!sb) return [];
+  if (!sb) { console.warn("[DataDost] Cannot load messages — Supabase not initialised yet"); return []; }
   try {
     var sessionResult = await sb.auth.getSession();
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
-    if (!user) return [];
+    if (!user) { console.warn("[DataDost] Cannot load messages — no logged-in user session"); return []; }
     var result = await sb.from("messages")
       .select("role, content, created_at")
       .eq("user_id", user.id)
       .eq("doc_key", docKey)
       .order("created_at", { ascending: true });
+    if (result.error) {
+      console.error("[DataDost] Supabase query error loading messages for", docKey, ":", result.error.message);
+      return [];
+    }
     return result.data || [];
   } catch (err) {
-    console.error("Could not load messages:", err);
+    console.error("[DataDost] Could not load messages:", err);
     return [];
   }
 }
