@@ -456,7 +456,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-chat2">Chat</button>
       <button class="nl" id="nav-history2">History</button>
     </div>
-    <div class="nav-pill"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
+    <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto">
     <div class="upload-body">
@@ -547,7 +547,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl act" id="nav-chat3">Chat</button>
       <button class="nl" id="nav-history3">History</button>
     </div>
-    <div class="nav-pill"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
+    <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
   <div id="mobile-sidebar-overlay"></div>
   <div class="chat-wrap">
@@ -600,7 +600,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-chat-h">Chat</button>
       <button class="nl act" id="nav-history-h">History</button>
     </div>
-    <div class="nav-pill"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
+    <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
     <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
@@ -782,6 +782,26 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   </div>
 </div>
 
+<!-- INCOME TYPE MODAL — shown right after currency, same onboarding flow -->
+<div id="welcome-income-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
+  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:440px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2);text-align:center">
+    <div style="font-size:2rem;margin-bottom:.5rem">💰</div>
+    <div style="font-family:Sora,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">One more thing</div>
+    <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem;line-height:1.6">Does money come to you the same way every month, or does it vary?</div>
+    <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.5rem">
+      <button type="button" id="income-regular-btn" data-income="regular" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">📅</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Regular income</span><span style="display:block;font-size:.74rem;color:var(--slate)">Salary, pension — same time, every month</span></span>
+      </button>
+      <button type="button" id="income-variable-btn" data-income="variable" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">🔀</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Variable income</span><span style="display:block;font-size:.74rem;color:var(--slate)">Student, business owner, freelancer — it changes</span></span>
+      </button>
+    </div>
+    <div style="font-size:.74rem;color:var(--slate);margin-top:.6rem">You can always change this later from the dashboard</div>
+  </div>
+</div>
+
 <!-- UPLOAD CHOICE MODAL -->
 <div id="upload-choice-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
   <div style="background:var(--white);border-radius:20px;padding:1.5rem;max-width:340px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
@@ -815,6 +835,24 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     <div style="display:flex;gap:.75rem">
       <button type="button" id="cash-submit" style="flex:1;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">Send to DataDost</button>
       <button type="button" id="cash-cancel" style="background:transparent;color:var(--slate);border:1.5px solid var(--border);border-radius:100px;padding:.78rem 1.25rem;font-size:.88rem;cursor:pointer;font-family:inherit">Skip for now</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSACTION JUSTIFICATION MODAL — for repeated payments to the same merchant/person -->
+<div id="justify-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
+  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 16px 56px rgba(0,0,0,0.2)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">🔁</div>
+      <div style="font-family:Sora,sans-serif;font-size:1.05rem;font-weight:700;color:var(--ink)" id="justify-title">Tell me about these payments</div>
+    </div>
+    <div style="font-size:.82rem;color:var(--slate);margin-bottom:1rem;line-height:1.6" id="justify-sub">I noticed a few payments to the same place — no judgment, just want to understand what each one was for.</div>
+
+    <div id="justify-rows" style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.75rem"></div>
+
+    <div style="display:flex;gap:.75rem">
+      <button type="button" id="justify-submit" style="flex:1;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.78rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">Send to DataDost</button>
+      <button type="button" id="justify-cancel" style="background:transparent;color:var(--slate);border:1.5px solid var(--border);border-radius:100px;padding:.78rem 1.25rem;font-size:.88rem;cursor:pointer;font-family:inherit">Skip for now</button>
     </div>
   </div>
 </div>
@@ -883,8 +921,8 @@ function switchTab(tab) {
 
 // ── USER UI ──
 function setUser() {
-  ["av-dash","av-up","av-chat"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
-  ["nm-dash","nm-up","nm-chat"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
+  ["av-dash","av-up","av-chat","av-history"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
+  ["nm-dash","nm-up","nm-chat","nm-history"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
 }
 
@@ -1055,6 +1093,15 @@ document.getElementById("qa-goal").addEventListener("click", function() { toast(
 document.getElementById("user-pill-dash").addEventListener("click", function() {
   if (confirm("Log out of DataDost?")) { doLogout(); }
 });
+document.getElementById("user-pill-up").addEventListener("click", function() {
+  if (confirm("Log out of DataDost?")) { doLogout(); }
+});
+document.getElementById("user-pill-chat").addEventListener("click", function() {
+  if (confirm("Log out of DataDost?")) { doLogout(); }
+});
+document.getElementById("user-pill-history").addEventListener("click", function() {
+  if (confirm("Log out of DataDost?")) { doLogout(); }
+});
 document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
 
 // ── MOBILE SIDEBAR TOGGLE ──
@@ -1123,9 +1170,24 @@ if (welcomeCurConfirmBtn) {
     document.getElementById("welcome-currency-modal").style.display = "none";
     renderDash();
     toast("Great! I'll speak " + currentCurrency + " with you from now on 💬");
-    setTimeout(startOnboardTour, 500);
+    setTimeout(function() { document.getElementById("welcome-income-modal").style.display = "flex"; }, 500);
   });
 }
+
+// ── INCOME TYPE SELECTION (regular vs variable) ──
+var currentIncomeType = localStorage.getItem("dd_income_type") || "";
+function selectIncomeType(type) {
+  currentIncomeType = type;
+  localStorage.setItem("dd_income_type", type);
+  document.getElementById("welcome-income-modal").style.display = "none";
+  var label = type === "regular" ? "regular income" : "variable income";
+  toast("Got it — I'll keep that in mind for " + label + " 💬");
+  setTimeout(startOnboardTour, 400);
+}
+var incomeRegularBtn = document.getElementById("income-regular-btn");
+var incomeVariableBtn = document.getElementById("income-variable-btn");
+if (incomeRegularBtn) incomeRegularBtn.addEventListener("click", function() { selectIncomeType("regular"); });
+if (incomeVariableBtn) incomeVariableBtn.addEventListener("click", function() { selectIncomeType("variable"); });
 
 // ── FIRST-LOGIN GUIDED TOUR ──
 var onboardSteps = [
@@ -2093,6 +2155,67 @@ document.getElementById("cash-cancel").addEventListener("click", function() {
   toast("No problem — ask me to break it down anytime you're ready 🙏");
 });
 
+// ── TRANSACTION JUSTIFICATION TABLE — for repeated payments to the same merchant ──
+// Triggered when the AI spots multiple similar transactions and wants to ask about
+// each one directly, rather than implying judgment in a chat message. The AI emits
+// a marker line like: SHOW_JUSTIFY_TABLE|merchant name|date1:amount1|date2:amount2|...
+var justifyRowCount = 0;
+function addJustifyRow(prefillText) {
+  justifyRowCount++;
+  var id = justifyRowCount;
+  var wrap = document.createElement("div");
+  wrap.id = "justify-row-" + id;
+  wrap.style.display = "grid";
+  wrap.style.gridTemplateColumns = "1fr 1fr";
+  wrap.style.gap = "6px";
+  wrap.innerHTML =
+    '<div style="display:flex;align-items:center;padding:.5rem .6rem;background:var(--mist);border-radius:8px;font-size:.78rem;color:var(--ink-s);font-family:inherit">' + (prefillText || "Transaction " + id) + '</div>' +
+    '<input type="text" id="justify-desc-' + id + '" placeholder="What was this for?" style="border:1.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;font-size:.78rem;font-family:inherit;color:var(--ink)">';
+  document.getElementById("justify-rows").appendChild(wrap);
+}
+
+function openJustifyModal(merchantName, transactionList) {
+  document.getElementById("justify-rows").innerHTML = "";
+  justifyRowCount = 0;
+  document.getElementById("justify-title").textContent = "About those payments to " + (merchantName || "this place");
+  document.getElementById("justify-sub").textContent = "No judgment at all — multiple payments to the same place are often totally normal (split rent, separate orders, instalments). Just curious what each was for.";
+  if (transactionList && transactionList.length > 0) {
+    transactionList.forEach(function(t) { addJustifyRow(t); });
+  } else {
+    addJustifyRow(); addJustifyRow();
+  }
+  document.getElementById("justify-modal").style.display = "flex";
+}
+
+function submitJustifyTable() {
+  var rows = document.querySelectorAll("#justify-rows > div");
+  var entries = [];
+  rows.forEach(function(row) {
+    var idMatch = row.id.match(/justify-row-(\d+)/);
+    if (!idMatch) return;
+    var id = idMatch[1];
+    var label = row.children[0] ? row.children[0].textContent : "";
+    var desc = document.getElementById("justify-desc-" + id).value.trim();
+    if (desc) {
+      entries.push(label + " — " + desc);
+    }
+  });
+  document.getElementById("justify-modal").style.display = "none";
+  if (entries.length === 0) {
+    toast("No problem — skip it for now, you can clarify anytime 🙏");
+    return;
+  }
+  var summary = "Here's what each of those payments was for:\n" + entries.join("\n");
+  document.getElementById("chat-inp").value = summary;
+  sendMsg();
+}
+
+document.getElementById("justify-submit").addEventListener("click", submitJustifyTable);
+document.getElementById("justify-cancel").addEventListener("click", function() {
+  document.getElementById("justify-modal").style.display = "none";
+  toast("No problem — ask me anytime if you want to clarify those 🙏");
+});
+
 function convertRupeeAmounts(text) {
   if (currentCurrency === "INR") return text; // nothing to convert
   // Handle "₹1.5L" / "₹4.6 lakh" style shorthand first
@@ -2351,7 +2474,7 @@ function sendMsg() {
 }
 
 async function callClaudeAPI(userMsg) {
-  var systemPrompt = "You are DataDost — the friend who roasts people's spending habits at a dinner party, except you actually have their bank statement and the receipts to back it up. Your whole personality is: 'I know what you did, and I'm going to tell you, but it's going to be funny.'\\n\\nYour comedic voice — study this carefully:\\n- You are a stand-up comedian doing a financial intervention, not a banker reading a report. Think of a sharp friend roasting you over chai, not a customer service script.\\n- Lead with the joke, THEN the number. Never lead with a flat fact. Example of the WRONG way: 'You spent ₹4,820 on food delivery.' Example of the RIGHT way: 'Swiggy has basically adopted you as a dependent — ₹4,820 this month alone. At this rate they should be paying YOU rent.'\\n- Use exaggeration, callbacks, and running bits. If you joke about Swiggy once, bring it back later in the conversation ('there's our friend Swiggy again').\\n- Use vivid, specific, slightly absurd comparisons tied to Indian middle-class life: comparing a spend to a known cheap thing ('that's 14 plates of chole bhature'), or to an aspiration they're delaying ('that's basically a flight to Goa you donated to a delivery app').\\n- Gently roast THE BEHAVIOUR, never the person's worth or character. The joke is always 'haha you absolute legend, look what you did' — never 'you're bad with money.' Warmth always wins over the punchline.\\n- React in the moment like a real friend would — surprise ('WAIT. Hold on.'), mock disbelief ('I need you to explain this one to me'), comedic timing (short punchy sentences, not paragraphs).\\n- It's okay to be a little dramatic and theatrical. A bit of 'I am personally offended on your behalf' energy is good.\\n- The goal of every joke is for the user to laugh AND feel the truth land — not to make them defensive. If a topic is genuinely sensitive (debt stress, family financial pressure, a cash withdrawal tied to an emergency), drop the comedy immediately and be warm and straightforward instead. Read the room.\\n- Still use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Never give specific investment product recommendations — keep advice general and educational. End most responses with a question or nudge that keeps the conversation going, but make even that line land with personality, not just be functional.\n\nCRITICAL — Answer ONLY the question asked, nothing more: When you read the attached document, scan all of it internally, but your reply must address ONLY what the user actually asked — not a general summary of everything you noticed. Example: if asked 'what benefits am I missing on this card', talk ONLY about unused benefits — do NOT also recap total spending, list every merchant, break down food costs, or analyse payment patterns unless that question was specifically asked. If asked 'where did my money go', THEN cover spending categories — but still only the spending picture, not benefits, not card payment history, not unrelated commentary. Think of yourself as answering one specific question at a dinner table, not handing over a written report. A reply should rarely need more than 3-4 short paragraphs or a handful of bullet points. If you genuinely think something else is worth flagging, mention it in ONE short line at the end and let the user choose to ask about it — never expand into it unprompted. No headers like ## or ### — write like you're texting a sharp friend, not drafting a memo.\n\nCRITICAL — Never repeat yourself: Before answering, check what you have ALREADY told the user earlier in this conversation (visible above). If a new question would mostly repeat information, analysis, or jokes you've already given, do NOT restate it. Instead say something like 'Same answer as before, but since you're asking again — ' and add only genuinely NEW information, or simply point back to what you already said. Never regenerate a full breakdown you've already given just because a similar question was asked again.\\n\\nCRITICAL — Use the actual attached document: If a document is attached to this message, you CAN see it directly — read it yourself to answer questions like 'what dates does this cover' or 'where did my money go'. Do NOT ask the user to tell you information that is already visible in the attached document (statement period, transaction list, categories). Only ask the user for things that are genuinely NOT in the document (their intent behind a transaction, context you cannot see). If you find yourself about to ask a question you could answer by looking at the attached file, stop and look again instead.\\n\\nCRITICAL — Never fabricate numbers: Only state a specific figure (salary, balance, transaction amount, date) if you can actually see it in the attached document or it was explicitly told to you earlier in this conversation. If you do not have a real figure for something the user asks about, say so plainly — for example: 'I don't actually have that figure from your document — could you tell me, or upload the statement again so I can check?' Never guess, estimate, or invent a specific number and present it as fact, even as a joke — comedic exaggeration is fine for commentary ('that's basically a small wedding') but never for the underlying number itself. This applies especially to restored conversations where the original document may no longer be attached — be upfront that you're working from conversation history only, not a live document, if that is the case.\\n\\nCRITICAL — Arithmetic must be correct, every time: When you sum multiple transaction amounts into a total, add them carefully and correctly — do not state a total that is obviously inconsistent with the individual amounts you just listed. Before stating any sum, mentally verify it roughly matches the count and size of the line items (e.g. 12 transactions averaging ~100 each should total roughly 1,200, not 20 or 50). If you realise mid-response that an earlier number in THIS SAME response was wrong, do not just declare a new number with more confidence — actually redo the addition correctly and show that you did. If you are not fully confident in a sum, say so honestly ('roughly, give or take') rather than stating a precise-sounding figure that may be wrong. A wrong number stated confidently is worse than an honest approximation.\\n\\nIMPORTANT — Duplicate charge detection: When reading a real document, actively watch for transactions to the SAME merchant or service provider with the SAME or very similar amount appearing more than once in a short period (e.g. same week or billing cycle). Do NOT assume these are errors or automatically flag them as 'double charged'. Instead, gently surface the pattern and ask the user to confirm, with personality if the moment allows — for example: 'Either you really love [merchant], or something got charged twice — [amount] showed up on [dates]. Which crime was it?' Many legitimate reasons exist (failed payment retries, two different orders, partial refunds followed by rebilling). Never state with certainty that a user was wrongly charged twice — always ask, never accuse.\\n\\nIMPORTANT — Currency awareness: If the user mentions they are outside India or asks about a non-Indian document, respond using their stated currency and do not assume INR. If unsure of their currency, ask once rather than assuming.\\n\\nIMPORTANT — Language: If the user writes to you in Hindi (Devanagari script) or Hinglish (Hindi written in English letters, e.g. 'paisa kahan gaya'), respond naturally in that same language or style — do not switch back to English unless they do. Keep your comedic, warm personality fully intact in Hindi too; do not become more formal or robotic just because the language changed. Continue using Hindi/Hinglish financial terms people actually say in conversation (paisa, kharcha, bachat) alongside the standard Indian financial terms (SIP, EMI, ITR) which are commonly used in English even within Hindi conversations. If the user mixes English and Hindi in the same message, mirror that natural mixing rather than forcing pure English or pure Hindi.\\n\\nIMPORTANT — Cash withdrawal handling: When you spot ATM withdrawals or 'cash withdrawal' line items in a bank statement, never treat that money as unexplained or wasted, and never joke about cash withdrawals being suspicious or shady — this can be a genuinely sensitive topic (emergencies, family support, privacy). Just like a Chartered Accountant always asks a client what cash was used for, you must do the same, warmly and without comedic pressure. The FIRST time you mention a cash withdrawal in a conversation, ask the user conversationally what it was generally for (e.g. 'I see a ₹5,000 cash withdrawal on the 12th — was that for groceries, rent, an emergency, or something else?'). If the user indicates there were MULTIPLE cash withdrawals or says something like 'there were a few' or 'let me list them', respond with exactly this phrase on its own line so the app can detect it and show a table: SHOW_CASH_TABLE. Do not explain or describe the table yourself — just say that phrase and a brief friendly lead-in sentence before it. Once the user has provided a breakdown (either conversationally or via the table), incorporate those categorised cash amounts into your spending analysis as if they were regular tracked transactions, and never refer to that cash as 'untracked' or 'mystery' spending again in that conversation.\\n\\nDocument context:\\n" + uploadedDocContext;
+  var systemPrompt = "You are DataDost — the friend who roasts people's spending habits at a dinner party, except you actually have their bank statement and the receipts to back it up. Your whole personality is: 'I know what you did, and I'm going to tell you, but it's going to be funny.'\\n\\nYour comedic voice — study this carefully:\\n- You are a stand-up comedian doing a financial intervention, not a banker reading a report. Think of a sharp friend roasting you over chai, not a customer service script.\\n- Lead with the joke, THEN the number. Never lead with a flat fact. Example of the WRONG way: 'You spent ₹4,820 on food delivery.' Example of the RIGHT way: 'Swiggy has basically adopted you as a dependent — ₹4,820 this month alone. At this rate they should be paying YOU rent.'\\n- Use exaggeration, callbacks, and running bits. If you joke about Swiggy once, bring it back later in the conversation ('there's our friend Swiggy again').\\n- Use vivid, specific, slightly absurd comparisons tied to Indian middle-class life: comparing a spend to a known cheap thing ('that's 14 plates of chole bhature'), or to an aspiration they're delaying ('that's basically a flight to Goa you donated to a delivery app').\\n- Gently roast THE BEHAVIOUR, never the person's worth or character. The joke is always 'haha you absolute legend, look what you did' — never 'you're bad with money.' Warmth always wins over the punchline.\\n- React in the moment like a real friend would — surprise ('WAIT. Hold on.'), mock disbelief ('I need you to explain this one to me'), comedic timing (short punchy sentences, not paragraphs).\\n- It's okay to be a little dramatic and theatrical. A bit of 'I am personally offended on your behalf' energy is good.\\n- The goal of every joke is for the user to laugh AND feel the truth land — not to make them defensive. If a topic is genuinely sensitive (debt stress, family financial pressure, a cash withdrawal tied to an emergency), drop the comedy immediately and be warm and straightforward instead. Read the room.\\n- Still use Indian financial terms naturally: SIP, PPF, EPF, UPI, EMI, ITR, Form 16, LIC. Format numbers in Indian style (₹1,23,456). Never give specific investment product recommendations — keep advice general and educational. End most responses with a question or nudge that keeps the conversation going, but make even that line land with personality, not just be functional.\n\nCRITICAL — Answer ONLY the question asked, nothing more: When you read the attached document, scan all of it internally, but your reply must address ONLY what the user actually asked — not a general summary of everything you noticed. Example: if asked 'what benefits am I missing on this card', talk ONLY about unused benefits — do NOT also recap total spending, list every merchant, break down food costs, or analyse payment patterns unless that question was specifically asked. If asked 'where did my money go', THEN cover spending categories — but still only the spending picture, not benefits, not card payment history, not unrelated commentary. Think of yourself as answering one specific question at a dinner table, not handing over a written report. A reply should rarely need more than 3-4 short paragraphs or a handful of bullet points. If you genuinely think something else is worth flagging, mention it in ONE short line at the end and let the user choose to ask about it — never expand into it unprompted. No headers like ## or ### — write like you're texting a sharp friend, not drafting a memo.\n\nCRITICAL — Never repeat yourself: Before answering, check what you have ALREADY told the user earlier in this conversation (visible above). If a new question would mostly repeat information, analysis, or jokes you've already given, do NOT restate it. Instead say something like 'Same answer as before, but since you're asking again — ' and add only genuinely NEW information, or simply point back to what you already said. Never regenerate a full breakdown you've already given just because a similar question was asked again.\\n\\nCRITICAL — Use the actual attached document: If a document is attached to this message, you CAN see it directly — read it yourself to answer questions like 'what dates does this cover' or 'where did my money go'. Do NOT ask the user to tell you information that is already visible in the attached document (statement period, transaction list, categories). Only ask the user for things that are genuinely NOT in the document (their intent behind a transaction, context you cannot see). If you find yourself about to ask a question you could answer by looking at the attached file, stop and look again instead.\\n\\nCRITICAL — Never fabricate numbers: Only state a specific figure (salary, balance, transaction amount, date) if you can actually see it in the attached document or it was explicitly told to you earlier in this conversation. If you do not have a real figure for something the user asks about, say so plainly — for example: 'I don't actually have that figure from your document — could you tell me, or upload the statement again so I can check?' Never guess, estimate, or invent a specific number and present it as fact, even as a joke — comedic exaggeration is fine for commentary ('that's basically a small wedding') but never for the underlying number itself. This applies especially to restored conversations where the original document may no longer be attached — be upfront that you're working from conversation history only, not a live document, if that is the case.\\n\\nCRITICAL — Arithmetic must be correct, every time: When you sum multiple transaction amounts into a total, add them carefully and correctly — do not state a total that is obviously inconsistent with the individual amounts you just listed. Before stating any sum, mentally verify it roughly matches the count and size of the line items (e.g. 12 transactions averaging ~100 each should total roughly 1,200, not 20 or 50). If you realise mid-response that an earlier number in THIS SAME response was wrong, do not just declare a new number with more confidence — actually redo the addition correctly and show that you did. If you are not fully confident in a sum, say so honestly ('roughly, give or take') rather than stating a precise-sounding figure that may be wrong. A wrong number stated confidently is worse than an honest approximation.\\n\\nIMPORTANT — Duplicate charge detection: When reading a real document, actively watch for transactions to the SAME merchant, person, or service provider appearing more than once in a short period (e.g. same week or billing cycle). Do NOT assume these are errors, do NOT assume they are wasteful or excessive, and NEVER ask a leading or judgmental question like 'why did you spend so much' or 'you could have just paid X instead' — many users intentionally split payments (rent shared with roommates, instalments to the same vendor, separate legitimate orders) and a question implying they overspent feels accusatory and is often simply wrong. Instead, when you notice 2 or more payments to the same merchant/person worth asking about, respond with a brief, warm, NON-judgmental lead-in sentence (something like 'Noticed a few payments to [name] — just curious what these were for, no judgment!') followed immediately by this exact marker on its own line so the app can show an interactive table: SHOW_JUSTIFY_TABLE|<merchant or person name>|<date> - <amount>|<date> - <amount> (one pipe-separated entry per transaction, using the real dates and amounts you see in the document). Do not ask the user to justify themselves in plain chat text — always use this table for 2+ repeated transactions so they can simply state the purpose of each one directly, without feeling accused of anything.\\n\\nIMPORTANT — Currency awareness: If the user mentions they are outside India or asks about a non-Indian document, respond using their stated currency and do not assume INR. If unsure of their currency, ask once rather than assuming.\\n\\nIMPORTANT — Language: If the user writes to you in Hindi (Devanagari script) or Hinglish (Hindi written in English letters, e.g. 'paisa kahan gaya'), respond naturally in that same language or style — do not switch back to English unless they do. Keep your comedic, warm personality fully intact in Hindi too; do not become more formal or robotic just because the language changed. Continue using Hindi/Hinglish financial terms people actually say in conversation (paisa, kharcha, bachat) alongside the standard Indian financial terms (SIP, EMI, ITR) which are commonly used in English even within Hindi conversations. If the user mixes English and Hindi in the same message, mirror that natural mixing rather than forcing pure English or pure Hindi.\\n\\nIMPORTANT — Cash withdrawal handling: When you spot ATM withdrawals or 'cash withdrawal' line items in a bank statement, never treat that money as unexplained or wasted, and never joke about cash withdrawals being suspicious or shady — this can be a genuinely sensitive topic (emergencies, family support, privacy). Just like a Chartered Accountant always asks a client what cash was used for, you must do the same, warmly and without comedic pressure. The FIRST time you mention a cash withdrawal in a conversation, ask the user conversationally what it was generally for (e.g. 'I see a ₹5,000 cash withdrawal on the 12th — was that for groceries, rent, an emergency, or something else?'). If the user indicates there were MULTIPLE cash withdrawals or says something like 'there were a few' or 'let me list them', respond with exactly this phrase on its own line so the app can detect it and show a table: SHOW_CASH_TABLE. Do not explain or describe the table yourself — just say that phrase and a brief friendly lead-in sentence before it. Once the user has provided a breakdown (either conversationally or via the table), incorporate those categorised cash amounts into your spending analysis as if they were regular tracked transactions, and never refer to that cash as 'untracked' or 'mystery' spending again in that conversation.\\n\\nIMPORTANT — Income type awareness: " + (currentIncomeType === "regular" ? "This user has REGULAR income (salary, pension, or similar predictable monthly credit). You can reasonably assume a monthly income pattern, use standard benchmarks like the 50-30-20 rule or a 20% savings rate target, and calculate things like days-until-next-salary when relevant." : currentIncomeType === "variable" ? "This user has VARIABLE income (student, business owner, freelancer, gig worker, or similar — money that does NOT arrive predictably every month). Do NOT assume a monthly salary pattern exists. Before treating any inflow as income for budgeting purposes, ask whether it is one-time or genuinely recurring. Avoid applying standard percentage-based benchmarks unless the user has confirmed a real recurring pattern. Be more curious and ask more before assuming what a transaction represents." : "This user has not specified their income type yet — stay neutral, ask naturally if it becomes relevant.") + "\\n\\nDocument context:\\n" + uploadedDocContext;
   try {
     var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
     var payload = { messages: messages, systemPrompt: systemPrompt };
@@ -2378,11 +2501,23 @@ async function callClaudeAPI(userMsg) {
       var reply = data.reply;
       conversationHistory.push({ role:"assistant", content: reply });
       var shouldShowCashTable = reply.indexOf("SHOW_CASH_TABLE") !== -1;
-      var cleanReply = reply.replace("SHOW_CASH_TABLE", "").trim();
+      // Detect a justify-table marker line, e.g.:
+      // SHOW_JUSTIFY_TABLE|Swiggy|12 Jun - ₹450|15 Jun - ₹680
+      var justifyMatch = reply.match(/SHOW_JUSTIFY_TABLE\|([^\n]*)/);
+      var justifyMerchant = "", justifyTransactions = [];
+      if (justifyMatch) {
+        var parts = justifyMatch[1].split("|");
+        justifyMerchant = parts[0] || "";
+        justifyTransactions = parts.slice(1).filter(function(p) { return p.trim().length > 0; });
+      }
+      var cleanReply = reply.replace("SHOW_CASH_TABLE", "").replace(/SHOW_JUSTIFY_TABLE\|[^\n]*/, "").trim();
       var fmt = cleanReply.replace(/\*\*(.*?)\*\*/g,"<b>$1</b>").replace(/\n\n/g,"<br><br>").replace(/\n/g,"<br>");
       addMsg("ai", fmt);
       if (shouldShowCashTable) {
         setTimeout(openCashModal, 600);
+      }
+      if (justifyMatch) {
+        setTimeout(function() { openJustifyModal(justifyMerchant, justifyTransactions); }, 600);
       }
     } else if (data.error) {
       addMsg("ai", "DataDost error: " + data.error);
