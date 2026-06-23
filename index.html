@@ -288,6 +288,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 #mobile-sidebar-overlay.show{display:block}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -465,7 +466,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="upload-left">
         <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
         <div class="dz" id="dz">
-          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv" style="display:none">
+          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls" style="display:none">
           <input type="file" id="file-inp-camera" accept="image/*" capture="environment" style="display:none">
           <div class="scan"></div>
           <div class="dz-def">
@@ -1648,6 +1649,32 @@ function readFileForAPI(file) {
       };
       reader.onerror = function() { resolve(); }; // resolve anyway so the UI never hangs forever
       reader.readAsText(file);
+    } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls") || file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || file.type === "application/vnd.ms-excel") {
+      // Excel files are binary, not plain text — use SheetJS to read the workbook and
+      // convert each sheet to a readable CSV-style text block the AI can parse just like
+      // a regular CSV upload, covering Excel exports from banks, credit cards, and brokers.
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          var data = new Uint8Array(e.target.result);
+          var workbook = XLSX.read(data, { type: "array" });
+          var sheetTexts = [];
+          workbook.SheetNames.forEach(function(sheetName) {
+            var sheet = workbook.Sheets[sheetName];
+            var csvText = XLSX.utils.sheet_to_csv(sheet);
+            sheetTexts.push("--- Sheet: " + sheetName + " ---\n" + csvText);
+          });
+          var combined = sheetTexts.join("\n\n").slice(0, 8000);
+          uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (Excel, converted to readable text):\n" + combined;
+        } catch (err) {
+          console.error("[DataDost] Excel parsing error:", err);
+          uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[This Excel file could not be read automatically — it may be corrupted, password-protected, or in an unsupported format. Let the user know you couldn't open it and ask them to try exporting it as a CSV instead, or describe the key figures directly.]";
+        }
+        conversationHistory = [];
+        resolve();
+      };
+      reader.onerror = function() { resolve(); };
+      reader.readAsArrayBuffer(file);
     } else if (file.type.startsWith("image/")) {
       // Compress the image first — only if it's reasonably large, to avoid wasting time
       // re-encoding an already-small file (e.g. a clean screenshot under 1MB).
