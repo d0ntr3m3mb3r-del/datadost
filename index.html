@@ -1290,12 +1290,12 @@ function renderDash() {
     statTrends[2].innerHTML = "From your uploaded document";
   }
 
-  var sb = document.getElementById("spend-bars");
-  if (sb) {
-    sb.innerHTML = "";
+  var spendBarsEl = document.getElementById("spend-bars");
+  if (spendBarsEl) {
+    spendBarsEl.innerHTML = "";
     var bars = usingReal ? realDashboardData.bars : spendData;
     bars.forEach(function(d) {
-      sb.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a) + "</div></div>";
+      spendBarsEl.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a) + "</div></div>";
     });
     setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
   }
@@ -2246,20 +2246,24 @@ function convertRupeeAmounts(text) {
 
 // ── CHAT PERSISTENCE (Supabase) ──
 async function saveMessageToDb(role, content) {
-  if (!sb) return; // not logged in / Supabase not ready yet — message still shows, just won't persist
+  if (!sb) { console.warn("[DataDost] Cannot save message — Supabase not initialised yet"); return; }
   try {
     var sessionResult = await sb.auth.getSession();
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
-    if (!user) return; // not logged in — skip silently, this is fine for demo browsing
-    await sb.from("messages").insert({
+    if (!user) { console.warn("[DataDost] Cannot save message — no logged-in user session"); return; }
+    var result = await sb.from("messages").insert({
       user_id: user.id,
       doc_key: activeDoc,
       role: role,
       content: content
     });
+    if (result.error) {
+      console.error("[DataDost] Supabase insert error:", result.error.message);
+    }
   } catch (err) {
-    console.error("Could not save message:", err);
-    // Never block the chat experience if saving fails — fail silently
+    console.error("[DataDost] Could not save message:", err);
+    // Never block the chat experience if saving fails — fail silently in the UI,
+    // but always log clearly to the console so a real failure can be diagnosed.
   }
 }
 
