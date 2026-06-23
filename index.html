@@ -1271,9 +1271,16 @@ function renderDash() {
   var usingReal = realDashboardData !== null;
   var bannerEl = document.getElementById("dash-data-banner");
   if (bannerEl) {
-    bannerEl.innerHTML = usingReal
-      ? "📄 Showing real numbers from <b>" + realDashboardData.docName + "</b>"
-      : "🧪 Sample data — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload a real document</span> to see your own numbers here";
+    if (usingReal && realDashboardData.incomeFlagged) {
+      // We caught an implausible income figure ourselves (savings exceeded income) and
+      // discarded it rather than show a number we know is wrong — tell the user honestly
+      // why income/savings-rate cards aren't shown, instead of silently hiding them.
+      bannerEl.innerHTML = "📄 Showing spending from <b>" + realDashboardData.docName + "</b> — income figure looked off, so we're not showing it. Ask DataDost directly for your income/savings breakdown instead.";
+    } else {
+      bannerEl.innerHTML = usingReal
+        ? "📄 Showing real numbers from <b>" + realDashboardData.docName + "</b>"
+        : "🧪 Sample data — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload a real document</span> to see your own numbers here";
+    }
     bannerEl.style.background = usingReal ? "var(--green-l)" : "var(--mist)";
     bannerEl.style.color = usingReal ? "var(--green)" : "var(--slate)";
   }
@@ -1751,7 +1758,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — be careful and accurate with INCOME and SAVINGS specifically: scan the ENTIRE document for ALL credit/income transactions across the full statement period before totalling, not just the first one you notice. For a bank statement covering multiple months, sum salary/income credits across ALL months shown, not just one. Do NOT confuse a single small interest credit or a one-off transfer with the user's actual recurring income — if genuine salary or income credits are not clearly identifiable, say NONE rather than guessing a small unrelated number. Before finalising INCOME and SAVINGS, sanity-check that SAVINGS is NOT larger than INCOME — if your own numbers would imply someone saved more than 100% of their income, you have made an error: re-scan the document and correct it before answering.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1813,6 +1820,11 @@ async function analyseRealDocument() {
       // a user would correctly flag as wrong.
       var docTypesWithIncome = ["bank", "salary"]; // only these realistically show income & a savings rate
       var hasIncomeConcept = docTypesWithIncome.indexOf(docType) !== -1;
+      // SECOND, INDEPENDENT sanity check — don't only rely on the AI catching its own mistake.
+      // If the reported income is smaller than the reported savings, the income figure is
+      // certainly wrong (you cannot save more than you earn) — discard it ourselves rather
+      // than trust the AI's self-check, which has been shown to occasionally miss this.
+      var incomeIsPlausible = !(income > 0 && savings > 0 && savings > income);
       if (income > 0 || spending > 0 || categories.length > 0) {
         var barColors = ["#FF6B1A", "#0F6E56", "#2E75B6", "#BA7517", "#6B3FA0", "#E24B4A"];
         var maxCatAmt = Math.max.apply(null, categories.map(function(c){return c.a;})) || 1;
@@ -1820,13 +1832,14 @@ async function analyseRealDocument() {
           return { l: c.l, a: c.a, c: barColors[i % barColors.length], p: Math.min(100, Math.round((c.a / maxCatAmt) * 100)) };
         });
         realDashboardData = {
-          hasIncomeConcept: hasIncomeConcept,
-          income: hasIncomeConcept ? (income || 0) : null, // null = "not applicable", never fake a number
+          hasIncomeConcept: hasIncomeConcept && incomeIsPlausible,
+          income: (hasIncomeConcept && incomeIsPlausible) ? (income || 0) : null, // null = "not applicable", never fake a number
           spending: spending || 0,
-          saved: hasIncomeConcept ? savings : null,
+          saved: (hasIncomeConcept && incomeIsPlausible) ? savings : null,
           bars: bars.length > 0 ? bars : spendData,
           docName: detectedDocName || docTypeName,
-          docTypeLabel: docTypeName
+          docTypeLabel: docTypeName,
+          incomeFlagged: hasIncomeConcept && !incomeIsPlausible // so the UI can explain WHY these cards are hidden
         };
       }
 
