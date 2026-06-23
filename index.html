@@ -1719,7 +1719,10 @@ function renderSuccessInsights(ins) {
   document.getElementById("sov").classList.add("show");
 }
 
+var analysisCount = 0; // ensures fallback document names are always unique, even for 2+ same-type
+                        // documents uploaded on the same day with no extractable institution name
 async function analyseRealDocument() {
+  analysisCount++;
   console.log("[DataDost] analyseRealDocument started");
   // Show the modal immediately with a fun "still working" message so the user isn't staring at nothing
   var el = document.getElementById("sov-ins");
@@ -1777,7 +1780,7 @@ async function analyseRealDocument() {
         if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
       });
       var fallbackLabel = fallbackLabelFor(docType);
-      detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}));
+      detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
       // Trust Claude's real detection of the document type over whatever tile the user happened to click —
       // people often forget to change the selector or pick the wrong one by mistake.
       if (detectedRealType && detectedRealType !== docType) {
@@ -1818,13 +1821,13 @@ async function analyseRealDocument() {
       renderSuccessInsights(renderedInsights);
       pendingFollowupQuestion = followup; // asked once the user reaches the chat
     } else {
-      detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+      detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : "");
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
       renderSuccessInsights(sovInsights[docType] || sovInsights.other);
     }
   } catch (err) {
     console.error("Document detection error:", err);
-    detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+    detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : "");
     document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
     renderSuccessInsights(sovInsights[docType] || sovInsights.other);
   }
@@ -2102,6 +2105,12 @@ async function renderChat() {
   var qbEl = document.getElementById("qbtns");
   if (!msgsEl) return;
 
+  // Snapshot which document this render call is FOR — if the user clicks a different
+  // document while loadMessagesFromDb() below is still in flight, activeDoc will have
+  // changed globally by the time we resume. Without this check, document A's history
+  // could render inside document B's chat window.
+  var renderingFor = activeDoc;
+
   // Compare mode already set up its own header, quick-questions and welcome message
   // in startCompareChat() / renderCompareWelcome() — don't let this function overwrite them.
   if (activeDoc && activeDoc.indexOf("compare_") === 0) {
@@ -2126,7 +2135,12 @@ async function renderChat() {
   });
 
   // Check if we have a real saved conversation for this document — if so, restore it instead of starting fresh
-  var savedMessages = await loadMessagesFromDb(activeDoc);
+  var savedMessages = await loadMessagesFromDb(renderingFor);
+  if (activeDoc !== renderingFor) {
+    // The user navigated to a different document while this was loading — abandon this
+    // render entirely rather than show stale/wrong content in the now-active chat.
+    return;
+  }
   if (savedMessages.length > 0) {
     conversationHistory = [];
     savedMessages.forEach(function(msg) {
