@@ -1431,6 +1431,7 @@ function resetUploadBoxVisuals() {
   curFile = null;
   fileBase64 = "";
   fileMediaType = "";
+  detectedDocName = ""; // critical: prevents a stale name from being silently re-added to the sidebar
   var dz = document.getElementById("dz");
   dz.classList.remove("ok","read");
   document.getElementById("btn-analyse").classList.remove("vis");
@@ -1892,6 +1893,15 @@ async function renderCompareWelcome(docs) {
 document.getElementById("compare-start-btn").addEventListener("click", startCompareChat);
 
 function addRealDocToSidebar(doc, name) {
+  // Defensive guard: if a sidebar entry with this exact name was already added in this
+  // session, don't create a second one — just re-select the existing one instead.
+  var existingMatch = null;
+  document.querySelectorAll(".csb-doc[data-real-name]").forEach(function(d) {
+    if (d.dataset.realName === name && !existingMatch) existingMatch = d;
+  });
+  if (existingMatch) {
+    return existingMatch.dataset.doc;
+  }
   var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
   uploadedDocCount++;
   var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
