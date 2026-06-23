@@ -1315,7 +1315,15 @@ function renderDash() {
       statCards[3].style.display = "";
       if (usingReal && realDashboardData.income > 0) {
         var rate = Math.round((realDashboardData.saved / realDashboardData.income) * 100);
-        statVals[3].textContent = rate + "%";
+        // Sanity cap: a savings rate over 100% is mathematically impossible and means the
+        // underlying income or savings figure was misread — show an honest "needs review"
+        // state instead of a confusing, clearly-wrong percentage like 460%.
+        if (rate > 100 || rate < 0) {
+          statVals[3].textContent = "Check figures";
+          statVals[3].style.fontSize = "1.1rem";
+        } else {
+          statVals[3].textContent = rate + "%";
+        }
       } else if (!usingReal) {
         statVals[3].textContent = "11.3%";
       } else {
@@ -1330,6 +1338,13 @@ function renderDash() {
     statTrends[2].innerHTML = "↓ Could be " + fmtCurrency(8000) + "+";
   } else if (statTrends.length >= 3 && usingReal && showIncomeAndRate) {
     statTrends[2].innerHTML = "From your uploaded document";
+  }
+  if (statTrends.length >= 4 && usingReal && showIncomeAndRate && realDashboardData.income > 0) {
+    var checkRate = Math.round((realDashboardData.saved / realDashboardData.income) * 100);
+    if (checkRate > 100 || checkRate < 0) {
+      statTrends[3].innerHTML = "Income/savings figures look off — ask DataDost to recheck";
+      statTrends[3].style.color = "var(--slate)";
+    }
   }
 
   var spendBarsEl = document.getElementById("spend-bars");
@@ -1736,7 +1751,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable:\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — be careful and accurate with INCOME and SAVINGS specifically: scan the ENTIRE document for ALL credit/income transactions across the full statement period before totalling, not just the first one you notice. For a bank statement covering multiple months, sum salary/income credits across ALL months shown, not just one. Do NOT confuse a single small interest credit or a one-off transfer with the user's actual recurring income — if genuine salary or income credits are not clearly identifiable, say NONE rather than guessing a small unrelated number. Before finalising INCOME and SAVINGS, sanity-check that SAVINGS is NOT larger than INCOME — if your own numbers would imply someone saved more than 100% of their income, you have made an error: re-scan the document and correct it before answering.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
