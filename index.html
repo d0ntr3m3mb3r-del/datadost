@@ -1643,7 +1643,9 @@ function readFileForAPI(file) {
     if (file.type === "text/csv" || file.name.endsWith(".csv")) {
       var reader = new FileReader();
       reader.onload = function(e) {
-        uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (CSV):\n" + e.target.result.slice(0, 8000);
+        uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (CSV):\n" + e.target.result;
+        // Same fix as the Excel path: removed the 8000-character truncation, which was
+        // silently dropping rows from any real statement longer than ~150 rows.
         conversationHistory = [];
         resolve();
       };
@@ -1664,7 +1666,14 @@ function readFileForAPI(file) {
             var csvText = XLSX.utils.sheet_to_csv(sheet);
             sheetTexts.push("--- Sheet: " + sheetName + " ---\n" + csvText);
           });
-          var combined = sheetTexts.join("\n\n").slice(0, 8000);
+          var combined = sheetTexts.join("\n\n");
+          // IMPORTANT: do NOT truncate this. A real bank/card statement can easily run to
+          // 300+ rows (~20,000+ characters as CSV text) — Claude's context window comfortably
+          // handles documents far larger than that. An earlier 8000-character cutoff here was
+          // silently dropping most of a real statement's rows before the AI ever saw them,
+          // causing it to honestly report on incomplete data without any way to know rows
+          // were missing. If this ever needs a safety cap for extremely large files, it
+          // should be generous (e.g. 60000+ chars) and clearly communicated, never silent.
           uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\nContent (Excel, converted to readable text):\n" + combined;
         } catch (err) {
           console.error("[DataDost] Excel parsing error:", err);
