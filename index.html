@@ -129,6 +129,21 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .spend-wrap{flex:1;height:7px;background:var(--mist);border-radius:100px;overflow:hidden}
 .spend-bar{height:100%;border-radius:100px;width:0;transition:width 1.1s ease}
 .spend-amt{font-size:.78rem;font-weight:600;width:58px;text-align:right;flex-shrink:0}
+/* forecast */
+.fc-row{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem}
+@media (max-width:640px){.fc-row{grid-template-columns:1fr}}
+.fc-box{background:var(--mist);border-radius:var(--rs);padding:.9rem 1rem;cursor:pointer;transition:background .15s}
+.fc-box:hover{background:var(--sf-l)}
+.fc-box-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem}
+.fc-pct{font-family:"Sora",sans-serif;font-size:1.2rem;font-weight:700}
+.fc-sub{font-size:.72rem;color:var(--slate);margin-bottom:.5rem}
+.fc-wrap{height:7px;background:var(--white);border-radius:100px;overflow:hidden}
+.fc-bar{height:100%;border-radius:100px;width:0;transition:width 1.1s ease}
+.fc-items{margin-top:.7rem;display:flex;flex-direction:column;gap:.5rem}
+.fc-item{display:flex;justify-content:space-between;align-items:center;font-size:.76rem;border-top:1px solid var(--border);padding-top:.5rem}
+.fc-item-name{font-weight:500;color:var(--ink)}
+.fc-item-date{color:var(--slate);font-size:.7rem}
+.fc-badge{font-size:.66rem;font-weight:700;padding:.15rem .55rem;border-radius:100px}
 /* insight */
 .ins-card{background:var(--sf-l);border:1px solid var(--sf-m);border-radius:var(--rs);padding:.85rem .95rem;display:flex;gap:.65rem;cursor:pointer;transition:background .15s;margin-bottom:.55rem}
 .ins-card:hover{background:var(--sf-m)}
@@ -429,6 +444,10 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <div class="stat-card"><div class="stat-val">₹43,045</div><div class="stat-lbl">Total spending</div><div class="stat-trend t-bad">↑ +8% vs last month</div></div>
         <div class="stat-card"><div class="stat-val">₹5,455</div><div class="stat-lbl">Saved this month</div><div class="stat-trend t-warn">↓ Could be ₹8,000+</div></div>
         <div class="stat-card"><div class="stat-val">11.3%</div><div class="stat-lbl">Savings rate</div><div class="stat-trend t-warn">Target: 20%</div></div>
+      </div>
+      <div class="card" id="forecast-card">
+        <div class="card-title">What's coming up this month</div>
+        <div id="forecast-body"></div>
       </div>
       <div class="dash-grid">
         <div style="display:flex;flex-direction:column;gap:1.1rem">
@@ -899,7 +918,7 @@ function goTo(id, tab) {
     window.scrollTo(0,0);
   }
   if (id === "s-auth" && tab) switchTab(tab);
-  if (id === "s-dash") renderDash();
+  if (id === "s-dash") { renderDash(); renderForecast(); }
   if (id === "s-chat") renderChat();
   if (id === "s-upload") {
     renderUpRecent();
@@ -1413,6 +1432,87 @@ function renderDash() {
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
 }
 
+// ── FORECAST ──
+var forecastExpanded = { PAYMENT: false, RECEIVABLE: false }; // which bar's breakdown is currently open
+
+function ordinal(n) {
+  if (!n) return "an uncertain date";
+  var s = ["th","st","nd","rd"], v = n % 100;
+  return n + (s[(v-20)%10] || s[v] || s[0]);
+}
+
+async function renderForecast() {
+  var body = document.getElementById("forecast-body");
+  if (!body) return;
+  body.innerHTML = "<div style=\"text-align:center;padding:1.2rem;color:var(--slate);font-size:.82rem\">Checking your history…</div>";
+
+  var snapshots = await loadSnapshotsFromDb();
+
+  // Honest gating, never a silent empty state — same transparency principle used
+  // everywhere else in DataDost (income-detection failures, document-storage limits).
+  if (snapshots.length < 3) {
+    body.innerHTML =
+      "<div style=\"text-align:center;padding:1.3rem 1rem\">" +
+      "<div style=\"font-size:1.5rem;margin-bottom:.35rem\">🔭</div>" +
+      "<div style=\"font-size:.84rem;color:var(--ink-s);margin-bottom:.45rem;line-height:1.5\">Forecast needs at least <b>3 months</b> of statements to tell a real pattern from a coincidence — you're at <b>" + snapshots.length + " of 3</b>.</div>" +
+      "<span style=\"font-size:.82rem;text-decoration:underline;cursor:pointer;color:var(--sf)\" onclick=\"goTo('s-upload')\">Upload another month →</span>" +
+      "</div>";
+    return;
+  }
+
+  var forecast = await getOrComputeForecast(snapshots);
+  if (!forecast || !forecast.items) {
+    body.innerHTML = "<div style=\"text-align:center;padding:1.2rem;color:var(--slate);font-size:.82rem\">Couldn't put your forecast together just now — try reopening the Dashboard in a moment.</div>";
+    return;
+  }
+  renderForecastBars(forecast.items);
+}
+
+function renderForecastBars(items) {
+  var body = document.getElementById("forecast-body");
+  if (!body) return;
+  var payments = items.filter(function(i) { return i.type === "PAYMENT"; });
+  var receivables = items.filter(function(i) { return i.type === "RECEIVABLE"; });
+  body.innerHTML = "<div class=\"fc-row\">" + fcBoxHtml("PAYMENT", "Expected payments", payments) + fcBoxHtml("RECEIVABLE", "Expected receivables", receivables) + "</div>";
+}
+
+function fcBoxHtml(type, title, items) {
+  if (items.length === 0) {
+    return "<div class=\"fc-box\" style=\"cursor:default\">" +
+      "<div class=\"fc-sub\" style=\"font-size:.78rem;color:var(--ink-s);font-weight:500;margin-bottom:.3rem\">" + title + "</div>" +
+      "<div class=\"fc-sub\" style=\"margin:0\">Nothing confidently recurring spotted yet</div></div>";
+  }
+  var done = items.filter(function(i) { return i.status === "paid" || i.status === "received"; });
+  var doneAmt = done.reduce(function(s, i) { return s + i.amount; }, 0);
+  var totalAmt = items.reduce(function(s, i) { return s + i.amount; }, 0);
+  var pct = totalAmt > 0 ? Math.round((doneAmt / totalAmt) * 100) : 0;
+  var barColor = type === "PAYMENT" ? "var(--green)" : "#2E75B6";
+  var statusWord = type === "PAYMENT" ? "completed" : "arrived";
+  var expanded = forecastExpanded[type];
+  var rows = items.map(function(i) {
+    var ok = i.status === "paid" || i.status === "received";
+    var badgeText = ok ? (type === "PAYMENT" ? "Paid" : "Received") : (type === "PAYMENT" ? "Pending" : "Awaited");
+    var badge = "<span class=\"fc-badge\" style=\"background:" + (ok ? "var(--green-l)" : "#FFF1E9") + ";color:" + (ok ? "var(--green)" : "#BA7517") + "\">" + badgeText + "</span>";
+    var dateText = "Around the " + ordinal(i.approxDay) + (i.confidence === "low" ? " · still confirming" : "");
+    return "<div class=\"fc-item\"><div><div class=\"fc-item-name\">" + i.name + "</div><div class=\"fc-item-date\">" + dateText + "</div></div>" +
+      "<div style=\"display:flex;align-items:center;gap:.5rem\"><span style=\"font-weight:600;font-size:.78rem\">" + fmtCurrency(i.amount) + "</span>" + badge + "</div></div>";
+  }).join("");
+  return "<div class=\"fc-box\" onclick=\"toggleForecastBox('" + type + "')\">" +
+    "<div class=\"fc-box-top\"><span style=\"font-size:.78rem;color:var(--ink-s);font-weight:500\">" + title + "</span><span class=\"fc-pct\">" + pct + "%</span></div>" +
+    "<div class=\"fc-sub\">" + done.length + " of " + items.length + " " + statusWord + " · " + fmtCurrency(doneAmt) + " of " + fmtCurrency(totalAmt) + "</div>" +
+    "<div class=\"fc-wrap\"><div class=\"fc-bar\" style=\"width:" + pct + "%;background:" + barColor + "\"></div></div>" +
+    (expanded ? "<div class=\"fc-items\">" + rows + "</div>" : "") +
+    "</div>";
+}
+
+function toggleForecastBox(type) {
+  forecastExpanded[type] = !forecastExpanded[type];
+  // Redraw from the cached result only — toggling a breakdown open never needs a fresh
+  // Claude call, the data hasn't changed, just whether it's visible.
+  if (forecastCache && forecastCache.items) renderForecastBars(forecastCache.items);
+}
+window.toggleForecastBox = toggleForecastBox;
+
 // ── UPLOAD ──
 function renderUpRecent() {
   var ur = document.getElementById("up-recent");
@@ -1818,7 +1918,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nRECURRING1: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]\nRECURRING2: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE]\nRECURRING3: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE]\nRECURRING4: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE] — list up to 4 transactions in THIS document that look like FIXED RECURRING obligations or inflows: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME. Write NONE on any line with nothing left to report, e.g. RECURRING2: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1843,7 +1943,7 @@ async function analyseRealDocument() {
     }
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "";
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [];
       lines.forEach(function(line) {
         if (line.indexOf("DOCTYPE:") === 0) {
           var dt = line.replace("DOCTYPE:", "").trim().toLowerCase();
@@ -1862,6 +1962,21 @@ async function analyseRealDocument() {
           }
         }
         if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
+        if (line.indexOf("RECURRING") === 0) {
+          // Each line: name|amount|approxDay|PAYMENT-or-RECEIVABLE — these are per-document
+          // candidates only. A single document can't confirm a real recurring pattern (one
+          // occurrence could be coincidence) — confirmation happens later by cross-referencing
+          // candidates across 3+ months in the forecast detection step, not here.
+          var rParts = line.replace(/RECURRING\d:/, "").trim().split("|");
+          if (rParts.length === 4) {
+            var rAmt = parseFloat(rParts[1].replace(/[^\d.]/g,"")) || 0;
+            var rDay = parseInt(rParts[2].replace(/[^\d]/g,""), 10) || null;
+            var rType = rParts[3].trim().toUpperCase().indexOf("RECEIVABLE") === 0 ? "RECEIVABLE" : "PAYMENT";
+            if (rAmt > 0 && rParts[0].trim().toUpperCase() !== "NONE") {
+              recurringCandidates.push({ name: rParts[0].trim(), amount: rAmt, approxDay: rDay, type: rType });
+            }
+          }
+        }
       });
       var fallbackLabel = fallbackLabelFor(docType);
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
@@ -1901,6 +2016,18 @@ async function analyseRealDocument() {
           docTypeLabel: docTypeName,
           incomeFlagged: hasIncomeConcept && !incomeIsPlausible // so the UI can explain WHY these cards are hidden
         };
+        // Persist just the extracted numbers (never the original file) so the dashboard
+        // survives a reload, and so Forecast has real history to detect patterns from once
+        // 3+ months exist. Fire-and-forget — never block the upload success screen on this.
+        saveSnapshotToDb({
+          docType: docType,
+          income: realDashboardData.income,
+          spending: realDashboardData.spending,
+          saved: realDashboardData.saved,
+          categories: categories,
+          recurringCandidates: recurringCandidates,
+          docName: realDashboardData.docName
+        });
       }
 
       var colors = ["#FF6B1A", "#0F6E56", "#2E75B6"];
@@ -2415,6 +2542,83 @@ async function saveMessageToDb(role, content) {
     console.error("[DataDost] Could not save message:", err);
     // Never block the chat experience if saving fails — fail silently in the UI,
     // but always log clearly to the console so a real failure can be diagnosed.
+  }
+}
+
+// ── FORECAST PERSISTENCE (Supabase) ──
+// Mirrors the chat persistence pattern above exactly — same table style, same
+// fire-and-forget philosophy, same "never block the UI on a save failing" rule.
+async function saveSnapshotToDb(snapshot) {
+  if (!sb) { console.warn("[DataDost] Cannot save snapshot — Supabase not initialised yet"); return; }
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) { console.warn("[DataDost] Cannot save snapshot — no logged-in user session"); return; }
+    var result = await sb.from("financial_snapshots").insert({
+      user_id: user.id,
+      doc_type: snapshot.docType,
+      doc_name: snapshot.docName,
+      income: snapshot.income,
+      spending: snapshot.spending,
+      saved: snapshot.saved,
+      categories: snapshot.categories,
+      recurring_candidates: snapshot.recurringCandidates
+    });
+    if (result.error) {
+      console.error("[DataDost] Supabase snapshot insert error:", result.error.message);
+      return;
+    }
+    // A new snapshot means the forecast may now have fresher data to work from —
+    // invalidate any cached forecast so the next dashboard view recomputes it.
+    forecastCache = null;
+  } catch (err) {
+    console.error("[DataDost] Could not save snapshot:", err);
+  }
+}
+
+async function loadSnapshotsFromDb() {
+  if (!sb) { console.warn("[DataDost] Cannot load snapshots — Supabase not initialised yet"); return []; }
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) { console.warn("[DataDost] Cannot load snapshots — no logged-in user session"); return []; }
+    var result = await sb.from("financial_snapshots")
+      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+    if (result.error) {
+      console.error("[DataDost] Supabase query error loading snapshots:", result.error.message);
+      return [];
+    }
+    return result.data || [];
+  } catch (err) {
+    console.error("[DataDost] Could not load snapshots:", err);
+    return [];
+  }
+}
+
+// In-memory cache for this browser session only — avoids re-calling Claude every time the
+// user revisits the Dashboard tab. Set to null whenever a new snapshot is saved (above).
+var forecastCache = null;
+
+async function getOrComputeForecast(snapshots) {
+  if (forecastCache) return forecastCache;
+  try {
+    var resp = await fetch("/api/forecast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ snapshots: snapshots })
+    });
+    var data = await resp.json();
+    if (!resp.ok) {
+      console.error("[DataDost] Forecast API error:", data.error);
+      return null;
+    }
+    forecastCache = data;
+    return data;
+  } catch (err) {
+    console.error("[DataDost] Could not compute forecast:", err);
+    return null;
   }
 }
 
