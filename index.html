@@ -2138,16 +2138,25 @@ async function analyseRealDocument() {
       // Numbers stay exactly as extracted, in the document's own real currency — never
       // converted to INR or anything else. docCurrency is carried alongside the raw
       // numbers purely so the UI can show the correct symbol, never to do conversion math.
-      var fallbackLabel = fallbackLabelFor(docType);
-      detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
-      // Trust Claude's real detection of the document type over whatever tile the user happened to click —
-      // people often forget to change the selector or pick the wrong one by mistake.
+      // Resolve the REAL type first (trust Claude's detection over whatever tile the user
+      // clicked), so the distinguishing suffix below always reflects the correct type.
       if (detectedRealType && detectedRealType !== docType) {
         docType = detectedRealType;
         document.querySelectorAll(".dt").forEach(function(d) { d.classList.remove("sel"); });
         var matchingTile = document.querySelector(".dt[data-type='" + detectedRealType + "']");
         if (matchingTile) matchingTile.classList.add("sel");
       }
+      var fallbackLabel = fallbackLabelFor(docType);
+      // A real beta-testing bug: a genuine bank statement and a genuine credit card
+      // statement, both from ADCB, were both named simply "ADCB" — identical strings —
+      // which silently collided as "the same document" in the sidebar. Always include
+      // the type and a real detected period now, so "ADCB" becomes "ADCB — Bank
+      // Statement (Jun 2026)" vs "ADCB — Credit Card Statement (Jun 2026)" — genuinely
+      // distinct, and more informative for the user besides.
+      var periodSuffix = periodMonths.length > 0 ? " (" + periodMonths[periodMonths.length - 1] + ")" : "";
+      detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN")
+        ? (institution + " — " + fallbackLabel + periodSuffix)
+        : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
 
       // Populate the dashboard with real data — but ONLY show metrics that genuinely make
       // sense for this document type. A utility bill has spending, but no "income" concept
@@ -2449,11 +2458,14 @@ function renderGroupedRealDocs() {
 }
 
 function addRealDocToSidebar(doc, name) {
-  // Defensive guard: if a sidebar entry with this exact name was already added in this
-  // session, don't create a second one — just re-select the existing one instead.
+  // Defensive guard: if a sidebar entry with this exact name AND type was already added
+  // in this session, don't create a second one — just re-select the existing one instead.
+  // Checking type too (not just name) matters: a bank statement and a credit card
+  // statement from the same institution must never be treated as "the same document"
+  // just because they happen to share a name — that was a real bug found via testing.
   var existingMatch = null;
   document.querySelectorAll(".csb-doc[data-real-name]").forEach(function(d) {
-    if (d.dataset.realName === name && !existingMatch) existingMatch = d;
+    if (d.dataset.realName === name && d.dataset.realType === doc && !existingMatch) existingMatch = d;
   });
   if (existingMatch) {
     return existingMatch.dataset.doc;
