@@ -580,6 +580,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       </div>
       <div class="csb-docs">
         <button class="csb-doc" data-doc="general" style="background:var(--sf-l);margin-bottom:.5rem"><div class="csb-doc-em">💬</div><div><div class="csb-doc-name" style="color:var(--sf)">General Chat</div><div class="csb-doc-meta">Ask anything — no document needed</div></div></button>
+        <div id="real-docs-groups"></div>
         <div class="csb-sec">This month</div>
         <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">Bank Statement (sample)</div><div class="csb-doc-meta">Try the demo · 14 questions asked</div></div></button>
         <div class="csb-sec">Earlier</div>
@@ -2322,30 +2323,32 @@ async function renderCompareWelcome(docs) {
 
 document.getElementById("compare-start-btn").addEventListener("click", startCompareChat);
 
-function addRealDocToSidebar(doc, name) {
-  // Defensive guard: if a sidebar entry with this exact name was already added in this
-  // session, don't create a second one — just re-select the existing one instead.
-  var existingMatch = null;
-  document.querySelectorAll(".csb-doc[data-real-name]").forEach(function(d) {
-    if (d.dataset.realName === name && !existingMatch) existingMatch = d;
-  });
-  if (existingMatch) {
-    return existingMatch.dataset.doc;
-  }
-  var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
-  uploadedDocCount++;
-  var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
-  // Save this document's actual file data so it can be cross-referenced with others later —
-  // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
-  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc };
-  var docsContainer = document.querySelector(".csb-docs");
-  document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
+// Icon + heading label for each document type — same 7 categories as the upload drop
+// zone, so the language stays consistent everywhere in the app. Order here is also the
+// order groups appear in the sidebar.
+var DOC_CATEGORY_ORDER = ["bank", "creditcard", "salary", "utility", "insurance", "tax", "other"];
+var DOC_CATEGORY_META = {
+  bank:       { icon: "🏦", label: "Bank accounts" },
+  creditcard: { icon: "💳", label: "Credit cards" },
+  salary:     { icon: "💼", label: "Salary slips" },
+  utility:    { icon: "⚡", label: "Utility bills" },
+  insurance:  { icon: "🛡️", label: "Insurance policies" },
+  tax:        { icon: "📋", label: "Tax / ITR" },
+  other:      { icon: "📄", label: "Other receipts" }
+};
+
+// Builds one sidebar row for a real (non-sample) document. Pulled out into its own
+// function so the SAME row-creation logic — markup, checkbox handling, click behaviour —
+// is used whether this is the newest upload or one being redrawn after a later upload
+// triggers a full re-group. Nothing about how a row behaves changes; only when it's built.
+function createDocButton(uniqueKey, doc, name) {
+  var icon = (DOC_CATEGORY_META[doc] && DOC_CATEGORY_META[doc].icon) || "📄";
   var newBtn = document.createElement("button");
-  newBtn.className = "csb-doc act";
+  newBtn.className = "csb-doc";
   newBtn.dataset.doc = uniqueKey;
   newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
   newBtn.dataset.realName = name;
-  newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + (icoMap[doc] || "📄") + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
+  newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + icon + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
   newBtn.style.display = "flex";
   newBtn.style.alignItems = "center";
   newBtn.style.gap = ".5rem";
@@ -2356,13 +2359,10 @@ function addRealDocToSidebar(doc, name) {
     var clickedCheckbox = e.target.classList && e.target.classList.contains("compare-check");
     var clickedCheckboxWrap = e.target.classList && e.target.classList.contains("compare-check-wrap");
     if (clickedCheckbox) {
-      // Let the native checkbox toggle happen naturally — just update the compare bar after.
       setTimeout(updateCompareBarVisibility, 0);
       return;
     }
     if (clickedCheckboxWrap) {
-      // Clicked the small padding area around the checkbox, not the checkbox itself —
-      // toggle it manually rather than opening the document.
       var cb = newBtn.querySelector(".compare-check");
       cb.checked = !cb.checked;
       updateCompareBarVisibility();
@@ -2371,8 +2371,59 @@ function addRealDocToSidebar(doc, name) {
     selectRealDoc(uniqueKey, doc, name);
     closeMobileSidebar();
   });
-  docsContainer.insertBefore(newBtn, docsContainer.children[1]); // right after General Chat
+  return newBtn;
+}
+
+// Redraws the entire "your real documents" area of the sidebar, grouped by type
+// (Bank accounts, Credit cards, ...) instead of one flat list. Called every time a
+// document is added — rebuilding from sessionDocuments each time is simpler and far
+// less error-prone than trying to surgically insert a new row into the right group's
+// existing DOM position, at the cost of a few extra DOM nodes being recreated, which is
+// imperceptible at the number of documents a real person actually uploads.
+function renderGroupedRealDocs() {
+  var container = document.getElementById("real-docs-groups");
+  if (!container) return;
+  // Re-render would otherwise silently lose which documents were ticked for comparison,
+  // or which one is currently open — capture both before clearing, restore after.
+  var checkedKeys = Array.prototype.map.call(document.querySelectorAll(".compare-check:checked"), function(cb) { return cb.dataset.key; });
+  container.innerHTML = "";
+  DOC_CATEGORY_ORDER.forEach(function(cat) {
+    var keysInCat = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].type === cat; });
+    if (keysInCat.length === 0) return; // never show an empty heading
+    keysInCat.reverse(); // most recently added first, matching the old flat-list behaviour
+    var heading = document.createElement("div");
+    heading.className = "csb-sec";
+    heading.textContent = (DOC_CATEGORY_META[cat].icon) + " " + DOC_CATEGORY_META[cat].label;
+    container.appendChild(heading);
+    keysInCat.forEach(function(key) {
+      var d = sessionDocuments[key];
+      var btn = createDocButton(key, d.type, d.name);
+      if (key === activeDoc) btn.classList.add("act");
+      if (checkedKeys.indexOf(key) !== -1) btn.querySelector(".compare-check").checked = true;
+      container.appendChild(btn);
+    });
+  });
   updateCompareBarVisibility();
+}
+
+function addRealDocToSidebar(doc, name) {
+  // Defensive guard: if a sidebar entry with this exact name was already added in this
+  // session, don't create a second one — just re-select the existing one instead.
+  var existingMatch = null;
+  document.querySelectorAll(".csb-doc[data-real-name]").forEach(function(d) {
+    if (d.dataset.realName === name && !existingMatch) existingMatch = d;
+  });
+  if (existingMatch) {
+    return existingMatch.dataset.doc;
+  }
+  uploadedDocCount++;
+  var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
+  // Save this document's actual file data so it can be cross-referenced with others later —
+  // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
+  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc };
+  document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
+  activeDoc = uniqueKey; // so the redraw below marks the right row active
+  renderGroupedRealDocs();
   return uniqueKey;
 }
 
