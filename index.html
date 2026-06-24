@@ -2012,7 +2012,12 @@ async function analyseRealDocument() {
       fileMediaType: fileMediaType
     };
     var controller = new AbortController();
-    var timeoutId = setTimeout(function() { controller.abort(); }, 30000); // never hang longer than 30s
+    // Was 30s — too short for the current detection prompt, which can ask for dozens of
+    // RECURRING lines across a long multi-month statement and genuinely takes longer to
+    // both generate and process. 55s leaves a safety margin under Vercel's 60s Hobby-plan
+    // function ceiling, so our own friendly error fires first if something really is stuck,
+    // rather than a raw platform timeout cutting in first.
+    var timeoutId = setTimeout(function() { controller.abort(); }, 55000);
     var resp = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -2,5 +2,9 @@
   "version": 2,
   "rewrites": [
     { "source": "/api/chat", "destination": "/api/chat.js" }
-  ]
+  ],
+  "functions": {
+    "api/chat.js": { "maxDuration": 60 },
+    "api/forecast.js": { "maxDuration": 60 }
+  }
 }
