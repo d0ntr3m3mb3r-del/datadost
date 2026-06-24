@@ -1317,14 +1317,20 @@ function renderDashDocSwitcher() {
   var keys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
   if (keys.length < 2) { container.style.display = "none"; container.innerHTML = ""; return; } // nothing to switch between with 0 or 1 document
   keys.reverse(); // most recently uploaded first, matching the sidebar's own convention
+  var selectedKey = activeDashDoc || keys[0];
   container.style.display = "flex";
-  container.innerHTML = keys.map(function(k) {
+  container.style.alignItems = "center";
+  container.style.gap = ".5rem";
+  var options = keys.map(function(k) {
     var d = sessionDocuments[k];
-    var isActive = activeDashDoc ? (activeDashDoc === k) : (k === keys[0]);
-    return "<button type=\"button\" onclick=\"switchDashboardDoc('" + k + "')\" style=\"border-radius:100px;padding:.4rem .9rem;font-size:.76rem;font-family:inherit;cursor:pointer;border:1px solid " +
-      (isActive ? "var(--sf);background:var(--sf-l);color:var(--sf);font-weight:600" : "var(--border);background:var(--white);color:var(--ink-s)") +
-      "\">" + d.name + "</button>";
+    return "<option value=\"" + k + "\"" + (k === selectedKey ? " selected" : "") + ">" + d.name + "</option>";
   }).join("");
+  // A dropdown rather than a row of pills — pills work fine for 2-3 documents, but turn
+  // into a cluttered, wrapping mess once someone has uploaded several. A single-line
+  // dropdown stays exactly as compact whether there are 2 documents or 20.
+  container.innerHTML = "<span style=\"font-size:.78rem;color:var(--slate)\">Viewing:</span>" +
+    "<select onchange=\"switchDashboardDoc(this.value)\" style=\"border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;max-width:320px\">" +
+    options + "</select>";
 }
 
 function switchDashboardDoc(uniqueKey) {
