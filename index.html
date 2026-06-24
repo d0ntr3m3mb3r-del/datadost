@@ -1935,7 +1935,7 @@ function showLockedDocumentError() {
     "<b>To fix this:</b> open the PDF on your phone or computer, enter the password to unlock it, then save or export an unlocked copy — then upload that one instead.</div>" +
     "</div>";
   document.getElementById("sov-chat").style.display = "none";
-  document.getElementById("sov-close").textContent = "Try a different document";
+  document.getElementById("sov-close").textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try a different document";
   document.getElementById("sov").classList.add("show");
   // Reset so the user can try a different (unlocked) file right away
   resetUpload();
@@ -1966,7 +1966,7 @@ function showAnalysisFailedError(errMsg) {
     "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Something went wrong while I was reading it — usually temporary. Please try uploading it again in a moment.</div>" +
     "</div>";
   document.getElementById("sov-chat").style.display = "none";
-  document.getElementById("sov-close").textContent = "Try again";
+  document.getElementById("sov-close").textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try again";
   document.getElementById("sov").classList.add("show");
   resetUpload();
   document.getElementById("dz").classList.remove("read");
@@ -1974,7 +1974,6 @@ function showAnalysisFailedError(errMsg) {
 
 function renderSuccessInsights(ins) {
   document.getElementById("sov-chat").style.display = "inline-block";
-  document.getElementById("sov-close").textContent = "Upload another document";
   var el = document.getElementById("sov-ins");
   el.innerHTML = "";
   ins.forEach(function(d, i) {
@@ -1984,6 +1983,25 @@ function renderSuccessInsights(ins) {
     div.innerHTML = "<div class=\"si-dot\" style=\"background:" + d.c + "\"></div><span>" + d.t + "</span>";
     el.appendChild(div);
   });
+  // This is the fix for a real trap a beta tester actually hit: with files still
+  // waiting in a batch, the big obvious button ("Ask DataDost now") used to silently
+  // abandon the rest of them — nothing about the button hinted that clicking it would
+  // do that. While a batch is genuinely still in progress, the PROMINENT action becomes
+  // "continue the batch", and jumping to chat early is still possible, just no longer
+  // the default, accidental click.
+  var chatBtn = document.getElementById("sov-chat");
+  var closeBtn = document.getElementById("sov-close");
+  if (uploadQueue.length > 0) {
+    closeBtn.textContent = "Continue to next document" + queueProgressLabel() + " →";
+    closeBtn.setAttribute("style", "background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s");
+    chatBtn.textContent = "Skip remaining " + uploadQueue.length + " & chat now";
+    chatBtn.setAttribute("style", "font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline;display:inline-block");
+  } else {
+    closeBtn.textContent = "Upload another document";
+    closeBtn.setAttribute("style", "font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline");
+    chatBtn.textContent = "Ask DataDost now →";
+    chatBtn.setAttribute("style", "background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;display:inline-block");
+  }
   document.getElementById("sov").classList.add("show");
 }
 
