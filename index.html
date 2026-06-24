@@ -216,6 +216,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .dt:hover,.dt.sel{border-color:var(--sf);background:var(--sf-l)}
 .dt-em{font-size:1.15rem;margin-bottom:.25rem}
 .dt-nm{font-size:.73rem;font-weight:600}
+.dt-hint{font-size:.62rem;color:var(--slate);margin-top:.15rem;line-height:1.3}
 /* trust bar */
 .trust-bar{background:var(--white);border:1px solid var(--border);border-radius:var(--rs);padding:.8rem 1rem;display:flex;gap:.9rem;flex-wrap:wrap}
 .ti{display:flex;align-items:center;gap:.35rem;font-size:.73rem;color:var(--slate)}
@@ -520,13 +521,13 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <div>
           <div style="font-size:.72rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.55rem">What kind of document is this?</div>
           <div class="dt-grid">
-            <div class="dt sel" data-type="bank"><div class="dt-em">🏦</div><div class="dt-nm">Bank statement</div></div>
+            <div class="dt sel" data-type="bank"><div class="dt-em">🏦</div><div class="dt-nm">Bank statements</div></div>
             <div class="dt" data-type="salary"><div class="dt-em">💼</div><div class="dt-nm">Salary slip</div></div>
-            <div class="dt" data-type="utility"><div class="dt-em">⚡</div><div class="dt-nm">Utility bill</div></div>
-            <div class="dt" data-type="insurance"><div class="dt-em">🛡️</div><div class="dt-nm">Insurance</div></div>
+            <div class="dt" data-type="utility"><div class="dt-em">⚡</div><div class="dt-nm">Utility bill</div><div class="dt-hint">Electricity, water, internet & more</div></div>
+            <div class="dt" data-type="insurance"><div class="dt-em">🛡️</div><div class="dt-nm">Insurance policies</div></div>
             <div class="dt" data-type="tax"><div class="dt-em">📋</div><div class="dt-nm">Tax / ITR</div></div>
-            <div class="dt" data-type="creditcard"><div class="dt-em">💳</div><div class="dt-nm">Credit Card</div></div>
-            <div class="dt" data-type="other"><div class="dt-em">📄</div><div class="dt-nm">Other</div></div>
+            <div class="dt" data-type="creditcard"><div class="dt-em">💳</div><div class="dt-nm">Credit card statements</div></div>
+            <div class="dt" data-type="other"><div class="dt-em">📄</div><div class="dt-nm">Other receipts</div></div>
           </div>
         </div>
         <div class="trust-bar">
