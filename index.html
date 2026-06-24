@@ -1448,14 +1448,24 @@ async function renderForecast() {
 
   var snapshots = await loadSnapshotsFromDb();
 
+  // Count REAL distinct calendar months across everything uploaded so far, not the
+  // number of documents — one statement covering 3 months should count as 3, exactly
+  // the same as 3 separate single-month uploads would. Two overlapping documents that
+  // both happen to cover, say, June, only count June once.
+  var monthSet = {};
+  snapshots.forEach(function(s) {
+    (s.months_covered || []).forEach(function(m) { if (m) monthSet[m] = true; });
+  });
+  var distinctMonths = Object.keys(monthSet);
+
   // Honest gating, never a silent empty state — same transparency principle used
   // everywhere else in DataDost (income-detection failures, document-storage limits).
-  if (snapshots.length < 3) {
+  if (distinctMonths.length < 3) {
     body.innerHTML =
       "<div style=\"text-align:center;padding:1.3rem 1rem\">" +
       "<div style=\"font-size:1.5rem;margin-bottom:.35rem\">🔭</div>" +
-      "<div style=\"font-size:.84rem;color:var(--ink-s);margin-bottom:.45rem;line-height:1.5\">Forecast needs at least <b>3 months</b> of statements to tell a real pattern from a coincidence — you're at <b>" + snapshots.length + " of 3</b>.</div>" +
-      "<span style=\"font-size:.82rem;text-decoration:underline;cursor:pointer;color:var(--sf)\" onclick=\"goTo('s-upload')\">Upload another month →</span>" +
+      "<div style=\"font-size:.84rem;color:var(--ink-s);margin-bottom:.45rem;line-height:1.5\">Forecast needs at least <b>3 months</b> of statements to tell a real pattern from a coincidence — you're at <b>" + distinctMonths.length + " of 3</b>.</div>" +
+      "<span style=\"font-size:.82rem;text-decoration:underline;cursor:pointer;color:var(--sf)\" onclick=\"goTo('s-upload')\">Upload another statement →</span>" +
       "</div>";
     return;
   }
@@ -1918,7 +1928,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nRECURRING1: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]\nRECURRING2: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE]\nRECURRING3: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE]\nRECURRING4: [name]|[amount]|[approx day of month]|[PAYMENT or RECEIVABLE] — list up to 4 transactions in THIS document that look like FIXED RECURRING obligations or inflows: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME. Write NONE on any line with nothing left to report, e.g. RECURRING2: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nPERIOD: [the distinct calendar months this statement actually covers, comma-separated, oldest first, in 'MMM YYYY' format — e.g. a single month is just \"Jun 2026\", a 3-month statement is \"Apr 2026, May 2026, Jun 2026\". Base this on the real transaction dates you see, not a guess.]\nRECURRING1: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]|[which month from PERIOD above this exact occurrence falls in, e.g. \"Jun 2026\"]\nRECURRING2: [name]|[amount]|[approx day]|[PAYMENT or RECEIVABLE]|[month]\nRECURRING3: [name]|[amount]|[approx day]|[PAYMENT or RECEIVABLE]|[month]\nRECURRING4: [name]|[amount]|[approx day]|[PAYMENT or RECEIVABLE]|[month]\nRECURRING5: [name]|[amount]|[approx day]|[PAYMENT or RECEIVABLE]|[month]\nRECURRING6: [name]|[amount]|[approx day]|[PAYMENT or RECEIVABLE]|[month] — list up to 6 transactions across ALL months this document covers that look like FIXED RECURRING obligations or inflows: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. If this statement spans several months, report the SAME obligation separately for EACH month it actually occurs in (e.g. an EMI debited in both May and June is two RECURRING lines, one tagged \"May 2026\" and one tagged \"Jun 2026\") — do not collapse repeats into one line, that repetition across months is exactly the signal Forecast needs. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME. Write NONE on any line with nothing left to report, e.g. RECURRING3: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1943,7 +1953,7 @@ async function analyseRealDocument() {
     }
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [];
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [], periodMonths = [];
       lines.forEach(function(line) {
         if (line.indexOf("DOCTYPE:") === 0) {
           var dt = line.replace("DOCTYPE:", "").trim().toLowerCase();
@@ -1954,6 +1964,10 @@ async function analyseRealDocument() {
         if (line.indexOf("SPENDING:") === 0) { var v2 = line.replace("SPENDING:","").trim(); spending = parseFloat(v2.replace(/[^\d.]/g,"")) || 0; }
         if (line.indexOf("SAVINGS:") === 0) { var v3 = line.replace("SAVINGS:","").trim(); savings = parseFloat(v3.replace(/[^\d.]/g,"")) || 0; }
         if (line.indexOf("FOLLOWUP:") === 0) { var v4 = line.replace("FOLLOWUP:","").trim(); followup = (v4.toUpperCase() === "NONE") ? "" : v4; }
+        if (line.indexOf("PERIOD:") === 0) {
+          var periodRaw = line.replace("PERIOD:", "").trim();
+          periodMonths = periodRaw.split(",").map(function(m) { return m.trim(); }).filter(function(m) { return m.length > 0; });
+        }
         if (line.indexOf("CATEGORY") === 0) {
           var parts = line.replace(/CATEGORY\d:/, "").trim().split("|");
           if (parts.length === 2) {
@@ -1963,21 +1977,32 @@ async function analyseRealDocument() {
         }
         if (line.indexOf("INSIGHT") === 0) insights.push(line.replace(/INSIGHT\d:/, "").trim());
         if (line.indexOf("RECURRING") === 0) {
-          // Each line: name|amount|approxDay|PAYMENT-or-RECEIVABLE — these are per-document
-          // candidates only. A single document can't confirm a real recurring pattern (one
-          // occurrence could be coincidence) — confirmation happens later by cross-referencing
-          // candidates across 3+ months in the forecast detection step, not here.
+          // Each line: name|amount|approxDay|PAYMENT-or-RECEIVABLE|month — tagging each
+          // candidate with the REAL calendar month it occurred in (not just "this document")
+          // is what lets a single multi-month statement count as multiple real months of
+          // history, instead of being wrongly treated as only one. A single occurrence still
+          // can't confirm a real pattern on its own — that confirmation happens later, by
+          // cross-referencing candidates across 3+ distinct months in the forecast step.
           var rParts = line.replace(/RECURRING\d:/, "").trim().split("|");
-          if (rParts.length === 4) {
+          if (rParts.length >= 4) {
             var rAmt = parseFloat(rParts[1].replace(/[^\d.]/g,"")) || 0;
             var rDay = parseInt(rParts[2].replace(/[^\d]/g,""), 10) || null;
             var rType = rParts[3].trim().toUpperCase().indexOf("RECEIVABLE") === 0 ? "RECEIVABLE" : "PAYMENT";
+            // Fall back to the document's own detected period (or "this month" if PERIOD
+            // itself came back empty) if a 5th field wasn't provided for some reason.
+            var rMonth = rParts.length >= 5 ? rParts[4].trim() : (periodMonths[periodMonths.length - 1] || "");
             if (rAmt > 0 && rParts[0].trim().toUpperCase() !== "NONE") {
-              recurringCandidates.push({ name: rParts[0].trim(), amount: rAmt, approxDay: rDay, type: rType });
+              recurringCandidates.push({ name: rParts[0].trim(), amount: rAmt, approxDay: rDay, type: rType, month: rMonth });
             }
           }
         }
       });
+      // If the model genuinely didn't report a PERIOD line for some reason, fall back to
+      // "this upload represents one month" so older behaviour still degrades gracefully
+      // rather than breaking the snapshot save below.
+      if (periodMonths.length === 0) {
+        periodMonths = [new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" })];
+      }
       var fallbackLabel = fallbackLabelFor(docType);
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
       // Trust Claude's real detection of the document type over whatever tile the user happened to click —
@@ -2026,6 +2051,7 @@ async function analyseRealDocument() {
           saved: realDashboardData.saved,
           categories: categories,
           recurringCandidates: recurringCandidates,
+          monthsCovered: periodMonths,
           docName: realDashboardData.docName
         });
       }
@@ -2562,7 +2588,8 @@ async function saveSnapshotToDb(snapshot) {
       spending: snapshot.spending,
       saved: snapshot.saved,
       categories: snapshot.categories,
-      recurring_candidates: snapshot.recurringCandidates
+      recurring_candidates: snapshot.recurringCandidates,
+      months_covered: snapshot.monthsCovered
     });
     if (result.error) {
       console.error("[DataDost] Supabase snapshot insert error:", result.error.message);
@@ -2583,7 +2610,7 @@ async function loadSnapshotsFromDb() {
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
     if (!user) { console.warn("[DataDost] Cannot load snapshots — no logged-in user session"); return []; }
     var result = await sb.from("financial_snapshots")
-      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, created_at")
+      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, months_covered, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
     if (result.error) {
