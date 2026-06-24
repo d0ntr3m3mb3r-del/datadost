@@ -1147,26 +1147,33 @@ document.getElementById("chat-cash-btn").addEventListener("click", openCashModal
 
 // ── DASHBOARD DATA ──
 // ── CURRENCY SYSTEM ──
-// Base data is always stored in INR (since real Indian financial documents are in INR).
-// Conversion happens only at render time using approximate rates for orientation —
-// these are NOT live exchange rates, just enough to help international beta users relate.
+// Numbers are NEVER converted between currencies. A statement in AED stays in AED,
+// one in INR stays in INR, one in USD stays in USD — DataDost works on the numbers
+// themselves, and just needs to know which symbol to show next to them. This matters
+// because DataDost is built for an Indian-first launch (paid plans bill in INR, since
+// that's where the company is registered) but the product itself is meant to work for
+// anyone, anywhere — an NRI or any beta tester elsewhere should see their own real
+// numbers in their own real currency, never something invented by a fake exchange rate.
 var CURRENCY_RATES = {
-  INR: { symbol: "₹", rate: 1,        locale: "en-IN" },
-  USD: { symbol: "$",  rate: 1/83,    locale: "en-US" },
-  AED: { symbol: "د.إ", rate: 1/22.6, locale: "en-US" },
-  GBP: { symbol: "£",  rate: 1/105,   locale: "en-GB" },
-  EUR: { symbol: "€",  rate: 1/90,    locale: "en-IE" },
-  SGD: { symbol: "S$", rate: 1/61,    locale: "en-SG" },
-  AUD: { symbol: "A$", rate: 1/54,    locale: "en-AU" },
-  CAD: { symbol: "C$", rate: 1/60,    locale: "en-CA" },
+  INR: { symbol: "₹",   locale: "en-IN" },
+  USD: { symbol: "$",   locale: "en-US" },
+  AED: { symbol: "د.إ", locale: "en-US" },
+  GBP: { symbol: "£",   locale: "en-GB" },
+  EUR: { symbol: "€",   locale: "en-IE" },
+  SGD: { symbol: "S$",  locale: "en-SG" },
+  AUD: { symbol: "A$",  locale: "en-AU" },
+  CAD: { symbol: "C$",  locale: "en-CA" },
 };
+// Only used for the pre-upload sample/demo dashboard, so a first-time visitor sees a
+// currency symbol they recognise before they've uploaded anything real. The moment a
+// real document exists, ITS OWN real currency is used everywhere, regardless of this.
 var currentCurrency = localStorage.getItem("dd_currency") || "INR";
 
-function fmtCurrency(inrAmount) {
-  var cur = CURRENCY_RATES[currentCurrency] || CURRENCY_RATES.INR;
-  var converted = inrAmount * cur.rate;
-  var rounded = currentCurrency === "INR" ? Math.round(converted) : Math.round(converted * 100) / 100;
-  var formatted = rounded.toLocaleString(cur.locale, currentCurrency === "INR" ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function fmtCurrency(amount, currencyCode) {
+  var cur = CURRENCY_RATES[currencyCode] || CURRENCY_RATES[currentCurrency] || CURRENCY_RATES.INR;
+  var isInr = (currencyCode || currentCurrency) === "INR";
+  var rounded = isInr ? Math.round(amount) : Math.round(amount * 100) / 100;
+  var formatted = rounded.toLocaleString(cur.locale, isInr ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return cur.symbol + formatted;
 }
 
@@ -1176,8 +1183,12 @@ if (curSelectEl) {
   curSelectEl.addEventListener("change", function() {
     currentCurrency = this.value;
     localStorage.setItem("dd_currency", currentCurrency);
-    renderDash();
-    toast("Showing approximate amounts in " + currentCurrency + " — your real documents are still read in their original currency");
+    // Only the sample/demo numbers respond to this — real uploaded data always
+    // displays in its own real currency and ignores this selector entirely.
+    if (realDashboardData === null) renderDash();
+    toast(realDashboardData === null
+      ? "Sample preview now shown in " + currentCurrency
+      : "Your real numbers stay in " + (realDashboardData.currency || "INR") + " — that's what's on your actual statement");
   });
 }
 
@@ -1319,7 +1330,7 @@ function renderDash() {
     if (showIncomeAndRate) {
       statCards[0].style.display = "";
       var incomeVal = usingReal ? (realDashboardData.income || 0) : 48500;
-      statVals[0].textContent = fmtCurrency(incomeVal);
+      statVals[0].textContent = fmtCurrency(incomeVal, usingReal ? realDashboardData.currency : null);
       statCards[0].querySelector(".stat-lbl").textContent = "Monthly income";
       var incomeTrendEl = statCards[0].querySelector(".stat-trend");
       if (usingReal && incomeVal === 0) {
@@ -1344,7 +1355,7 @@ function renderDash() {
     }
 
     // Card 2 — Total spending / bill amount (always applicable, every document type has SOME spend figure)
-    statVals[1].textContent = fmtCurrency(usingReal ? (realDashboardData.spending || 0) : 43045);
+    statVals[1].textContent = fmtCurrency(usingReal ? (realDashboardData.spending || 0) : 43045, usingReal ? realDashboardData.currency : null);
     statCards[1].querySelector(".stat-lbl").textContent = usingReal ? (realDashboardData.docTypeLabel === "utility bill" ? "Bill amount" : "Total spending") : "Total spending";
     // Spending going up is genuinely bad news — always shown in red. Same caveat as above:
     // a true month-over-month % change needs 2+ months of history to compare against.
@@ -1355,7 +1366,7 @@ function renderDash() {
     // Card 3 — Saved this month (only meaningful with a real income concept)
     if (showIncomeAndRate) {
       statCards[2].style.display = "";
-      statVals[2].textContent = fmtCurrency(usingReal ? (realDashboardData.saved || 0) : 5455);
+      statVals[2].textContent = fmtCurrency(usingReal ? (realDashboardData.saved || 0) : 5455, usingReal ? realDashboardData.currency : null);
     } else {
       statCards[2].style.display = "none";
     }
@@ -1402,8 +1413,9 @@ function renderDash() {
   if (spendBarsEl) {
     spendBarsEl.innerHTML = "";
     var bars = usingReal ? realDashboardData.bars : spendData;
+    var barsCurrency = usingReal ? realDashboardData.currency : null;
     bars.forEach(function(d) {
-      spendBarsEl.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a) + "</div></div>";
+      spendBarsEl.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a, barsCurrency) + "</div></div>";
     });
     setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
   }
@@ -1475,18 +1487,18 @@ async function renderForecast() {
     body.innerHTML = "<div style=\"text-align:center;padding:1.2rem;color:var(--slate);font-size:.82rem\">Couldn't put your forecast together just now — try reopening the Dashboard in a moment.</div>";
     return;
   }
-  renderForecastBars(forecast.items);
+  renderForecastBars(forecast.items, forecast.currency);
 }
 
-function renderForecastBars(items) {
+function renderForecastBars(items, currency) {
   var body = document.getElementById("forecast-body");
   if (!body) return;
   var payments = items.filter(function(i) { return i.type === "PAYMENT"; });
   var receivables = items.filter(function(i) { return i.type === "RECEIVABLE"; });
-  body.innerHTML = "<div class=\"fc-row\">" + fcBoxHtml("PAYMENT", "Expected payments", payments) + fcBoxHtml("RECEIVABLE", "Expected receivables", receivables) + "</div>";
+  body.innerHTML = "<div class=\"fc-row\">" + fcBoxHtml("PAYMENT", "Expected payments", payments, currency) + fcBoxHtml("RECEIVABLE", "Expected receivables", receivables, currency) + "</div>";
 }
 
-function fcBoxHtml(type, title, items) {
+function fcBoxHtml(type, title, items, currency) {
   if (items.length === 0) {
     return "<div class=\"fc-box\" style=\"cursor:default\">" +
       "<div class=\"fc-sub\" style=\"font-size:.78rem;color:var(--ink-s);font-weight:500;margin-bottom:.3rem\">" + title + "</div>" +
@@ -1505,11 +1517,11 @@ function fcBoxHtml(type, title, items) {
     var badge = "<span class=\"fc-badge\" style=\"background:" + (ok ? "var(--green-l)" : "#FFF1E9") + ";color:" + (ok ? "var(--green)" : "#BA7517") + "\">" + badgeText + "</span>";
     var dateText = "Around the " + ordinal(i.approxDay) + (i.confidence === "low" ? " · still confirming" : "");
     return "<div class=\"fc-item\"><div><div class=\"fc-item-name\">" + i.name + "</div><div class=\"fc-item-date\">" + dateText + "</div></div>" +
-      "<div style=\"display:flex;align-items:center;gap:.5rem\"><span style=\"font-weight:600;font-size:.78rem\">" + fmtCurrency(i.amount) + "</span>" + badge + "</div></div>";
+      "<div style=\"display:flex;align-items:center;gap:.5rem\"><span style=\"font-weight:600;font-size:.78rem\">" + fmtCurrency(i.amount, currency) + "</span>" + badge + "</div></div>";
   }).join("");
   return "<div class=\"fc-box\" onclick=\"toggleForecastBox('" + type + "')\">" +
     "<div class=\"fc-box-top\"><span style=\"font-size:.78rem;color:var(--ink-s);font-weight:500\">" + title + "</span><span class=\"fc-pct\">" + pct + "%</span></div>" +
-    "<div class=\"fc-sub\">" + done.length + " of " + items.length + " " + statusWord + " · " + fmtCurrency(doneAmt) + " of " + fmtCurrency(totalAmt) + "</div>" +
+    "<div class=\"fc-sub\">" + done.length + " of " + items.length + " " + statusWord + " · " + fmtCurrency(doneAmt, currency) + " of " + fmtCurrency(totalAmt, currency) + "</div>" +
     "<div class=\"fc-wrap\"><div class=\"fc-bar\" style=\"width:" + pct + "%;background:" + barColor + "\"></div></div>" +
     (expanded ? "<div class=\"fc-items\">" + rows + "</div>" : "") +
     "</div>";
@@ -1519,7 +1531,7 @@ function toggleForecastBox(type) {
   forecastExpanded[type] = !forecastExpanded[type];
   // Redraw from the cached result only — toggling a breakdown open never needs a fresh
   // Claude call, the data hasn't changed, just whether it's visible.
-  if (forecastCache && forecastCache.items) renderForecastBars(forecastCache.items);
+  if (forecastCache && forecastCache.items) renderForecastBars(forecastCache.items, forecastCache.currency);
 }
 window.toggleForecastBox = toggleForecastBox;
 
@@ -1928,7 +1940,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nPERIOD: [the distinct calendar months this statement actually covers, comma-separated, oldest first, in 'MMM YYYY' format — e.g. a single month is just \"Jun 2026\", a 3-month statement is \"Apr 2026, May 2026, Jun 2026\". Base this on the real transaction dates you see, not a guess.]\nRECURRING: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]|[which month from PERIOD above this exact occurrence falls in, e.g. \"Jun 2026\"] — output ONE of these lines for EVERY individual occurrence of a fixed recurring obligation or inflow you can find ACROSS THE WHOLE DOCUMENT: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. There is NO fixed limit on how many RECURRING lines you output — if this statement spans 6 months and has 3 different recurring obligations, that is 18 separate lines, one per obligation per month, and you must not skip any month or under-report earlier months in favour of recent ones. If the SAME obligation appears in 4 of 6 months, write 4 separate lines for it, each tagged with its own correct month — that repetition across months is the entire signal Forecast depends on, collapsing it into fewer lines or sampling only some months actively breaks the feature. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME, and do not invent occurrences that aren't really in the document. If genuinely nothing recurring exists anywhere in the document, output exactly one line: RECURRING: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nCURRENCY: [the 3-letter currency code this document's amounts are ACTUALLY denominated in, based on real symbols/labels you see — e.g. INR, AED, USD, GBP — never default to INR without checking, look for the actual currency markers in the document]\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nPERIOD: [the distinct calendar months this statement actually covers, comma-separated, oldest first, in 'MMM YYYY' format — e.g. a single month is just \"Jun 2026\", a 3-month statement is \"Apr 2026, May 2026, Jun 2026\". Base this on the real transaction dates you see, not a guess.]\nRECURRING: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]|[which month from PERIOD above this exact occurrence falls in, e.g. \"Jun 2026\"] — output ONE of these lines for EVERY individual occurrence of a fixed recurring obligation or inflow you can find ACROSS THE WHOLE DOCUMENT: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. There is NO fixed limit on how many RECURRING lines you output — if this statement spans 6 months and has 3 different recurring obligations, that is 18 separate lines, one per obligation per month, and you must not skip any month or under-report earlier months in favour of recent ones. If the SAME obligation appears in 4 of 6 months, write 4 separate lines for it, each tagged with its own correct month — that repetition across months is the entire signal Forecast depends on, collapsing it into fewer lines or sampling only some months actively breaks the feature. The AMOUNT can vary somewhat between months and still be the same recurring obligation — e.g. school/university fees, or an EMI with a step-up — as long as the payee or purpose is clearly the same each time; use that month's own real amount on each line rather than skipping it just because it differs from other months. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME — even if its date or amount varies month to month, salary is NEVER a RECURRING line, it is already fully represented by the INCOME field and listing it again here would wrongly double it as a separate \"receivable\". Also do not invent occurrences that aren't really in the document. If genuinely nothing recurring exists anywhere in the document, output exactly one line: RECURRING: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
@@ -1953,8 +1965,12 @@ async function analyseRealDocument() {
     }
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [], periodMonths = [];
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [], periodMonths = [], docCurrency = "INR";
       lines.forEach(function(line) {
+        if (line.indexOf("CURRENCY:") === 0) {
+          var curCode = line.replace("CURRENCY:", "").trim().toUpperCase();
+          if (CURRENCY_RATES[curCode]) docCurrency = curCode; // unrecognised codes fall back to INR rather than silently mis-converting
+        }
         if (line.indexOf("DOCTYPE:") === 0) {
           var dt = line.replace("DOCTYPE:", "").trim().toLowerCase();
           if (["bank","salary","utility","insurance","tax","creditcard","other"].indexOf(dt) !== -1) detectedRealType = dt;
@@ -2005,6 +2021,9 @@ async function analyseRealDocument() {
       if (periodMonths.length === 0) {
         periodMonths = [new Date().toLocaleDateString("en-IN", { month: "short", year: "numeric" })];
       }
+      // Numbers stay exactly as extracted, in the document's own real currency — never
+      // converted to INR or anything else. docCurrency is carried alongside the raw
+      // numbers purely so the UI can show the correct symbol, never to do conversion math.
       var fallbackLabel = fallbackLabelFor(docType);
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN") ? institution : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
       // Trust Claude's real detection of the document type over whatever tile the user happened to click —
@@ -2041,6 +2060,7 @@ async function analyseRealDocument() {
           bars: bars.length > 0 ? bars : spendData,
           docName: detectedDocName || docTypeName,
           docTypeLabel: docTypeName,
+          currency: docCurrency, // the document's REAL currency — never converted, just remembered
           incomeFlagged: hasIncomeConcept && !incomeIsPlausible // so the UI can explain WHY these cards are hidden
         };
         // Persist just the extracted numbers (never the original file) so the dashboard
@@ -2054,9 +2074,11 @@ async function analyseRealDocument() {
           categories: categories,
           recurringCandidates: recurringCandidates,
           monthsCovered: periodMonths,
+          currency: docCurrency,
           docName: realDashboardData.docName
         });
       }
+
 
       var colors = ["#FF6B1A", "#0F6E56", "#2E75B6"];
       var renderedInsights = insights.length > 0
@@ -2533,20 +2555,13 @@ document.getElementById("justify-cancel").addEventListener("click", function() {
 });
 
 function convertRupeeAmounts(text) {
-  if (currentCurrency === "INR") return text; // nothing to convert
-  // Handle "₹1.5L" / "₹4.6 lakh" style shorthand first
-  text = text.replace(/₹\s?([\d.]+)\s?(lakh|lac|L)\b/gi, function(match, num) {
-    return fmtCurrency(parseFloat(num) * 100000);
-  });
-  text = text.replace(/₹\s?([\d.]+)\s?(crore|cr)\b/gi, function(match, num) {
-    return fmtCurrency(parseFloat(num) * 10000000);
-  });
-  // Handle plain "₹4,820" or "₹48,500.50" style amounts
-  text = text.replace(/₹\s?([\d,]+(?:\.\d+)?)/g, function(match, num) {
-    var clean = parseFloat(num.replace(/,/g, ""));
-    if (isNaN(clean)) return match;
-    return fmtCurrency(clean);
-  });
+  // Retired on purpose: this used to rewrite ₹ amounts in Claude's own replies into
+  // whatever currency the dropdown was set to, using the same kind of invented exchange
+  // rate the dashboard fix above just removed. DataDost's chat system prompt already
+  // tells Claude to respond in the user's real, actual currency directly — a second,
+  // separate layer silently relabeling numbers afterwards fought against that, not with
+  // it. Left in place as a no-op rather than deleted, in case a future real (live-rate)
+  // conversion feature is deliberately built later.
   return text;
 }
 
@@ -2591,7 +2606,8 @@ async function saveSnapshotToDb(snapshot) {
       saved: snapshot.saved,
       categories: snapshot.categories,
       recurring_candidates: snapshot.recurringCandidates,
-      months_covered: snapshot.monthsCovered
+      months_covered: snapshot.monthsCovered,
+      currency: snapshot.currency
     });
     if (result.error) {
       console.error("[DataDost] Supabase snapshot insert error:", result.error.message);
@@ -2612,7 +2628,7 @@ async function loadSnapshotsFromDb() {
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
     if (!user) { console.warn("[DataDost] Cannot load snapshots — no logged-in user session"); return []; }
     var result = await sb.from("financial_snapshots")
-      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, months_covered, created_at")
+      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, months_covered, currency, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
     if (result.error) {
