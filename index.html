@@ -442,6 +442,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
     <div class="dash-body">
       <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
+      <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-val">₹48,500</div><div class="stat-lbl">Monthly income</div><div class="stat-trend t-good">↑ Same as last month</div></div>
         <div class="stat-card"><div class="stat-val">₹43,045</div><div class="stat-lbl">Total spending</div><div class="stat-trend t-bad">↑ +8% vs last month</div></div>
@@ -1305,7 +1306,40 @@ var recentDocsData = [
 // Populated once a real document has been successfully analysed — null until then
 var realDashboardData = null; // { hasIncomeConcept, income, spending, saved, bars: [{l,a,c,p}], docName, docTypeLabel }
 
+// Lets the Dashboard show ANY uploaded document's numbers, not just whichever was
+// analysed most recently — without this, a second upload silently "stuck" the dashboard
+// on it with no way back to the first one, a real issue a beta tester hit directly.
+var activeDashDoc = null; // null = "show whatever was analysed most recently" (default)
+
+function renderDashDocSwitcher() {
+  var container = document.getElementById("dash-doc-switcher");
+  if (!container) return;
+  var keys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
+  if (keys.length < 2) { container.style.display = "none"; container.innerHTML = ""; return; } // nothing to switch between with 0 or 1 document
+  keys.reverse(); // most recently uploaded first, matching the sidebar's own convention
+  container.style.display = "flex";
+  container.innerHTML = keys.map(function(k) {
+    var d = sessionDocuments[k];
+    var isActive = activeDashDoc ? (activeDashDoc === k) : (k === keys[0]);
+    return "<button type=\"button\" onclick=\"switchDashboardDoc('" + k + "')\" style=\"border-radius:100px;padding:.4rem .9rem;font-size:.76rem;font-family:inherit;cursor:pointer;border:1px solid " +
+      (isActive ? "var(--sf);background:var(--sf-l);color:var(--sf);font-weight:600" : "var(--border);background:var(--white);color:var(--ink-s)") +
+      "\">" + d.name + "</button>";
+  }).join("");
+}
+
+function switchDashboardDoc(uniqueKey) {
+  var stored = sessionDocuments[uniqueKey];
+  if (!stored || !stored.dashboardData) return;
+  activeDashDoc = uniqueKey;
+  // Clone rather than point directly at the stored snapshot, so nothing downstream can
+  // ever accidentally mutate the saved copy just by touching the live dashboard data.
+  realDashboardData = JSON.parse(JSON.stringify(stored.dashboardData));
+  renderDash();
+}
+window.switchDashboardDoc = switchDashboardDoc; // called from the inline onclick above
+
 function renderDash() {
+  renderDashDocSwitcher();
   var usingReal = realDashboardData !== null;
   var bannerEl = document.getElementById("dash-data-banner");
   if (bannerEl) {
@@ -2492,7 +2526,8 @@ function addRealDocToSidebar(doc, name) {
   var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
   // Save this document's actual file data so it can be cross-referenced with others later —
   // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
-  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc, context: uploadedDocContext };
+  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc, context: uploadedDocContext, dashboardData: realDashboardData ? JSON.parse(JSON.stringify(realDashboardData)) : null };
+  activeDashDoc = null; // a fresh upload becomes the new default-shown document again
   document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
   activeDoc = uniqueKey; // so the redraw below marks the right row active
   renderGroupedRealDocs();
