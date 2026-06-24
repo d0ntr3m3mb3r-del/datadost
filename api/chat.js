@@ -88,12 +88,35 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2800,
-        system: systemPrompt || 'You are DataDost, a friendly AI financial companion for Indian families.',
+        // The system prompt barely changes between messages in the SAME conversation —
+        // it's the same personality instructions and the same document context every
+        // time, only the growing message history differs. Marking it cacheable means a
+        // 90% cost cut on every message after the first, IF it clears Haiku 4.5's
+        // 4,096-token minimum (raised from 1,024) — borderline for DataDost's current
+        // prompt by rough estimate, so this may not engage on every call. No downside
+        // either way: below the minimum, this is silently ignored, nothing breaks.
+        system: [{
+          type: 'text',
+          text: systemPrompt || 'You are DataDost, a friendly AI financial companion for Indian families.',
+          cache_control: { type: 'ephemeral' },
+        }],
         messages: apiMessages,
       }),
     });
 
     const data = await response.json();
+
+    // Visible in Vercel's function logs — the real way to confirm whether caching is
+    // actually engaging, rather than guessing. cache_read_input_tokens > 0 means a hit
+    // (90% cheaper); cache_creation_input_tokens > 0 on its own (first message of a
+    // conversation) just means the cache was written, ready for the NEXT message to hit it.
+    if (data.usage) {
+      console.log('DataDost cache usage:', {
+        cache_creation_input_tokens: data.usage.cache_creation_input_tokens || 0,
+        cache_read_input_tokens: data.usage.cache_read_input_tokens || 0,
+        input_tokens: data.usage.input_tokens || 0,
+      });
+    }
 
     if (!response.ok) {
       return res.status(response.status).json({
