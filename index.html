@@ -1910,6 +1910,36 @@ function showLockedDocumentError() {
   document.getElementById("dz").classList.remove("read");
 }
 
+// Anthropic's API rejects a genuinely encrypted PDF outright, as an API-level error,
+// before Claude ever gets to see or describe it — so the "LOCKED: yes" text convention
+// above can't catch every case on its own. This checks the RAW error message for that
+// specific situation, used both at upload time and inside live chat (since the file gets
+// re-attached on every chat message, the same encrypted file can fail again later too).
+function isUnreadableDocError(msg) {
+  return /password|encrypt/i.test(msg || "");
+}
+
+// For any OTHER kind of failure (rate limit, network hiccup, server error) — never
+// silently pretend the document was read successfully just because this code path
+// didn't anticipate the failure. Honest > fake-confident, same principle as everywhere
+// else in DataDost.
+function showAnalysisFailedError(errMsg) {
+  console.error("[DataDost] Document analysis failed:", errMsg);
+  document.getElementById("sov-sub").textContent = "";
+  var el = document.getElementById("sov-ins");
+  el.innerHTML =
+    "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
+    "<div style=\"font-size:2rem\">⚠️</div>" +
+    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">Couldn't read this document</div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Something went wrong while I was reading it — usually temporary. Please try uploading it again in a moment.</div>" +
+    "</div>";
+  document.getElementById("sov-chat").style.display = "none";
+  document.getElementById("sov-close").textContent = "Try again";
+  document.getElementById("sov").classList.add("show");
+  resetUpload();
+  document.getElementById("dz").classList.remove("read");
+}
+
 function renderSuccessInsights(ins) {
   document.getElementById("sov-chat").style.display = "inline-block";
   document.getElementById("sov-close").textContent = "Upload another document";
@@ -2087,16 +2117,23 @@ async function analyseRealDocument() {
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
       renderSuccessInsights(renderedInsights);
       pendingFollowupQuestion = followup; // asked once the user reaches the chat
+    } else if (data.error && isUnreadableDocError(data.error)) {
+      // The PDF is genuinely encrypted — Anthropic rejected the attachment outright,
+      // before Claude ever produced a "LOCKED: yes" reply for the check above to catch.
+      showLockedDocumentError();
+      return;
     } else {
-      detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : "");
-      document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
-      renderSuccessInsights(sovInsights[docType] || sovInsights.other);
+      // Some OTHER real failure (rate limit, server hiccup, network blip) — never
+      // silently render fake generic insights and claim we read a document we didn't.
+      showAnalysisFailedError(data.error);
+      return;
     }
   } catch (err) {
-    console.error("Document detection error:", err);
-    detectedDocName = (fallbackLabelFor(docType)) + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : "");
-    document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
-    renderSuccessInsights(sovInsights[docType] || sovInsights.other);
+    if (isUnreadableDocError(err && err.message)) {
+      showLockedDocumentError();
+    } else {
+      showAnalysisFailedError(err && err.message);
+    }
   }
 }
 
@@ -2945,8 +2982,13 @@ async function callClaudeAPI(userMsg) {
       if (justifyMatch) {
         setTimeout(function() { openJustifyModal(justifyMerchant, justifyTransactions); }, 600);
       }
+    } else if (data.error && isUnreadableDocError(data.error)) {
+      // The file gets re-attached on every chat message, so an encrypted PDF that
+      // somehow made it this far (e.g. it was added to the sidebar before this check
+      // existed) can still fail here later, not just at upload time.
+      addMsg("ai", "🔒 I actually can't open this file — it looks password-protected, so I'm not able to see what's inside it at all. Quickest fix: open the PDF, unlock it with its password, save an unlocked copy, then upload that one instead — happy to help the moment I can actually see it!");
     } else if (data.error) {
-      addMsg("ai", "DataDost error: " + data.error);
+      addMsg("ai", "Sorry, I had trouble reading that. Please try again!");
     } else {
       addMsg("ai", "Sorry, I had trouble reading that. Please try again!");
     }
