@@ -1955,6 +1955,31 @@ function isUnreadableDocError(msg) {
   return /password|encrypt/i.test(msg || "");
 }
 
+// Distinct from a locked file or a transient network blip — this means the underlying
+// AI account itself has run out of credits. "Try again in a moment" would be actively
+// misleading here, since retrying changes nothing until the account is topped up — this
+// is the one failure mode that has nothing to do with the document or the user at all.
+function isBillingError(msg) {
+  return /credit balance|plans\s*&\s*billing/i.test(msg || "");
+}
+
+function showBillingError() {
+  console.error("[DataDost] AI service unavailable — billing/credits issue, not a document problem");
+  document.getElementById("sov-sub").textContent = "";
+  var el = document.getElementById("sov-ins");
+  el.innerHTML =
+    "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
+    "<div style=\"font-size:2rem\">🛠️</div>" +
+    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">DataDost's AI is temporarily unavailable</div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">This is on our end, not your document or your connection — please try again a bit later.</div>" +
+    "</div>";
+  document.getElementById("sov-chat").style.display = "none";
+  document.getElementById("sov-close").textContent = "Close";
+  document.getElementById("sov").classList.add("show");
+  resetUpload();
+  document.getElementById("dz").classList.remove("read");
+}
+
 // For any OTHER kind of failure (rate limit, network hiccup, server error) — never
 // silently pretend the document was read successfully just because this code path
 // didn't anticipate the failure. Honest > fake-confident, same principle as everywhere
@@ -2176,6 +2201,9 @@ async function analyseRealDocument() {
       document.getElementById("sov-sub").textContent = "I've read through your document. Here's what I found:";
       renderSuccessInsights(renderedInsights);
       pendingFollowupQuestion = followup; // asked once the user reaches the chat
+    } else if (data.error && isBillingError(data.error)) {
+      showBillingError();
+      return;
     } else if (data.error && isUnreadableDocError(data.error)) {
       // The PDF is genuinely encrypted — Anthropic rejected the attachment outright,
       // before Claude ever produced a "LOCKED: yes" reply for the check above to catch.
@@ -3157,6 +3185,9 @@ async function callClaudeAPI(userMsg) {
       if (justifyMatch) {
         setTimeout(function() { openJustifyModal(justifyMerchant, justifyTransactions); }, 600);
       }
+    } else if (data.error && isBillingError(data.error)) {
+      console.error("[DataDost] AI service unavailable — billing/credits issue, not a chat problem");
+      addMsg("ai", "🛠️ DataDost's AI is temporarily unavailable on our end — nothing to do with your question or your document. Please try again a bit later.");
     } else if (data.error && isUnreadableDocError(data.error)) {
       // The file gets re-attached on every chat message, so an encrypted PDF that
       // somehow made it this far (e.g. it was added to the sidebar before this check
