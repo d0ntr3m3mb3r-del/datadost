@@ -486,7 +486,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="upload-left">
         <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
         <div class="dz" id="dz">
-          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls" style="display:none">
+          <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls" multiple style="display:none">
           <input type="file" id="file-inp-camera" accept="image/*" capture="environment" style="display:none">
           <div class="scan"></div>
           <div class="dz-def">
@@ -893,6 +893,8 @@ var fileMediaType = "";
 var sessionDocuments = {}; // { uniqueKey: { base64, mediaType, name, type } }
 var compareDocsPayload = null; // set when starting a multi-document comparison conversation
 var detectedDocName = ""; // filled in if Claude can identify the institution
+var uploadQueue = []; // files still waiting their turn in a multi-document upload
+var uploadQueueTotal = 0; // 0 = not currently in a batch; >1 = "file X of N" batch in progress
 var pendingFollowupQuestion = ""; // a question DataDost wants to ask about an unusual transaction
 var uploadedDocContext = "";
 var conversationHistory = [];
@@ -1591,7 +1593,7 @@ document.getElementById("file-inp-camera").addEventListener("change", function()
 });
 fileInp.addEventListener("change", function() {
   document.getElementById("upload-choice-modal").style.display = "none";
-  if(this.files[0]) handleFile(this.files[0]);
+  if (this.files && this.files.length) handleFiles(this.files);
 });
 
 // Final safety net: if the page regains focus (e.g. returning from the native camera
@@ -1605,7 +1607,36 @@ window.addEventListener("focus", function() {
 });
 dzEl.addEventListener("dragover", function(e) { e.preventDefault(); dzEl.classList.add("drag"); });
 dzEl.addEventListener("dragleave", function() { dzEl.classList.remove("drag"); });
-dzEl.addEventListener("drop", function(e) { e.preventDefault(); dzEl.classList.remove("drag"); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+dzEl.addEventListener("drop", function(e) { e.preventDefault(); dzEl.classList.remove("drag"); if(e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+
+// Entry point for 1+ files at once. Deliberately does NOT rewrite how a single file is
+// handled — it reuses handleFile() and the entire existing analyse/locked/error flow
+// exactly as-is for every file, one at a time, just automatically advancing to the next
+// one instead of waiting for the user to manually repeat the upload steps each time.
+function handleFiles(fileList) {
+  var files = Array.prototype.slice.call(fileList || []);
+  if (files.length === 0) return;
+  // Every fresh selection — whether 1 file or several — replaces whatever queue existed
+  // before. This is what stops an abandoned batch from silently resuming later if the
+  // user navigates away mid-batch and then picks a single new file afterwards.
+  uploadQueue = [];
+  uploadQueueTotal = 0;
+  if (files.length === 1) {
+    handleFile(files[0]);
+    return;
+  }
+  uploadQueue = files.slice(1);
+  uploadQueueTotal = files.length;
+  toast("📚 " + files.length + " documents selected — taking them one at a time");
+  handleFile(files[0]);
+}
+
+// Small "(2 of 5)" style label shown during a batch — empty string outside a batch, so
+// it never changes anything about how a single upload looks or reads.
+function queueProgressLabel() {
+  if (uploadQueueTotal <= 1) return "";
+  return " (" + (uploadQueueTotal - uploadQueue.length) + " of " + uploadQueueTotal + ")";
+}
 
 function handleFile(f) {
   curFile = f;
@@ -1616,7 +1647,7 @@ function handleFile(f) {
   uploadedDocContext = "";
   var dz = document.getElementById("dz");
   dz.classList.remove("ok","read");
-  document.getElementById("f-name").textContent = f.name;
+  document.getElementById("f-name").textContent = f.name + queueProgressLabel();
   var kb = f.size/1024;
   document.getElementById("f-size").textContent = kb < 1024 ? Math.round(kb)+" KB" : (kb/1024).toFixed(1)+" MB";
   dz.classList.add("ok");
@@ -1965,7 +1996,7 @@ async function analyseRealDocument() {
   var el = document.getElementById("sov-ins");
   var quip = scanningQuips[Math.floor(Math.random() * scanningQuips.length)];
   el.innerHTML = "<div class=\"si\" style=\"opacity:1\"><div class=\"si-dot\" style=\"background:#FF6B1A\"></div><span>" + quip + "</span></div>";
-  document.getElementById("sov-sub").textContent = "Give me just a moment with your real document...";
+  document.getElementById("sov-sub").textContent = "Give me just a moment with your real document..." + queueProgressLabel();
   document.getElementById("sov").classList.add("show");
   console.log("[DataDost] success modal shown, fileBase64 length:", fileBase64 ? fileBase64.length : 0);
 
@@ -2152,7 +2183,21 @@ document.getElementById("sov-close").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   resetUpload();
   document.getElementById("dz").classList.remove("read");
-  toast("Ready for your next document! 📄");
+
+  if (uploadQueue.length > 0) {
+    // More files waiting in this batch — move straight to the next one automatically.
+    // Consent was already given once for the whole batch, so this continues on its own
+    // rather than making the user re-tick the box and re-click Analyse every time.
+    var nextFile = uploadQueue.shift();
+    handleFile(nextFile);
+    document.getElementById("consent-check").checked = true;
+    setTimeout(function() { document.getElementById("btn-analyse").click(); }, 300);
+  } else if (uploadQueueTotal > 1) {
+    toast("🎉 All " + uploadQueueTotal + " documents added — check your sidebar!");
+    uploadQueueTotal = 0;
+  } else {
+    toast("Ready for your next document! 📄");
+  }
 });
 
 document.getElementById("sov-chat").addEventListener("click", function() {
@@ -2164,6 +2209,13 @@ document.getElementById("sov-chat").addEventListener("click", function() {
     activeDoc = docType;
     selectDoc(docType, true);
   }
+  // Jumping straight to chat is an explicit choice to stop here — never silently keep
+  // processing the rest of a batch in the background after the user has moved on.
+  if (uploadQueue.length > 0) {
+    toast(uploadQueue.length + " remaining document(s) weren't uploaded — add them again whenever you're ready");
+    uploadQueue = [];
+  }
+  uploadQueueTotal = 0;
   goTo("s-chat");
 });
 
