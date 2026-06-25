@@ -982,11 +982,38 @@ function applySessionUser(user) {
 // fresh login still silently fell back to sample numbers, even for a returning user with
 // real history. This reconstructs the dashboard exactly as if those documents had just
 // been re-uploaded, without ever re-reading the original files (which are never stored).
+//
+// One real account, identified one way: prefer the masked account/card number when we
+// have one (most precise — tells two cards from the same bank apart). Older snapshots
+// saved before that detection existed fall back to the document name with its trailing
+// "(Month Year)" stripped off, so different months of the same account still collapse
+// into one identity instead of one row per upload. Type is always included so a bank
+// account and a credit card from the same bank, sharing a generic legacy name, can never
+// merge into each other.
+function snapshotIdentityKey(snap) {
+  if (snap.account_id) return snap.doc_type + "::" + snap.account_id;
+  var name = snap.doc_name || "";
+  var stripped = name.replace(/\s*\([^()]*\d{4}\)\s*$/, "").trim();
+  return snap.doc_type + "::" + (stripped || name);
+}
+
 async function loadDashboardFromSnapshots() {
   var snapshots = await loadSnapshotsFromDb();
   if (!snapshots || snapshots.length === 0) return; // genuinely new user — nothing to restore
+
+  // Two days of real testing turned this into dozens of rows for what's really only a
+  // handful of actual accounts — group by real identity, keep only each account's most
+  // recent snapshot (snapshots is already ordered oldest-first, so a later one for the
+  // same identity simply overwrites the earlier one here).
+  var latestByIdentity = {};
+  snapshots.forEach(function(snap) {
+    latestByIdentity[snapshotIdentityKey(snap)] = snap;
+  });
+  var dedupedSnapshots = Object.keys(latestByIdentity).map(function(k) { return latestByIdentity[k]; });
+  dedupedSnapshots.sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+
   var barColors = ["#FF6B1A", "#0F6E56", "#2E75B6", "#BA7517", "#6B3FA0", "#E24B4A"];
-  snapshots.forEach(function(snap, idx) {
+  dedupedSnapshots.forEach(function(snap, idx) {
     var categories = snap.categories || [];
     var maxCatAmt = Math.max.apply(null, categories.map(function(c) { return c.a; })) || 1;
     var bars = categories.map(function(c, i) {
@@ -1009,7 +1036,7 @@ async function loadDashboardFromSnapshots() {
     var key = "loaded_" + idx + "_" + snap.doc_type;
     sessionDocuments[key] = { name: dashboardData.docName, type: snap.doc_type, dashboardData: dashboardData, base64: "", mediaType: "", context: "" };
   });
-  // Show whichever document was uploaded most recently, by default — matches the
+  // Show whichever real account was uploaded most recently, by default — matches the
   // existing convention that the latest upload is what a user sees first.
   var loadedKeys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
   var lastKey = loadedKeys[loadedKeys.length - 1];
@@ -2985,7 +3012,7 @@ async function loadSnapshotsFromDb() {
     var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
     if (!user) { console.warn("[DataDost] Cannot load snapshots — no logged-in user session"); return []; }
     var result = await sb.from("financial_snapshots")
-      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, months_covered, currency, created_at")
+      .select("doc_type, doc_name, income, spending, saved, categories, recurring_candidates, months_covered, currency, account_id, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: true });
     if (result.error) {
