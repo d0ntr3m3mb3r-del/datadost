@@ -442,7 +442,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   </nav>
   <div style="flex:1;overflow-y:auto">
     <div class="dash-body">
-      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
+      <div><div class="dash-h"><span id="dash-greeting">Good morning</span>, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
@@ -1002,10 +1002,21 @@ function switchTab(tab) {
 }
 
 // ── USER UI ──
+// Uses the device's own local clock — automatically correct for whatever timezone the
+// user is actually in, since new Date() always reflects local time, never a fixed
+// server timezone. No manual timezone lookup needed; this is just naturally correct.
+function getTimeOfDayGreeting() {
+  var hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 function setUser() {
   ["av-dash","av-up","av-chat","av-history","av-profile"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
   ["nm-dash","nm-up","nm-chat","nm-history","nm-profile"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
+  var dg = document.getElementById("dash-greeting"); if(dg) dg.textContent = getTimeOfDayGreeting();
 }
 
 // ── SUPABASE SETUP ──
@@ -1763,6 +1774,7 @@ function renderDash() {
     }
   }
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
+  var dg2 = document.getElementById("dash-greeting"); if(dg2) dg2.textContent = getTimeOfDayGreeting();
 }
 
 // ── FORECAST ──
