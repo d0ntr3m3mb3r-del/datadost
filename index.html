@@ -626,7 +626,8 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
     <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
       <div style="font-family:Sora,sans-serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:.3rem">Past Conversations</div>
-      <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem">Every conversation you've had with DataDost, saved and ready to reopen anytime.</div>
+      <div style="font-size:.85rem;color:var(--slate);margin-bottom:.6rem">Every conversation you've had with DataDost, saved and ready to reopen anytime.</div>
+      <button type="button" id="clear-all-data-btn" style="background:none;border:none;font-family:inherit;font-size:.78rem;color:#E24B4A;text-decoration:underline;cursor:pointer;padding:0;margin-bottom:1.25rem">Clear all my data</button>
       <div id="history-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
       <div id="history-empty" style="display:none;text-align:center;padding:3rem 1rem;color:var(--slate)">
         <div style="font-size:2rem;margin-bottom:.5rem">💬</div>
@@ -1175,6 +1176,55 @@ async function doLogout() {
   goTo("s-land");
   toast("Logged out — see you soon! 👋");
 }
+
+// Closes a real gap between what DataDost's own privacy messaging promises ("you can
+// delete all your data anytime") and what the app actually let anyone do — there was
+// no way to act on that promise until now. Deliberately permanent and deliberately
+// clearly warned, consistent with how seriously the rest of the app treats honesty
+// about what it can and can't undo.
+async function clearAllUserData() {
+  var confirmed = confirm(
+    "This will permanently delete ALL your DataDost data — every chat conversation and every document summary you've ever uploaded.\n\n" +
+    "This cannot be undone. Are you sure you want to continue?"
+  );
+  if (!confirmed) return;
+
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+  var sessionResult = await sb.auth.getSession();
+  var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+  if (!user) { toast("Please log in again, then try this once more."); return; }
+
+  try {
+    var delMsgs = await sb.from("messages").delete().eq("user_id", user.id);
+    var delSnaps = await sb.from("financial_snapshots").delete().eq("user_id", user.id);
+    if (delMsgs.error || delSnaps.error) {
+      console.error("[DataDost] Clear-all-data error:", (delMsgs.error || delSnaps.error).message);
+      toast("Something went wrong clearing your data — please try again.");
+      return;
+    }
+  } catch (err) {
+    console.error("[DataDost] Clear-all-data error:", err);
+    toast("Something went wrong clearing your data — please try again.");
+    return;
+  }
+
+  // Reset every piece of in-memory state that reflects the now-deleted data, so the
+  // app immediately reflects reality instead of showing stale information until
+  // someone happens to reload the page.
+  sessionDocuments = {};
+  realDashboardData = null;
+  activeDashDoc = null;
+  conversationHistory = [];
+  uploadedDocContext = "";
+  detectedDocName = "";
+  accountId = "";
+  activeDoc = "general";
+  docType = "bank";
+
+  toast("All your data has been cleared. 🧹");
+  goTo("s-dash");
+}
+document.getElementById("clear-all-data-btn").addEventListener("click", clearAllUserData);
 
 // ── WIRE LANDING BUTTONS ──
 document.getElementById("land-login").addEventListener("click", function() { goTo("s-auth","login"); });
