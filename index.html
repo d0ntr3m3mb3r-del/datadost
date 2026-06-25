@@ -441,7 +441,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   </nav>
   <div style="flex:1;overflow-y:auto">
     <div class="dash-body">
-      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div></div>
+      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today. <span id="change-persona-link" style="text-decoration:underline;cursor:pointer">Not quite right?</span></div></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
@@ -806,18 +806,30 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 
 <!-- INCOME TYPE MODAL — shown right after currency, same onboarding flow -->
 <div id="welcome-income-modal" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,0.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem;backdrop-filter:blur(4px)">
-  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:440px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2);text-align:center">
+  <div style="background:var(--white);border-radius:20px;padding:1.75rem;max-width:460px;width:100%;box-shadow:0 16px 56px rgba(0,0,0,0.2);text-align:center;max-height:90vh;overflow-y:auto">
     <div style="font-size:2rem;margin-bottom:.5rem">💰</div>
     <div style="font-family:Sora,sans-serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">One more thing</div>
-    <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem;line-height:1.6">Does money come to you the same way every month, or does it vary?</div>
+    <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.25rem;line-height:1.6">Which of these sounds most like you? This helps me use the right words and the right benchmarks for your situation.</div>
     <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.5rem">
-      <button type="button" id="income-regular-btn" data-income="regular" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
-        <span style="font-size:1.4rem">📅</span>
-        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Regular income</span><span style="display:block;font-size:.74rem;color:var(--slate)">Salary, pension — same time, every month</span></span>
+      <button type="button" class="persona-btn" data-persona="student" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">🎓</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Student</span><span style="display:block;font-size:.74rem;color:var(--slate)">Family support, a part-time job, or both</span></span>
       </button>
-      <button type="button" id="income-variable-btn" data-income="variable" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
-        <span style="font-size:1.4rem">🔀</span>
-        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Variable income</span><span style="display:block;font-size:.74rem;color:var(--slate)">Student, business owner, freelancer — it changes</span></span>
+      <button type="button" class="persona-btn" data-persona="salaried" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">💼</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Salaried</span><span style="display:block;font-size:.74rem;color:var(--slate)">Regular monthly salary or pay</span></span>
+      </button>
+      <button type="button" class="persona-btn" data-persona="business" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">📈</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Business / self-employed</span><span style="display:block;font-size:.74rem;color:var(--slate)">Freelancer, business owner, gig work — it varies</span></span>
+      </button>
+      <button type="button" class="persona-btn" data-persona="homemaker" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">🏠</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Homemaker / spouse</span><span style="display:block;font-size:.74rem;color:var(--slate)">Relying on a partner or family member's income</span></span>
+      </button>
+      <button type="button" class="persona-btn" data-persona="retired" style="display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:.85rem 1rem;cursor:pointer;font-family:inherit">
+        <span style="font-size:1.4rem">👴</span>
+        <span><span style="display:block;font-size:.88rem;font-weight:600;color:var(--ink)">Retired</span><span style="display:block;font-size:.74rem;color:var(--slate)">Pension or steady retirement income</span></span>
       </button>
     </div>
     <div style="font-size:.74rem;color:var(--slate);margin-top:.6rem">You can always change this later from the dashboard</div>
@@ -1367,20 +1379,43 @@ if (welcomeCurConfirmBtn) {
   });
 }
 
-// ── INCOME TYPE SELECTION (regular vs variable) ──
+// ── PERSONA SELECTION (drives both income-type framing and dashboard label wording) ──
+// Student and Homemaker/Spouse personas typically don't "earn" in the traditional sense
+// — money arrives via family support or a partner's income — so "Income" reads oddly
+// for them. Those two personas get "Money in hand" / "My spending" framing instead;
+// Salaried, Business, and Retired keep the standard "Income" wording, since that
+// genuinely fits how they'd describe their own situation.
+var PERSONA_META = {
+  student:   { incomeType: "variable", moneyInHandStyle: true,  label: "Student" },
+  salaried:  { incomeType: "regular",  moneyInHandStyle: false, label: "Salaried" },
+  business:  { incomeType: "variable", moneyInHandStyle: false, label: "Business / self-employed" },
+  homemaker: { incomeType: "variable", moneyInHandStyle: true,  label: "Homemaker / spouse" },
+  retired:   { incomeType: "regular",  moneyInHandStyle: false, label: "Retired" }
+};
+var currentPersona = localStorage.getItem("dd_persona") || "";
 var currentIncomeType = localStorage.getItem("dd_income_type") || "";
-function selectIncomeType(type) {
-  currentIncomeType = type;
-  localStorage.setItem("dd_income_type", type);
+function selectPersona(persona) {
+  var meta = PERSONA_META[persona];
+  if (!meta) return;
+  var isFirstTime = !currentPersona; // hadn't set one before this
+  currentPersona = persona;
+  currentIncomeType = meta.incomeType;
+  localStorage.setItem("dd_persona", persona);
+  localStorage.setItem("dd_income_type", meta.incomeType);
   document.getElementById("welcome-income-modal").style.display = "none";
-  var label = type === "regular" ? "regular income" : "variable income";
-  toast("Got it — I'll keep that in mind for " + label + " 💬");
-  setTimeout(startOnboardTour, 400);
+  toast("Got it — I'll keep that in mind as " + meta.label.toLowerCase() + " 💬");
+  if (document.getElementById("s-dash").classList.contains("active")) renderDash();
+  if (isFirstTime) setTimeout(startOnboardTour, 400);
 }
-var incomeRegularBtn = document.getElementById("income-regular-btn");
-var incomeVariableBtn = document.getElementById("income-variable-btn");
-if (incomeRegularBtn) incomeRegularBtn.addEventListener("click", function() { selectIncomeType("regular"); });
-if (incomeVariableBtn) incomeVariableBtn.addEventListener("click", function() { selectIncomeType("variable"); });
+document.querySelectorAll(".persona-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() { selectPersona(btn.dataset.persona); });
+});
+var changePersonaLink = document.getElementById("change-persona-link");
+if (changePersonaLink) {
+  changePersonaLink.addEventListener("click", function() {
+    document.getElementById("welcome-income-modal").style.display = "flex";
+  });
+}
 
 // ── FIRST-LOGIN GUIDED TOUR ──
 var onboardSteps = [
@@ -1532,7 +1567,7 @@ function renderDash() {
       statCards[0].style.display = "";
       var incomeVal = usingReal ? (realDashboardData.income || 0) : null;
       statVals[0].textContent = usingReal ? fmtCurrency(incomeVal, realDashboardData.currency) : "—";
-      statCards[0].querySelector(".stat-lbl").textContent = "Monthly income";
+      statCards[0].querySelector(".stat-lbl").textContent = (PERSONA_META[currentPersona] && PERSONA_META[currentPersona].moneyInHandStyle) ? "Money in hand" : "Monthly income";
       var incomeTrendEl = statCards[0].querySelector(".stat-trend");
       if (usingReal && incomeVal === 0) {
         // We genuinely could not detect a real income figure for this document — be
@@ -1558,7 +1593,9 @@ function renderDash() {
 
     // Card 2 — Total spending / bill amount (always applicable, every document type has SOME spend figure)
     statVals[1].textContent = usingReal ? fmtCurrency(realDashboardData.spending || 0, realDashboardData.currency) : "—";
-    statCards[1].querySelector(".stat-lbl").textContent = usingReal ? (realDashboardData.docTypeLabel === "utility bill" ? "Bill amount" : "Total spending") : "Total spending";
+    var moneyInHandStyle = PERSONA_META[currentPersona] && PERSONA_META[currentPersona].moneyInHandStyle;
+    var spendingLabel = moneyInHandStyle ? "My spending" : "Total spending";
+    statCards[1].querySelector(".stat-lbl").textContent = usingReal ? (realDashboardData.docTypeLabel === "utility bill" ? "Bill amount" : spendingLabel) : spendingLabel;
     // Spending going up is genuinely bad news — always shown in red. Same caveat as above:
     // a true month-over-month % change needs 2+ months of history to compare against.
     var spendingTrendEl = statCards[1].querySelector(".stat-trend");
@@ -3034,13 +3071,41 @@ function addJustifyRow(prefillText) {
   var id = justifyRowCount;
   var wrap = document.createElement("div");
   wrap.id = "justify-row-" + id;
-  wrap.style.display = "grid";
-  wrap.style.gridTemplateColumns = "1fr 1fr";
+  wrap.style.display = "flex";
+  wrap.style.flexDirection = "column";
   wrap.style.gap = "6px";
+  wrap.style.marginBottom = "4px";
+  // Quick-pick presets cover the single most common reason multiple small payments
+  // repeat to the same person — shared housing (food, rent, internet split between
+  // roommates/family) — without losing the option to type something else entirely.
+  var presets = ["🍔 Food split", "🏠 Rent split", "📶 Internet split", "✏️ Other"];
+  var presetButtons = presets.map(function(p) {
+    return '<button type="button" class="justify-preset-btn" data-row="' + id + '" data-preset="' + p.replace(/"/g, "&quot;") + '" style="font-size:.72rem;padding:.3rem .6rem;border-radius:100px;border:1px solid var(--border);background:var(--white);color:var(--ink-s);cursor:pointer;font-family:inherit;white-space:nowrap">' + p + '</button>';
+  }).join("");
   wrap.innerHTML =
-    '<div style="display:flex;align-items:center;padding:.5rem .6rem;background:var(--mist);border-radius:8px;font-size:.78rem;color:var(--ink-s);font-family:inherit">' + (prefillText || "Transaction " + id) + '</div>' +
+    '<div style="padding:.5rem .6rem;background:var(--mist);border-radius:8px;font-size:.78rem;color:var(--ink-s);font-family:inherit">' + (prefillText || "Transaction " + id) + '</div>' +
+    '<div style="display:flex;gap:.4rem;flex-wrap:wrap">' + presetButtons + '</div>' +
     '<input type="text" id="justify-desc-' + id + '" placeholder="What was this for?" style="border:1.5px solid var(--border);border-radius:8px;padding:.5rem .6rem;font-size:.78rem;font-family:inherit;color:var(--ink)">';
   document.getElementById("justify-rows").appendChild(wrap);
+  wrap.querySelectorAll(".justify-preset-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var preset = btn.dataset.preset;
+      var input = document.getElementById("justify-desc-" + id);
+      if (preset === "✏️ Other") {
+        input.value = "";
+        input.focus();
+      } else {
+        // Strip the leading emoji — the input should hold plain, readable text, not the icon
+        input.value = preset.replace(/^\S+\s/, "");
+      }
+      wrap.querySelectorAll(".justify-preset-btn").forEach(function(b) {
+        var selected = b === btn;
+        b.style.borderColor = selected ? "var(--sf)" : "var(--border)";
+        b.style.background = selected ? "var(--sf-l)" : "var(--white)";
+        b.style.color = selected ? "var(--sf)" : "var(--ink-s)";
+      });
+    });
+  });
 }
 
 function openJustifyModal(merchantName, transactionList) {
