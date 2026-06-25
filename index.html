@@ -584,12 +584,6 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <div class="csb-docs">
         <button class="csb-doc" data-doc="general" style="background:var(--sf-l);margin-bottom:.5rem"><div class="csb-doc-em">💬</div><div><div class="csb-doc-name" style="color:var(--sf)">General Chat</div><div class="csb-doc-meta">Ask anything — no document needed</div></div></button>
         <div id="real-docs-groups"></div>
-        <div class="csb-sec">This month</div>
-        <button class="csb-doc act" data-doc="bank"><div class="csb-doc-em">🏦</div><div><div class="csb-doc-name">Bank Statement (sample)</div><div class="csb-doc-meta">Try the demo · 14 questions asked</div></div></button>
-        <div class="csb-sec">Earlier</div>
-        <button class="csb-doc" data-doc="salary"><div class="csb-doc-em">💼</div><div><div class="csb-doc-name">Salary Slip (sample)</div><div class="csb-doc-meta">Try the demo · 6 questions asked</div></div></button>
-        <button class="csb-doc" data-doc="utility"><div class="csb-doc-em">⚡</div><div><div class="csb-doc-name">Utility Bill (sample)</div><div class="csb-doc-meta">Try the demo · 3 questions asked</div></div></button>
-        <button class="csb-doc" data-doc="creditcard"><div class="csb-doc-em">💳</div><div><div class="csb-doc-name">Credit Card Statement (sample)</div><div class="csb-doc-meta">Try the demo</div></div></button>
       </div>
       <div id="compare-bar" style="display:none;padding:.75rem;border-top:1px solid var(--border);background:var(--sf-l)">
         <div style="font-size:.74rem;color:var(--ink-s);margin-bottom:.5rem" id="compare-count">2 documents selected</div>
@@ -602,7 +596,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div class="chat-hdr-ico" id="chat-hdr-ico">🏦</div>
-        <div><div class="chat-hdr-title" id="chat-hdr-title">Bank Statement (sample)</div><div class="chat-hdr-sub" id="chat-hdr-sub">Try the demo · Uploaded 3 days ago</div></div>
+        <div><div class="chat-hdr-title" id="chat-hdr-title">General Chat</div><div class="chat-hdr-sub" id="chat-hdr-sub">Ask anything — no document needed</div></div>
       </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="qbtns" id="qbtns"></div>
@@ -889,7 +883,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 // All JS runs after DOM is ready
 document.addEventListener("DOMContentLoaded", function() {
 
-var uName="Rahul", uInit="R", activeDoc="bank", docType="bank", curFile=null;
+var uName="Friend", uInit="F", activeDoc="general", docType="bank", curFile=null;
 var fileBase64 = "";
 var fileMediaType = "";
 // Stores every successfully analysed document this session, keyed by its sidebar uniqueKey,
@@ -966,6 +960,7 @@ async function initSupabase() {
       var sessionResult = await sb.auth.getSession();
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
         applySessionUser(sessionResult.data.session.user);
+        await loadDashboardFromSnapshots();
         goTo("s-dash");
       }
     }
@@ -982,6 +977,48 @@ function applySessionUser(user) {
   setUser();
 }
 
+// Fixes a real, long-standing gap: financial_snapshots already existed for Forecast's
+// sake, but the Dashboard's own stat cards never actually read from it — meaning every
+// fresh login still silently fell back to sample numbers, even for a returning user with
+// real history. This reconstructs the dashboard exactly as if those documents had just
+// been re-uploaded, without ever re-reading the original files (which are never stored).
+async function loadDashboardFromSnapshots() {
+  var snapshots = await loadSnapshotsFromDb();
+  if (!snapshots || snapshots.length === 0) return; // genuinely new user — nothing to restore
+  var barColors = ["#FF6B1A", "#0F6E56", "#2E75B6", "#BA7517", "#6B3FA0", "#E24B4A"];
+  snapshots.forEach(function(snap, idx) {
+    var categories = snap.categories || [];
+    var maxCatAmt = Math.max.apply(null, categories.map(function(c) { return c.a; })) || 1;
+    var bars = categories.map(function(c, i) {
+      return { l: c.l, a: c.a, c: barColors[i % barColors.length], p: Math.min(100, Math.round((c.a / maxCatAmt) * 100)) };
+    });
+    var hasIncome = snap.income !== null && snap.income !== undefined;
+    var dashboardData = {
+      hasIncomeConcept: hasIncome,
+      income: hasIncome ? snap.income : null,
+      spending: snap.spending || 0,
+      saved: (snap.saved !== null && snap.saved !== undefined) ? snap.saved : null,
+      bars: bars,
+      docName: snap.doc_name || fallbackLabelFor(snap.doc_type),
+      docTypeLabel: fallbackLabelFor(snap.doc_type),
+      currency: snap.currency || "INR",
+      incomeFlagged: false
+    };
+    // "loaded_" prefix keeps these clearly separate from "real_" keys generated by a
+    // fresh upload in the current session, so the two schemes can never collide.
+    var key = "loaded_" + idx + "_" + snap.doc_type;
+    sessionDocuments[key] = { name: dashboardData.docName, type: snap.doc_type, dashboardData: dashboardData, base64: "", mediaType: "", context: "" };
+  });
+  // Show whichever document was uploaded most recently, by default — matches the
+  // existing convention that the latest upload is what a user sees first.
+  var loadedKeys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
+  var lastKey = loadedKeys[loadedKeys.length - 1];
+  if (lastKey) {
+    realDashboardData = JSON.parse(JSON.stringify(sessionDocuments[lastKey].dashboardData));
+    activeDashDoc = null;
+  }
+}
+
 function authErrorMessage(err) {
   if (!err) return "Something went wrong. Please try again.";
   var msg = err.message || String(err);
@@ -989,6 +1026,7 @@ function authErrorMessage(err) {
   if (msg.includes("already registered") || msg.includes("already exists")) return "This email is already registered. Try logging in instead.";
   if (msg.includes("Password should be")) return "Password must be at least 8 characters.";
   if (msg.includes("Unable to validate email")) return "Please enter a valid email address.";
+  if (msg.includes("Email not confirmed")) return "Please confirm your email first — check your inbox for a link from DataDost, then try logging in again.";
   return msg;
 }
 
@@ -1019,6 +1057,7 @@ async function doLogin() {
     return;
   }
   applySessionUser(result.data.user);
+  await loadDashboardFromSnapshots();
   goTo("s-dash");
   toast("Welcome back, " + uName + "! 👋");
 }
@@ -1054,6 +1093,17 @@ async function doSignup() {
     toast(authErrorMessage(result.error));
     return;
   }
+  // Supabase can create the account successfully (no error) while still returning NO
+  // active session — this happens whenever email confirmation is required and pending.
+  // Proceeding to the dashboard anyway, as this used to do, is genuinely dangerous: the
+  // app LOOKS like it works (AI calls don't need a Supabase session), but every chat
+  // message and every document upload silently fails to save, with zero indication to
+  // the user that anything is wrong — found via a real beta tester losing real data.
+  if (!result.data.session) {
+    goTo("s-auth", "login");
+    toast("Almost there! Please check " + email + " for a confirmation link, then log in. 📧");
+    return;
+  }
   uName = fn.charAt(0).toUpperCase() + fn.slice(1);
   uInit = uName.charAt(0).toUpperCase();
   setUser();
@@ -1068,7 +1118,7 @@ function doGoogle() {
 
 async function doLogout() {
   if (sb) { await sb.auth.signOut(); }
-  uName = "Rahul"; uInit = "R";
+  uName = "Friend"; uInit = "F";
   goTo("s-land");
   toast("Logged out — see you soon! 👋");
 }
@@ -1357,7 +1407,7 @@ function renderDash() {
     } else {
       bannerEl.innerHTML = usingReal
         ? "📄 Showing real numbers from <b>" + realDashboardData.docName + "</b>"
-        : "🧪 Sample data — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload a real document</span> to see your own numbers here";
+        : "👋 Upload your first statement to see your real financial picture here — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload now</span>";
     }
     bannerEl.style.background = usingReal ? "var(--green-l)" : "var(--mist)";
     bannerEl.style.color = usingReal ? "var(--green)" : "var(--slate)";
@@ -1376,8 +1426,8 @@ function renderDash() {
     // Card 1 — Monthly income (hidden/relabelled when not applicable to this document type)
     if (showIncomeAndRate) {
       statCards[0].style.display = "";
-      var incomeVal = usingReal ? (realDashboardData.income || 0) : 48500;
-      statVals[0].textContent = fmtCurrency(incomeVal, usingReal ? realDashboardData.currency : null);
+      var incomeVal = usingReal ? (realDashboardData.income || 0) : null;
+      statVals[0].textContent = usingReal ? fmtCurrency(incomeVal, realDashboardData.currency) : "—";
       statCards[0].querySelector(".stat-lbl").textContent = "Monthly income";
       var incomeTrendEl = statCards[0].querySelector(".stat-trend");
       if (usingReal && incomeVal === 0) {
@@ -1394,26 +1444,33 @@ function renderDash() {
         incomeTrendEl.className = "stat-trend t-good";
         incomeTrendEl.innerHTML = "From your uploaded document";
       } else {
-        incomeTrendEl.className = "stat-trend t-good";
-        incomeTrendEl.innerHTML = "↑ Same as last month";
+        incomeTrendEl.className = "stat-trend";
+        incomeTrendEl.style.color = "var(--slate)";
+        incomeTrendEl.innerHTML = "Upload a document to see this";
       }
     } else {
       statCards[0].style.display = "none"; // not applicable for this document type
     }
 
     // Card 2 — Total spending / bill amount (always applicable, every document type has SOME spend figure)
-    statVals[1].textContent = fmtCurrency(usingReal ? (realDashboardData.spending || 0) : 43045, usingReal ? realDashboardData.currency : null);
+    statVals[1].textContent = usingReal ? fmtCurrency(realDashboardData.spending || 0, realDashboardData.currency) : "—";
     statCards[1].querySelector(".stat-lbl").textContent = usingReal ? (realDashboardData.docTypeLabel === "utility bill" ? "Bill amount" : "Total spending") : "Total spending";
     // Spending going up is genuinely bad news — always shown in red. Same caveat as above:
     // a true month-over-month % change needs 2+ months of history to compare against.
     var spendingTrendEl = statCards[1].querySelector(".stat-trend");
-    spendingTrendEl.className = "stat-trend t-bad";
-    spendingTrendEl.innerHTML = usingReal ? "From your uploaded document" : "↑ +8% vs last month";
+    if (usingReal) {
+      spendingTrendEl.className = "stat-trend t-bad";
+      spendingTrendEl.innerHTML = "From your uploaded document";
+    } else {
+      spendingTrendEl.className = "stat-trend";
+      spendingTrendEl.style.color = "var(--slate)";
+      spendingTrendEl.innerHTML = "Upload a document to see this";
+    }
 
     // Card 3 — Saved this month (only meaningful with a real income concept)
     if (showIncomeAndRate) {
       statCards[2].style.display = "";
-      statVals[2].textContent = fmtCurrency(usingReal ? (realDashboardData.saved || 0) : 5455, usingReal ? realDashboardData.currency : null);
+      statVals[2].textContent = usingReal ? fmtCurrency(realDashboardData.saved || 0, realDashboardData.currency) : "—";
     } else {
       statCards[2].style.display = "none";
     }
@@ -1434,7 +1491,7 @@ function renderDash() {
           statVals[3].textContent = rate + "%";
         }
       } else if (!usingReal) {
-        statVals[3].textContent = "11.3%";
+        statVals[3].textContent = "—";
       } else {
         statVals[3].textContent = "—";
       }
@@ -1444,9 +1501,16 @@ function renderDash() {
   }
 
   if (statTrends.length >= 3 && !usingReal) {
-    statTrends[2].innerHTML = "↓ Could be " + fmtCurrency(8000) + "+";
+    statTrends[2].className = "stat-trend";
+    statTrends[2].style.color = "var(--slate)";
+    statTrends[2].innerHTML = "Upload a document to see this";
   } else if (statTrends.length >= 3 && usingReal && showIncomeAndRate) {
     statTrends[2].innerHTML = "From your uploaded document";
+  }
+  if (statTrends.length >= 4 && !usingReal) {
+    statTrends[3].className = "stat-trend";
+    statTrends[3].style.color = "var(--slate)";
+    statTrends[3].innerHTML = "Target: 20%";
   }
   if (statTrends.length >= 4 && usingReal && showIncomeAndRate && realDashboardData.income > 0) {
     var checkRate = Math.round((realDashboardData.saved / realDashboardData.income) * 100);
@@ -1459,34 +1523,48 @@ function renderDash() {
   var spendBarsEl = document.getElementById("spend-bars");
   if (spendBarsEl) {
     spendBarsEl.innerHTML = "";
-    var bars = usingReal ? realDashboardData.bars : spendData;
-    var barsCurrency = usingReal ? realDashboardData.currency : null;
-    bars.forEach(function(d) {
-      spendBarsEl.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a, barsCurrency) + "</div></div>";
-    });
-    setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
+    if (usingReal) {
+      var barsCurrency = realDashboardData.currency;
+      realDashboardData.bars.forEach(function(d) {
+        spendBarsEl.innerHTML += "<div class=\"spend-row\"><div class=\"spend-lbl\">" + d.l + "</div><div class=\"spend-wrap\"><div class=\"spend-bar\" style=\"background:" + d.c + ";width:0\" data-p=\"" + d.p + "\"></div></div><div class=\"spend-amt\">" + fmtCurrency(d.a, barsCurrency) + "</div></div>";
+      });
+      setTimeout(function() { document.querySelectorAll(".spend-bar").forEach(function(b) { b.style.width = b.dataset.p + "%"; }); }, 100);
+    } else {
+      spendBarsEl.innerHTML = "<div style=\"text-align:center;padding:1rem 0;color:var(--slate);font-size:.82rem\">Upload a document to see where your money goes</div>";
+    }
   }
   var ins = document.getElementById("insights");
   if (ins) {
     ins.innerHTML = "";
-    getInsightsData().forEach(function(d) {
-      var el = document.createElement("div");
-      el.className = "ins-card";
-      el.innerHTML = "<div class=\"ins-em\">" + d.e + "</div><div class=\"ins-text\">" + d.t + "</div>";
-      el.addEventListener("click", function() { goTo("s-chat"); });
-      ins.appendChild(el);
-    });
+    if (usingReal) {
+      getInsightsData().forEach(function(d) {
+        var el = document.createElement("div");
+        el.className = "ins-card";
+        el.innerHTML = "<div class=\"ins-em\">" + d.e + "</div><div class=\"ins-text\">" + d.t + "</div>";
+        el.addEventListener("click", function() { goTo("s-chat"); });
+        ins.appendChild(el);
+      });
+    } else {
+      ins.innerHTML = "<div style=\"text-align:center;padding:1rem 0;color:var(--slate);font-size:.82rem\">Once you upload something real, I'll point out specific things I notice here — spending patterns, ways to save, anything worth a second look.</div>";
+    }
   }
   var rd = document.getElementById("recent-docs");
   if (rd) {
     rd.innerHTML = "";
-    recentDocsData.forEach(function(d) {
-      var el = document.createElement("div");
-      el.className = "doc-item";
-      el.innerHTML = "<div class=\"doc-ico\">" + d.ico + "</div><div><div class=\"doc-name\">" + d.name + "</div><div class=\"doc-meta\">" + d.meta + "</div></div><div class=\"doc-arr\">›</div>";
-      el.addEventListener("click", function() { selectDoc(d.doc); goTo("s-chat"); });
-      rd.appendChild(el);
-    });
+    var realKeys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
+    if (realKeys.length === 0) {
+      rd.innerHTML = "<div style=\"text-align:center;padding:1rem 0;color:var(--slate);font-size:.82rem\">No documents yet — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload your first one</span></div>";
+    } else {
+      realKeys.reverse().forEach(function(key) {
+        var d = sessionDocuments[key];
+        var icon = (DOC_CATEGORY_META[d.type] && DOC_CATEGORY_META[d.type].icon) || "📄";
+        var el = document.createElement("div");
+        el.className = "doc-item";
+        el.innerHTML = "<div class=\"doc-ico\">" + icon + "</div><div><div class=\"doc-name\">" + d.name + "</div><div class=\"doc-meta\">" + fallbackLabelFor(d.type) + "</div></div><div class=\"doc-arr\">›</div>";
+        el.addEventListener("click", function() { switchDashboardDoc(key); });
+        rd.appendChild(el);
+      });
+    }
   }
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
 }
@@ -2089,7 +2167,7 @@ async function analyseRealDocument() {
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
 
-  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means ONLY a genuine salary, wage, pension, or primary recurring earning — defined as a SUBSTANTIAL credit (typically the single largest, or among the largest, regular credits in the statement) that repeats on a consistent monthly schedule, often labelled SALARY, SAL, PAYROLL, or similar, or that is clearly the person's main earning given the surrounding context (their spending, their investment amounts, their lifestyle). A small interest credit (a few hundred or thousand, often labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single isolated transfer is NEVER income unless it repeats monthly. CRITICAL SANITY CHECK before you answer: this person's own SAVINGS/SIP figure (which you are also calculating) and their visible spending in this same document must be REASONABLE relative to whatever INCOME figure you report — if your INCOME figure is smaller than their monthly investments or even a fraction of their visible spending, your INCOME figure is certainly wrong. In that situation, you MUST either find the actual larger salary credit you missed, or report INCOME as NONE — never submit an income figure smaller than the person's own visible savings or spending, that is always a sign you picked the wrong transaction.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nCURRENCY: [the 3-letter currency code this document's amounts are ACTUALLY denominated in, based on real symbols/labels you see — e.g. INR, AED, USD, GBP — never default to INR without checking, look for the actual currency markers in the document]\nACCOUNT_ID: [the masked or partial account/card number visible on this document — e.g. the last 4 digits like \"1690\", or however it's actually shown such as \"XXXX1690\" — use exactly what's printed, or NONE if no account/card number is visible anywhere]\nACCOUNT_HOLDER: [the name of the person this document belongs to, exactly as printed — look for fields like \"Account Name\", \"Prepared for\", \"Dear Customer\", or a name printed near the top — or NONE if genuinely not visible]\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nPERIOD: [the distinct calendar months this statement actually covers, comma-separated, oldest first, in 'MMM YYYY' format — e.g. a single month is just \"Jun 2026\", a 3-month statement is \"Apr 2026, May 2026, Jun 2026\". Base this on the real transaction dates you see, not a guess.]\nRECURRING: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]|[which month from PERIOD above this exact occurrence falls in, e.g. \"Jun 2026\"] — output ONE of these lines for EVERY individual occurrence of a fixed recurring obligation or inflow you can find ACROSS THE WHOLE DOCUMENT: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. There is NO fixed limit on how many RECURRING lines you output — if this statement spans 6 months and has 3 different recurring obligations, that is 18 separate lines, one per obligation per month, and you must not skip any month or under-report earlier months in favour of recent ones. If the SAME obligation appears in 4 of 6 months, write 4 separate lines for it, each tagged with its own correct month — that repetition across months is the entire signal Forecast depends on, collapsing it into fewer lines or sampling only some months actively breaks the feature. The AMOUNT can vary somewhat between months and still be the same recurring obligation — e.g. school/university fees, or an EMI with a step-up — as long as the payee or purpose is clearly the same each time; use that month's own real amount on each line rather than skipping it just because it differs from other months. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME — even if its date or amount varies month to month, salary is NEVER a RECURRING line, it is already fully represented by the INCOME field and listing it again here would wrongly double it as a separate \"receivable\". Also do not invent occurrences that aren't really in the document. If genuinely nothing recurring exists anywhere in the document, output exactly one line: RECURRING: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
+  var detectPrompt = "Look at this document (the user selected '" + docTypeName + "' as the type when uploading, but double check this yourself from the actual content — they may have picked the wrong tile). First check: is this document password-protected, encrypted, or otherwise unreadable (blank, corrupted, completely illegible)? If so, reply with EXACTLY this single line and nothing else:\nLOCKED: yes\n\nOtherwise, reply in EXACTLY this format with no extra text, using plain numbers only (no currency symbols, no commas) or the word NONE if not applicable. IMPORTANT — strict definition of INCOME, do not guess: INCOME means real, recurring money received that the person can actually spend. This includes salary, wage, pension, or payroll — INCLUDING a genuinely small part-time or student paycheck, never dismiss a real payroll credit just because the amount looks small. It ALSO includes genuine recurring support from family — remittances, transfers labelled things like \"educational support\", \"family support\", or similar, even if the exact wording or amount varies each time. If a person has more than one of these (e.g. a small student payroll AND family support), ADD THEM TOGETHER as total income — do not treat them as alternatives or pick only one. A small interest credit (a few hundred or thousand, labelled 'INT', 'INTEREST', 'CR INT') is NEVER income. A single, one-off transfer with no recurring pattern and no clear ongoing purpose is NEVER counted as income.\n\nIMPORTANT — when a document includes the bank's OWN summary or totals box (often labelled things like 'Beginning Balance', 'Ending Balance', 'Deposits and Additions', 'Withdrawals', 'Fees' — common on US-style statements), TRUST those bank-calculated totals for SPENDING over your own line-by-line counting, and use them as a cross-check for INCOME too. The bank has already correctly added up dozens of transactions; re-deriving the same total yourself by reading each line across several pages is exactly where mistakes happen. Use the transaction list to understand WHAT the money went to (for categories and insights), but use the statement's own provided totals for the actual numbers whenever they're given.\n\nIMPORTANT — it is completely normal, and worth reporting honestly, for SPENDING to be higher than INCOME in a given month. Many real people — students especially, or anyone going through a heavier month — genuinely spend more than they earn, often covered by savings, family support, or credit. Do NOT inflate or invent a larger INCOME figure just to make the numbers look more balanced against spending. Report the real, honest figures even when spending exceeds income — that gap is itself valuable, true insight worth surfacing, not an error to paper over.\n\nIMPORTANT — SAVINGS accuracy: scan the ENTIRE document across all months shown for recurring investment/savings transfers (SIP, RD, mutual fund debits, goal savings) before totalling — sum every month's worth, not just one.\nLOCKED: no\nCURRENCY: [the 3-letter currency code this document's amounts are ACTUALLY denominated in, based on real symbols/labels you see — e.g. INR, AED, USD, GBP — never default to INR without checking, look for the actual currency markers in the document]\nACCOUNT_ID: [the masked or partial account/card number visible on this document — e.g. the last 4 digits like \"1690\", or however it's actually shown such as \"XXXX1690\" — use exactly what's printed, or NONE if no account/card number is visible anywhere]\nACCOUNT_HOLDER: [the name of the person this document belongs to, exactly as printed — look for fields like \"Account Name\", \"Prepared for\", \"Dear Customer\", or a name printed near the top — or NONE if genuinely not visible]\nDOCTYPE: [the REAL document type based on what you actually see — choose exactly one of: bank, salary, utility, insurance, tax, creditcard, other]\nINSTITUTION: [the bank or company name shown, or UNKNOWN]\nINCOME: [total income/credit amount as a plain number, or NONE]\nSPENDING: [total spending/debit amount, EXCLUDING savings/investment transfers, as a plain number, or NONE]\nSAVINGS: [total amount moved to savings, recurring/systematic deposits, SIPs, RDs, or goal-based transfers, as a plain number, or NONE — look carefully for labels like 'Goal Savings', 'Systematic Fund Transfer', 'SFT', 'SIP', 'RD']\nCATEGORY1: [label]|[amount]\nCATEGORY2: [label]|[amount]\nCATEGORY3: [label]|[amount]\nPERIOD: [the distinct calendar months this statement actually covers, comma-separated, oldest first, in 'MMM YYYY' format — e.g. a single month is just \"Jun 2026\", a 3-month statement is \"Apr 2026, May 2026, Jun 2026\". Base this on the real transaction dates you see, not a guess.]\nRECURRING: [name]|[amount]|[approx day of month, 1-31]|[PAYMENT or RECEIVABLE]|[which month from PERIOD above this exact occurrence falls in, e.g. \"Jun 2026\"] — output ONE of these lines for EVERY individual occurrence of a fixed recurring obligation or inflow you can find ACROSS THE WHOLE DOCUMENT: EMI, insurance premium, subscription renewal, rent, recurring dividend, recurring interest credit. There is NO fixed limit on how many RECURRING lines you output — if this statement spans 6 months and has 3 different recurring obligations, that is 18 separate lines, one per obligation per month, and you must not skip any month or under-report earlier months in favour of recent ones. If the SAME obligation appears in 4 of 6 months, write 4 separate lines for it, each tagged with its own correct month — that repetition across months is the entire signal Forecast depends on, collapsing it into fewer lines or sampling only some months actively breaks the feature. The AMOUNT can vary somewhat between months and still be the same recurring obligation — e.g. school/university fees, or an EMI with a step-up — as long as the payee or purpose is clearly the same each time; use that month's own real amount on each line rather than skipping it just because it differs from other months. Use PAYMENT for money the person repeatedly pays out, RECEIVABLE for money they repeatedly receive but do NOT control the timing of (dividends, interest). Do NOT include the main salary/income already captured above as INCOME — even if its date or amount varies month to month, salary is NEVER a RECURRING line, it is already fully represented by the INCOME field and listing it again here would wrongly double it as a separate \"receivable\". Also do not invent occurrences that aren't really in the document. If genuinely nothing recurring exists anywhere in the document, output exactly one line: RECURRING: NONE\nINSIGHT1: [one short, FUNNY, specific finding written like a stand-up comedian roasting a friend's bank statement — lead with personality, not a flat fact, under 14 words]\nINSIGHT2: [a second short funny finding, same comedic style, under 14 words]\nINSIGHT3: [a third short funny finding or a cheeky observation, under 14 words — if nothing funny applies, make it warm and encouraging instead, never flat or robotic]\nFOLLOWUP: [if there are any large, unusual, or unclear transactions worth asking the user about — such as cheque clearances, large cash withdrawals, or unexplained big-ticket debits — write ONE short, friendly, lightly playful question about the single most notable one (unless it looks like a cash withdrawal — keep those warm, not jokey). Otherwise write NONE.]";
 
   try {
     var payload = {
