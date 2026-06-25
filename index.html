@@ -250,6 +250,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .csb-title{font-family:"Sora",sans-serif;font-size:.82rem;font-weight:600}
 .csb-docs{flex:1;overflow-y:auto;padding:.65rem}
 .csb-sec{font-size:.68rem;font-weight:700;color:var(--slate);text-transform:uppercase;letter-spacing:.05em;margin:.6rem 0 .35rem}
+.csb-acct{font-size:.74rem;font-weight:600;color:var(--ink-s);margin:.5rem 0 .25rem .4rem;display:flex;align-items:center;gap:.3rem}
 .csb-doc{display:flex;align-items:center;gap:.55rem;padding:.5rem .6rem;border-radius:8px;cursor:pointer;transition:background .1s;border:none;background:none;font-family:inherit;width:100%;text-align:left}
 .csb-doc:hover{background:var(--mist)}
 .csb-doc.act{background:var(--sf-l)}
@@ -891,6 +892,7 @@ var fileMediaType = "";
 var sessionDocuments = {}; // { uniqueKey: { base64, mediaType, name, type } }
 var compareDocsPayload = null; // set when starting a multi-document comparison conversation
 var detectedDocName = ""; // filled in if Claude can identify the institution
+var accountId = ""; // the masked account/card number, if detected — global for the same reason as detectedDocName: needed by the sov-close/sov-chat handlers, which run outside the analysis function itself
 var uploadQueue = []; // files still waiting their turn in a multi-document upload
 var uploadQueueTotal = 0; // 0 = not currently in a batch; >1 = "file X of N" batch in progress
 var lastMsgTimestamp = null; // tracks gaps between messages so a session divider can be shown
@@ -982,38 +984,33 @@ function applySessionUser(user) {
 // fresh login still silently fell back to sample numbers, even for a returning user with
 // real history. This reconstructs the dashboard exactly as if those documents had just
 // been re-uploaded, without ever re-reading the original files (which are never stored).
-//
-// One real account, identified one way: prefer the masked account/card number when we
-// have one (most precise — tells two cards from the same bank apart). Older snapshots
-// saved before that detection existed fall back to the document name with its trailing
-// "(Month Year)" stripped off, so different months of the same account still collapse
-// into one identity instead of one row per upload. Type is always included so a bank
-// account and a credit card from the same bank, sharing a generic legacy name, can never
-// merge into each other.
 function snapshotIdentityKey(snap) {
-  if (snap.account_id) return snap.doc_type + "::" + snap.account_id;
-  var name = snap.doc_name || "";
-  var stripped = name.replace(/\s*\([^()]*\d{4}\)\s*$/, "").trim();
-  return snap.doc_type + "::" + (stripped || name);
+  return accountInfoFor(snap.doc_type, snap.doc_name, snap.account_id).accountKey;
+}
+
+// A readable label for one specific scan within an account's history — the real
+// detected statement period when we have one ("Jun 2026"), or the upload date as a
+// fallback for older snapshots saved before period detection existed.
+function scanLabelFor(snap) {
+  if (snap.months_covered && snap.months_covered.length > 0) {
+    return snap.months_covered[snap.months_covered.length - 1];
+  }
+  if (snap.created_at) {
+    return new Date(snap.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  }
+  return "Uploaded";
 }
 
 async function loadDashboardFromSnapshots() {
   var snapshots = await loadSnapshotsFromDb();
   if (!snapshots || snapshots.length === 0) return; // genuinely new user — nothing to restore
 
-  // Two days of real testing turned this into dozens of rows for what's really only a
-  // handful of actual accounts — group by real identity, keep only each account's most
-  // recent snapshot (snapshots is already ordered oldest-first, so a later one for the
-  // same identity simply overwrites the earlier one here).
-  var latestByIdentity = {};
-  snapshots.forEach(function(snap) {
-    latestByIdentity[snapshotIdentityKey(snap)] = snap;
-  });
-  var dedupedSnapshots = Object.keys(latestByIdentity).map(function(k) { return latestByIdentity[k]; });
-  dedupedSnapshots.sort(function(a, b) { return new Date(a.created_at) - new Date(b.created_at); });
-
+  // Keep EVERY scan, not just the latest — two days of real testing turned this into
+  // dozens of rows for what's really only a handful of actual accounts, but the fix for
+  // that is organising the history properly (account → dated scans, built in
+  // renderGroupedRealDocs below), not throwing the history away.
   var barColors = ["#FF6B1A", "#0F6E56", "#2E75B6", "#BA7517", "#6B3FA0", "#E24B4A"];
-  dedupedSnapshots.forEach(function(snap, idx) {
+  snapshots.forEach(function(snap, idx) {
     var categories = snap.categories || [];
     var maxCatAmt = Math.max.apply(null, categories.map(function(c) { return c.a; })) || 1;
     var bars = categories.map(function(c, i) {
@@ -1031,19 +1028,48 @@ async function loadDashboardFromSnapshots() {
       currency: snap.currency || "INR",
       incomeFlagged: false
     };
+    var acctInfo = accountInfoFor(snap.doc_type, snap.doc_name, snap.account_id);
     // "loaded_" prefix keeps these clearly separate from "real_" keys generated by a
     // fresh upload in the current session, so the two schemes can never collide.
     var key = "loaded_" + idx + "_" + snap.doc_type;
-    sessionDocuments[key] = { name: dashboardData.docName, type: snap.doc_type, dashboardData: dashboardData, base64: "", mediaType: "", context: "" };
+    sessionDocuments[key] = {
+      name: dashboardData.docName, type: snap.doc_type, dashboardData: dashboardData,
+      base64: "", mediaType: "", context: "",
+      accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, scanLabel: scanLabelFor(snap),
+      createdAt: snap.created_at
+    };
   });
-  // Show whichever real account was uploaded most recently, by default — matches the
-  // existing convention that the latest upload is what a user sees first.
-  var loadedKeys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
-  var lastKey = loadedKeys[loadedKeys.length - 1];
-  if (lastKey) {
-    realDashboardData = JSON.parse(JSON.stringify(sessionDocuments[lastKey].dashboardData));
+  // The DASHBOARD's own default view shows the most recently uploaded REAL ACCOUNT, not
+  // necessarily the most recently inserted row — same idea as before, just computed
+  // from the full history rather than relying on it already being pre-deduped.
+  var latestPerAccount = getLatestSnapshotPerAccount();
+  var mostRecentKey = Object.keys(latestPerAccount).reduce(function(best, key) {
+    if (!best) return key;
+    var a = sessionDocuments[latestPerAccount[key]].createdAt;
+    var b = sessionDocuments[latestPerAccount[best]].createdAt;
+    return new Date(a) > new Date(b) ? key : best;
+  }, null);
+  if (mostRecentKey) {
+    realDashboardData = JSON.parse(JSON.stringify(sessionDocuments[latestPerAccount[mostRecentKey]].dashboardData));
     activeDashDoc = null;
   }
+}
+
+// Returns { accountKey: sessionDocumentsKey } — for each real account, whichever of its
+// possibly-several scans was uploaded most recently. Used by the Dashboard switcher
+// (which should only ever show one row per account, never one row per historical scan)
+// and by the Dashboard's own default view above.
+function getLatestSnapshotPerAccount() {
+  var latest = {};
+  Object.keys(sessionDocuments).forEach(function(key) {
+    var d = sessionDocuments[key];
+    if (!d.dashboardData || !d.accountKey) return;
+    var existing = latest[d.accountKey];
+    if (!existing || new Date(d.createdAt || 0) >= new Date(sessionDocuments[existing].createdAt || 0)) {
+      latest[d.accountKey] = key;
+    }
+  });
+  return latest;
 }
 
 function authErrorMessage(err) {
@@ -1391,9 +1417,10 @@ var activeDashDoc = null; // null = "show whatever was analysed most recently" (
 function renderDashDocSwitcher() {
   var container = document.getElementById("dash-doc-switcher");
   if (!container) return;
-  var keys = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].dashboardData; });
-  if (keys.length < 2) { container.style.display = "none"; container.innerHTML = ""; return; } // nothing to switch between with 0 or 1 document
-  keys.reverse(); // most recently uploaded first, matching the sidebar's own convention
+  var latestPerAccount = getLatestSnapshotPerAccount();
+  var keys = Object.keys(latestPerAccount).map(function(acctKey) { return latestPerAccount[acctKey]; });
+  if (keys.length < 2) { container.style.display = "none"; container.innerHTML = ""; return; } // nothing to switch between with 0 or 1 account
+  keys.sort(function(a, b) { return new Date(sessionDocuments[b].createdAt || 0) - new Date(sessionDocuments[a].createdAt || 0); }); // most recently active account first
   var selectedKey = activeDashDoc || keys[0];
   container.style.display = "flex";
   container.style.alignItems = "center";
@@ -1841,7 +1868,7 @@ document.getElementById("btn-force-reset").addEventListener("click", function() 
   // Preserve the previously analysed document in the sidebar if we have one, same as
   // the normal success-screen close button does, so nothing gets silently lost.
   if (detectedDocName) {
-    addRealDocToSidebar(docType, detectedDocName);
+    addRealDocToSidebar(docType, detectedDocName, accountId);
   }
   document.getElementById("sov").classList.remove("show");
   resetUpload();
@@ -2224,7 +2251,8 @@ async function analyseRealDocument() {
     }
     if (data.reply) {
       var lines = data.reply.split("\n");
-      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [], periodMonths = [], docCurrency = "INR", accountId = "", accountHolder = "";
+      var institution = "", insights = [], income = 0, spending = 0, savings = 0, categories = [], followup = "", detectedRealType = "", recurringCandidates = [], periodMonths = [], docCurrency = "INR", accountHolder = "";
+      accountId = ""; // reset the global from any previous document before parsing this one
       lines.forEach(function(line) {
         if (line.indexOf("CURRENCY:") === 0) {
           var curCode = line.replace("CURRENCY:", "").trim().toUpperCase();
@@ -2405,7 +2433,7 @@ document.getElementById("sov-close").addEventListener("click", function() {
   // Preserve this document in the sidebar before clearing the upload box —
   // this is what allows multiple documents to genuinely accumulate, not overwrite each other.
   if (detectedDocName) {
-    addRealDocToSidebar(docType, detectedDocName);
+    addRealDocToSidebar(docType, detectedDocName, accountId);
   }
   document.getElementById("sov").classList.remove("show");
   resetUpload();
@@ -2430,7 +2458,7 @@ document.getElementById("sov-close").addEventListener("click", function() {
 document.getElementById("sov-chat").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   if (detectedDocName) {
-    var newKey = addRealDocToSidebar(docType, detectedDocName);
+    var newKey = addRealDocToSidebar(docType, detectedDocName, accountId);
     selectRealDoc(newKey, docType, detectedDocName, true); // true = skip render, goTo below will do it once
   } else {
     activeDoc = docType;
@@ -2541,18 +2569,58 @@ var DOC_CATEGORY_META = {
   other:      { icon: "📄", label: "Other receipts" }
 };
 
+// A document's full name embeds institution + account + type + period all together
+// (e.g. "ADCB •1690 — Credit Card Statement (Jun 2026)") — this pulls just the
+// institution portion back out, by cutting at whichever separator appears first.
+function institutionFromDocName(docName) {
+  var name = docName || "";
+  var bulletIdx = name.indexOf(" •");
+  var dashIdx = name.indexOf(" — ");
+  var cut = name.length;
+  if (bulletIdx !== -1) cut = Math.min(cut, bulletIdx);
+  if (dashIdx !== -1) cut = Math.min(cut, dashIdx);
+  return name.slice(0, cut).trim() || name;
+}
+
+// Real institution names vary wildly in how they're printed — "AMEX (Middle East)
+// B.S.C.(C) - EMIRATES", "Abu Dhabi Commercial Bank (ADCB)", or just "ADCB" outright.
+// Best-effort shrink to whatever short, recognisable form is actually available.
+function shortInstitutionLabel(rawName) {
+  var name = (rawName || "").trim();
+  var paren = name.match(/\(([A-Z]{2,6})\)/); // a short acronym already sitting in parentheses
+  if (paren) return paren[1];
+  if (/^[A-Z]{2,6}$/.test(name)) return name; // the name itself is already a short acronym
+  return name.split(/\s+/)[0]; // fall back to just the first word
+}
+
+// One real account, identified one way, reused for both grouping (sidebar) and
+// deduplication (dashboard) — the masked account/card number when available, since
+// that's the most precise way to tell two cards from the same bank apart; otherwise
+// the institution name itself, for older entries saved before that detection existed.
+function accountInfoFor(docType, docName, accountId) {
+  var institution = institutionFromDocName(docName);
+  var shortInst = shortInstitutionLabel(institution);
+  var last4 = accountId ? accountId.replace(/[^0-9A-Za-z]/g, "").slice(-4) : "";
+  return {
+    accountKey: docType + "::" + (accountId || institution),
+    accountLabel: last4 ? (shortInst + " •" + last4) : shortInst
+  };
+}
+
 // Builds one sidebar row for a real (non-sample) document. Pulled out into its own
 // function so the SAME row-creation logic — markup, checkbox handling, click behaviour —
 // is used whether this is the newest upload or one being redrawn after a later upload
 // triggers a full re-group. Nothing about how a row behaves changes; only when it's built.
-function createDocButton(uniqueKey, doc, name) {
+function createDocButton(uniqueKey, doc, name, scanLabel) {
   var icon = (DOC_CATEGORY_META[doc] && DOC_CATEGORY_META[doc].icon) || "📄";
+  var displayText = scanLabel || name; // falls back to the full name if no scan label was given
   var newBtn = document.createElement("button");
   newBtn.className = "csb-doc";
   newBtn.dataset.doc = uniqueKey;
   newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
   newBtn.dataset.realName = name;
-  newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + icon + "</div><div><div class=\"csb-doc-name\">" + name + "</div><div class=\"csb-doc-meta\">Just uploaded</div></div>";
+  newBtn.title = name; // full name still available on hover, for anyone who wants it
+  newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + icon + "</div><div><div class=\"csb-doc-name\">" + displayText + "</div></div>";
   newBtn.style.display = "flex";
   newBtn.style.alignItems = "center";
   newBtn.style.gap = ".5rem";
@@ -2578,12 +2646,12 @@ function createDocButton(uniqueKey, doc, name) {
   return newBtn;
 }
 
-// Redraws the entire "your real documents" area of the sidebar, grouped by type
-// (Bank accounts, Credit cards, ...) instead of one flat list. Called every time a
-// document is added — rebuilding from sessionDocuments each time is simpler and far
-// less error-prone than trying to surgically insert a new row into the right group's
-// existing DOM position, at the cost of a few extra DOM nodes being recreated, which is
-// imperceptible at the number of documents a real person actually uploads.
+// Redraws the entire "your real documents" area of the sidebar as a proper hierarchy —
+// category (Bank accounts, Credit cards, ...) → account (e.g. "ADCB •1690") → each
+// individual dated scan underneath. Previously this was a flat list with every single
+// upload as its own row, which became genuinely unusable after enough real testing —
+// the same real account, scanned several times, just kept repeating itself rather than
+// being recognised as one account with a history.
 function renderGroupedRealDocs() {
   var container = document.getElementById("real-docs-groups");
   if (!container) return;
@@ -2594,17 +2662,40 @@ function renderGroupedRealDocs() {
   DOC_CATEGORY_ORDER.forEach(function(cat) {
     var keysInCat = Object.keys(sessionDocuments).filter(function(k) { return sessionDocuments[k].type === cat; });
     if (keysInCat.length === 0) return; // never show an empty heading
-    keysInCat.reverse(); // most recently added first, matching the old flat-list behaviour
     var heading = document.createElement("div");
     heading.className = "csb-sec";
     heading.textContent = (DOC_CATEGORY_META[cat].icon) + " " + DOC_CATEGORY_META[cat].label;
     container.appendChild(heading);
-    keysInCat.forEach(function(key) {
-      var d = sessionDocuments[key];
-      var btn = createDocButton(key, d.type, d.name);
-      if (key === activeDoc) btn.classList.add("act");
-      if (checkedKeys.indexOf(key) !== -1) btn.querySelector(".compare-check").checked = true;
-      container.appendChild(btn);
+
+    // Group this category's scans by real account identity, so several scans of the
+    // SAME account nest under one heading instead of repeating the account's name.
+    var byAccount = {};
+    keysInCat.forEach(function(k) {
+      var acctKey = sessionDocuments[k].accountKey || k; // fall back to the row's own key if ungrouped
+      if (!byAccount[acctKey]) byAccount[acctKey] = [];
+      byAccount[acctKey].push(k);
+    });
+    var accountKeysOrdered = Object.keys(byAccount).sort(function(a, b) {
+      var latestOf = function(acctKey) {
+        return Math.max.apply(null, byAccount[acctKey].map(function(k) { return new Date(sessionDocuments[k].createdAt || 0).getTime(); }));
+      };
+      return latestOf(b) - latestOf(a); // most recently active account first
+    });
+    accountKeysOrdered.forEach(function(acctKey) {
+      var scanKeys = byAccount[acctKey].slice().sort(function(a, b) {
+        return new Date(sessionDocuments[b].createdAt || 0) - new Date(sessionDocuments[a].createdAt || 0); // newest scan first
+      });
+      var acctHeading = document.createElement("div");
+      acctHeading.className = "csb-acct";
+      acctHeading.textContent = sessionDocuments[scanKeys[0]].accountLabel || acctKey;
+      container.appendChild(acctHeading);
+      scanKeys.forEach(function(key) {
+        var d = sessionDocuments[key];
+        var btn = createDocButton(key, d.type, d.name, d.scanLabel);
+        if (key === activeDoc) btn.classList.add("act");
+        if (checkedKeys.indexOf(key) !== -1) btn.querySelector(".compare-check").checked = true;
+        container.appendChild(btn);
+      });
     });
   });
   // This list deliberately only ever shows what's been uploaded THIS session — it's not
@@ -2620,7 +2711,7 @@ function renderGroupedRealDocs() {
   updateCompareBarVisibility();
 }
 
-function addRealDocToSidebar(doc, name) {
+function addRealDocToSidebar(doc, name, accountId) {
   // Defensive guard: if a sidebar entry with this exact name AND type was already added
   // in this session, don't create a second one — just re-select the existing one instead.
   // Checking type too (not just name) matters: a bank statement and a credit card
@@ -2635,9 +2726,15 @@ function addRealDocToSidebar(doc, name) {
   }
   uploadedDocCount++;
   var uniqueKey = "real_" + doc + "_" + uploadedDocCount; // each upload gets its own conversation/doc_key
+  var acctInfo = accountInfoFor(doc, name, accountId);
   // Save this document's actual file data so it can be cross-referenced with others later —
   // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
-  sessionDocuments[uniqueKey] = { base64: fileBase64, mediaType: fileMediaType, name: name, type: doc, context: uploadedDocContext, dashboardData: realDashboardData ? JSON.parse(JSON.stringify(realDashboardData)) : null };
+  sessionDocuments[uniqueKey] = {
+    base64: fileBase64, mediaType: fileMediaType, name: name, type: doc, context: uploadedDocContext,
+    dashboardData: realDashboardData ? JSON.parse(JSON.stringify(realDashboardData)) : null,
+    accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, scanLabel: "Just uploaded",
+    createdAt: new Date().toISOString()
+  };
   activeDashDoc = null; // a fresh upload becomes the new default-shown document again
   document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
   activeDoc = uniqueKey; // so the redraw below marks the right row active
