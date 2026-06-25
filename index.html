@@ -421,6 +421,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-upload">Upload</button>
       <button class="nl" id="nav-chat">Chat</button>
       <button class="nl" id="nav-history">History</button>
+      <button class="nl" id="nav-profile">Profile</button>
     </div>
     <div style="display:flex;align-items:center;gap:.6rem">
       <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer">
@@ -441,7 +442,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   </nav>
   <div style="flex:1;overflow-y:auto">
     <div class="dash-body">
-      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today. <span id="change-persona-link" style="text-decoration:underline;cursor:pointer">Not quite right?</span></div></div>
+      <div><div class="dash-h">Good morning, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
@@ -482,6 +483,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl act" id="nav-upload2">Upload</button>
       <button class="nl" id="nav-chat2">Chat</button>
       <button class="nl" id="nav-history2">History</button>
+      <button class="nl" id="nav-profile2">Profile</button>
     </div>
     <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
   </nav>
@@ -572,6 +574,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-upload3">Upload</button>
       <button class="nl act" id="nav-chat3">Chat</button>
       <button class="nl" id="nav-history3">History</button>
+      <button class="nl" id="nav-profile3">Profile</button>
     </div>
     <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
@@ -620,6 +623,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-upload-h">Upload</button>
       <button class="nl" id="nav-chat-h">Chat</button>
       <button class="nl act" id="nav-history-h">History</button>
+      <button class="nl" id="nav-profile-h">Profile</button>
     </div>
     <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
   </nav>
@@ -635,6 +639,45 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
         <div style="font-size:.82rem">Upload a document or start a General Chat to begin — it'll show up here once you do.</div>
       </div>
       <div id="history-loading" style="text-align:center;padding:3rem 1rem;color:var(--slate);font-size:.85rem">Loading your conversations...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SCREEN: PROFILE ═══ -->
+<div class="screen" id="s-profile">
+  <nav class="app-nav">
+    <div class="logo">DataDost<span>.</span></div>
+    <div class="nav-links">
+      <button class="nl" id="nav-dash-p">Dashboard</button>
+      <button class="nl" id="nav-upload-p">Upload</button>
+      <button class="nl" id="nav-chat-p">Chat</button>
+      <button class="nl" id="nav-history-p">History</button>
+      <button class="nl act" id="nav-profile-p">Profile</button>
+    </div>
+    <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
+  </nav>
+  <div style="flex:1;overflow-y:auto;background:var(--mist)">
+    <div style="max-width:560px;margin:0 auto;padding:1.5rem 1.25rem">
+      <div style="font-family:Sora,sans-serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:.3rem">Your profile</div>
+      <div style="font-size:.85rem;color:var(--slate);margin-bottom:1.5rem">A few things about you, and how to keep your account secure.</div>
+
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">Your persona</div>
+        <div id="profile-persona-display" style="font-size:.88rem;color:var(--ink-s);margin-bottom:.85rem">Not set yet</div>
+        <button type="button" id="profile-change-persona-btn" style="background:var(--white);border:1.5px solid var(--border);border-radius:100px;padding:.55rem 1.1rem;font-size:.8rem;font-weight:600;color:var(--ink);cursor:pointer;font-family:inherit">Change persona</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Password</div>
+        <div id="profile-password-status" style="font-size:.82rem;color:var(--slate);margin-bottom:1rem"></div>
+        <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:.9rem">
+          <input type="password" id="profile-current-pwd" placeholder="Current password" style="border:1.5px solid var(--border);border-radius:10px;padding:.65rem .8rem;font-size:.85rem;font-family:inherit">
+          <input type="password" id="profile-new-pwd" placeholder="New password (min 8 characters)" style="border:1.5px solid var(--border);border-radius:10px;padding:.65rem .8rem;font-size:.85rem;font-family:inherit">
+          <input type="password" id="profile-confirm-pwd" placeholder="Confirm new password" style="border:1.5px solid var(--border);border-radius:10px;padding:.65rem .8rem;font-size:.85rem;font-family:inherit">
+        </div>
+        <button type="button" id="profile-update-pwd-btn" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.65rem 1.3rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit">Update password</button>
+        <div style="font-size:.74rem;color:var(--slate);margin-top:.7rem;line-height:1.5">We'll gently remind you every 60 days to consider changing it — purely a suggestion, never required.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -946,6 +989,7 @@ function goTo(id, tab) {
     }
   }
   if (id === "s-history") renderHistoryList();
+  if (id === "s-profile") renderProfile();
 }
 window.goTo = goTo; // expose globally so inline onclick="" attributes can reach it
 
@@ -959,8 +1003,8 @@ function switchTab(tab) {
 
 // ── USER UI ──
 function setUser() {
-  ["av-dash","av-up","av-chat","av-history"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
-  ["nm-dash","nm-up","nm-chat","nm-history"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
+  ["av-dash","av-up","av-chat","av-history","av-profile"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uInit; });
+  ["nm-dash","nm-up","nm-chat","nm-history","nm-profile"].forEach(function(id) { var e = document.getElementById(id); if(e) e.textContent = uName; });
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
 }
 
@@ -1277,6 +1321,14 @@ document.getElementById("nav-history3").addEventListener("click", function() { g
 document.getElementById("nav-dash-h").addEventListener("click", function() { goTo("s-dash"); });
 document.getElementById("nav-upload-h").addEventListener("click", function() { goTo("s-upload"); });
 document.getElementById("nav-chat-h").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("nav-profile").addEventListener("click", function() { goTo("s-profile"); });
+document.getElementById("nav-profile2").addEventListener("click", function() { goTo("s-profile"); });
+document.getElementById("nav-profile3").addEventListener("click", function() { goTo("s-profile"); });
+document.getElementById("nav-profile-h").addEventListener("click", function() { goTo("s-profile"); });
+document.getElementById("nav-dash-p").addEventListener("click", function() { goTo("s-dash"); });
+document.getElementById("nav-upload-p").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("nav-chat-p").addEventListener("click", function() { goTo("s-chat"); });
+document.getElementById("nav-history-p").addEventListener("click", function() { goTo("s-history"); });
 document.getElementById("dash-ask").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-add").addEventListener("click", function() { goTo("s-upload"); });
@@ -1294,6 +1346,9 @@ document.getElementById("user-pill-chat").addEventListener("click", function() {
   if (confirm("Log out of DataDost?")) { doLogout(); }
 });
 document.getElementById("user-pill-history").addEventListener("click", function() {
+  if (confirm("Log out of DataDost?")) { doLogout(); }
+});
+document.getElementById("user-pill-profile").addEventListener("click", function() {
   if (confirm("Log out of DataDost?")) { doLogout(); }
 });
 document.getElementById("csb-add").addEventListener("click", function() { goTo("s-upload"); });
@@ -1413,7 +1468,7 @@ document.querySelectorAll(".persona-btn").forEach(function(btn) {
 var changePersonaLink = document.getElementById("change-persona-link");
 if (changePersonaLink) {
   changePersonaLink.addEventListener("click", function() {
-    document.getElementById("welcome-income-modal").style.display = "flex";
+    goTo("s-profile");
   });
 }
 
@@ -3410,6 +3465,93 @@ async function renderHistoryList() {
     listEl.appendChild(card);
   });
 }
+
+// Shows the current persona and a gentle, non-blocking password-age reminder — never
+// blocking, never mandatory, just visible if someone wants to act on it.
+async function renderProfile() {
+  var personaEl = document.getElementById("profile-persona-display");
+  if (currentPersona && PERSONA_META[currentPersona]) {
+    personaEl.textContent = PERSONA_META[currentPersona].label;
+  } else {
+    personaEl.textContent = "Not set yet — pick one below";
+  }
+
+  var statusEl = document.getElementById("profile-password-status");
+  statusEl.textContent = "";
+  if (!sb) return;
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+    if (!user) return;
+    // No explicit password-change timestamp exists until someone actually changes it
+    // here for the first time — falls back to account creation date until then, which
+    // is the most honest available baseline for "how long has this password been in use".
+    var lastChangedStr = (user.user_metadata && user.user_metadata.password_changed_at) || user.created_at;
+    var daysAgo = Math.floor((new Date() - new Date(lastChangedStr)) / (1000 * 60 * 60 * 24));
+    if (daysAgo >= 60) {
+      statusEl.innerHTML = "<span style=\"color:#BA7517;font-weight:600\">It's been " + daysAgo + " days since this password was last set — might be worth refreshing it, though there's genuinely no rush.</span>";
+    } else {
+      statusEl.textContent = "Last set " + daysAgo + " day" + (daysAgo === 1 ? "" : "s") + " ago.";
+    }
+  } catch (err) {
+    console.error("[DataDost] Could not check password status:", err);
+  }
+}
+
+document.getElementById("profile-change-persona-btn").addEventListener("click", function() {
+  document.getElementById("welcome-income-modal").style.display = "flex";
+});
+
+document.getElementById("profile-update-pwd-btn").addEventListener("click", async function() {
+  var currentPwd = document.getElementById("profile-current-pwd").value;
+  var newPwd = document.getElementById("profile-new-pwd").value;
+  var confirmPwd = document.getElementById("profile-confirm-pwd").value;
+  if (!currentPwd || !newPwd || !confirmPwd) { toast("Please fill in all three fields."); return; }
+  if (newPwd.length < 8) { toast("New password must be at least 8 characters."); return; }
+  if (newPwd !== confirmPwd) { toast("New password and confirmation don't match."); return; }
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+
+  var sessionResult = await sb.auth.getSession();
+  var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+  if (!user || !user.email) { toast("Please log in again, then try this once more."); return; }
+
+  var btn = document.getElementById("profile-update-pwd-btn");
+  var originalText = btn.textContent;
+  btn.textContent = "Updating...";
+  btn.disabled = true;
+
+  try {
+    // Re-verify the CURRENT password is actually correct before allowing a change — the
+    // active session alone proves identity, but this extra check protects against
+    // someone changing the password on a device the real account owner left logged in.
+    var reauth = await sb.auth.signInWithPassword({ email: user.email, password: currentPwd });
+    if (reauth.error) {
+      toast("Current password is incorrect.");
+      btn.textContent = originalText; btn.disabled = false;
+      return;
+    }
+    var updateResult = await sb.auth.updateUser({
+      password: newPwd,
+      data: { password_changed_at: new Date().toISOString() }
+    });
+    if (updateResult.error) {
+      console.error("[DataDost] Password update error:", updateResult.error.message);
+      toast("Something went wrong updating your password — please try again.");
+      btn.textContent = originalText; btn.disabled = false;
+      return;
+    }
+    document.getElementById("profile-current-pwd").value = "";
+    document.getElementById("profile-new-pwd").value = "";
+    document.getElementById("profile-confirm-pwd").value = "";
+    toast("Password updated. 🔒");
+    renderProfile();
+  } catch (err) {
+    console.error("[DataDost] Password update error:", err);
+    toast("Something went wrong — please try again.");
+  }
+  btn.textContent = originalText;
+  btn.disabled = false;
+});
 
 function reopenConversation(docKey) {
   if (docKey === "general") {
