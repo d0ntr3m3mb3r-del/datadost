@@ -3825,6 +3825,17 @@ function sendMsg() {
   addMsg("user", txt);
   conversationHistory.push({ role:"user", content: txt });
   showTyping();
+  // CRITICAL fix for a real, confirmed bug: this decision used to read uploadedDocContext
+  // directly, which is a SHARED variable that visiting Upload (for a completely different
+  // document) legitimately resets to empty. If that happened to a real, already-uploaded
+  // document's conversation, this check would wrongly fall through to the leftover
+  // sample/demo canned-response system below — a real document's question getting a fake,
+  // generic answer instead of ever reaching the actual AI. Re-sync from the document's own
+  // stored record FIRST, the same fix already applied inside callClaudeAPI, but earlier —
+  // right at the point that decides whether to call the real AI at all.
+  if (activeDoc && sessionDocuments[activeDoc]) {
+    uploadedDocContext = sessionDocuments[activeDoc].context || uploadedDocContext;
+  }
   if (uploadedDocContext) {
     callClaudeAPI(txt);
   } else {
