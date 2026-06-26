@@ -303,6 +303,17 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   .upload-side{display:none}
   .dt-grid{grid-template-columns:1fr 1fr}
   #mobile-doc-menu-btn{display:flex !important;align-items:center}
+  /* The top nav bar (Dashboard/Upload/Chat/History/Profile) had NO mobile handling at
+     all before this — on a narrow screen the five text links simply overflowed off the
+     right edge with no way to scroll or reach them, silently making History and Profile
+     completely unreachable. Converts it into a proper dropdown menu instead, matching
+     the same hamburger pattern already used for the document sidebar above. */
+  .app-nav{position:relative}
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;background:var(--white);border:1px solid var(--border);border-top:none;box-shadow:0 12px 28px rgba(0,0,0,0.15);padding:.4rem;border-radius:0 0 12px 12px;z-index:50}
+  .nav-links.mobile-open{display:flex}
+  .nl{width:100%;text-align:left;padding:.75rem .9rem;border-radius:8px;font-size:.92rem}
+  .nl.act{background:var(--sf-l)}
+  .nav-toggle-btn{display:flex !important;align-items:center;background:none;border:none;cursor:pointer;padding:.3rem;margin-right:.5rem}
 }
 #mobile-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:399}
 #mobile-sidebar-overlay.show{display:block}
@@ -424,6 +435,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-history">History</button>
       <button class="nl" id="nav-profile">Profile</button>
     </div>
+    <button type="button" class="nav-toggle-btn" id="nav-toggle" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
       <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer">
         <option value="INR">₹ INR</option>
@@ -486,6 +498,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-history2">History</button>
       <button class="nl" id="nav-profile2">Profile</button>
     </div>
+    <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto">
@@ -577,6 +590,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-history3">History</button>
       <button class="nl" id="nav-profile3">Profile</button>
     </div>
+    <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
   <div id="mobile-sidebar-overlay"></div>
@@ -626,6 +640,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl act" id="nav-history-h">History</button>
       <button class="nl" id="nav-profile-h">Profile</button>
     </div>
+    <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
@@ -655,6 +670,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
       <button class="nl" id="nav-history-p">History</button>
       <button class="nl act" id="nav-profile-p">Profile</button>
     </div>
+    <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
@@ -1396,6 +1412,33 @@ document.getElementById("mobile-sidebar-overlay").addEventListener("click", clos
 // straight in that conversation instead of the menu staying open over it.
 document.querySelectorAll(".csb-doc").forEach(function(el) {
   el.addEventListener("click", closeMobileSidebar);
+});
+
+// ── MOBILE TOP-NAV DROPDOWN ──
+// The top nav (Dashboard/Upload/Chat/History/Profile) had no mobile handling at all
+// before this — on a narrow screen the five links simply overflowed off the right edge
+// with no way to scroll, silently making History and Profile unreachable. Same fix
+// pattern as the document sidebar above: a hamburger button toggles a dropdown.
+document.querySelectorAll(".nav-toggle-btn").forEach(function(btn) {
+  btn.addEventListener("click", function(e) {
+    e.stopPropagation();
+    var navLinks = btn.parentElement.querySelector(".nav-links");
+    if (navLinks) navLinks.classList.toggle("mobile-open");
+  });
+});
+// Close the dropdown once a destination is actually chosen, so it doesn't sit open
+// over whichever screen the user just navigated to.
+document.querySelectorAll(".nav-links .nl").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    var navLinks = btn.closest(".nav-links");
+    if (navLinks) navLinks.classList.remove("mobile-open");
+  });
+});
+// Tapping anywhere outside the open dropdown closes it too — standard menu behaviour.
+document.addEventListener("click", function(e) {
+  if (!e.target.closest(".nav-links") && !e.target.closest(".nav-toggle-btn")) {
+    document.querySelectorAll(".nav-links.mobile-open").forEach(function(nl) { nl.classList.remove("mobile-open"); });
+  }
 });
 
 document.getElementById("chat-up-btn").addEventListener("click", function() { goTo("s-upload"); });
