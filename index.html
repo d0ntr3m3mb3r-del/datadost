@@ -2727,10 +2727,23 @@ async function startCompareChat() {
   var keys = Array.prototype.map.call(checked, function(cb) { return cb.dataset.key; });
   if (keys.length < 2) { toast("Select at least 2 documents to compare 🙏"); return; }
 
-  var docs = keys.map(function(k) { return sessionDocuments[k]; }).filter(Boolean);
+  var allSelected = keys.map(function(k) { return sessionDocuments[k]; }).filter(Boolean);
+  // A real bug found via review: documents carried over from a PREVIOUS session (now
+  // sitting in the same sidebar as fresh uploads, since yesterday's persistence work)
+  // never have their original file in memory — only the extracted numbers, by design,
+  // since the raw file itself is never stored. Sending an empty file to the API doesn't
+  // fail gracefully — it silently breaks the ENTIRE comparison request. Filter those out
+  // explicitly, with an honest explanation, rather than let that happen.
+  var docs = allSelected.filter(function(d) { return d.base64; });
+  var excludedCount = allSelected.length - docs.length;
   if (docs.length < 2) {
-    toast("Those documents aren't available for comparison anymore — try re-uploading them 🙏");
+    toast(excludedCount > 0
+      ? "Those documents are from an earlier session, so I don't have the original file anymore — re-upload them to compare 🙏"
+      : "Those documents aren't available for comparison anymore — try re-uploading them 🙏");
     return;
+  }
+  if (excludedCount > 0) {
+    toast("Comparing " + docs.length + " of " + allSelected.length + " selected — the rest are from an earlier session, re-upload them to include them too");
   }
 
   // Build a unique compare key so this gets its own conversation, separate from each document's own chat
@@ -2744,6 +2757,14 @@ async function startCompareChat() {
   document.getElementById("chat-hdr-sub").textContent = docs.length + " documents · cross-referenced";
 
   uploadedDocContext = "COMPARISON MODE: The user has selected " + docs.length + " documents to cross-reference together: " + names + ". All of these documents are attached to this message. Actively look for the SAME transaction appearing across different documents — for example, a credit card bill payment debited from a bank statement, or a utility bill paid via a credit card showing up as a matching transaction on that card's statement. Point out specific matches with dates and amounts. If asked a general question, use whichever document(s) are actually relevant. If something doesn't have a clear match across documents, say so honestly rather than assuming a connection.";
+  // Same fix as single-document chat from yesterday — ground each document's income/
+  // spending/savings in its own already-computed figures, so a comparison conversation
+  // can't drift from what the Dashboard already correctly shows for any one of them.
+  docs.forEach(function(d) {
+    if (d.dashboardData && d.dashboardData.hasIncomeConcept) {
+      uploadedDocContext += "\n\nAlready-calculated figures for " + d.name + " — use these EXACT numbers for this document if asked, never recalculate: Income " + d.dashboardData.income + " " + (d.dashboardData.currency || "INR") + ", Spending " + d.dashboardData.spending + " " + (d.dashboardData.currency || "INR") + (d.dashboardData.saved !== null ? ", Saved " + d.dashboardData.saved + " " + (d.dashboardData.currency || "INR") : "");
+    }
+  });
 
   goTo("s-chat");
   renderCompareWelcome(docs);
