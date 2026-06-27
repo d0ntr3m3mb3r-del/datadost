@@ -992,6 +992,20 @@ function resetSessionState() {
   pendingUniqueKey = "";
   forecastCache = null;
   lastMsgTimestamp = null;
+  // Clearing the variables above is not enough on its own — the sidebar's left-hand
+  // document list is RENDERED DOM, populated by renderGroupedRealDocs(), and nothing
+  // forces that to redraw just because sessionDocuments changed underneath it. Found via
+  // direct testing: switching accounts in the same tab left the PREVIOUS user's sidebar
+  // entries visibly on screen until something unrelated (like uploading a new document)
+  // happened to trigger a re-render. Forcing it here means the sidebar goes visibly empty
+  // the instant state resets, not whenever the next unrelated action happens to catch up.
+  if (typeof renderGroupedRealDocs === "function") renderGroupedRealDocs();
+  // Same idea for the currency dropdown specifically — it only ever sets its displayed
+  // value once, at page load (see curSelectEl below), so without this it could keep
+  // showing whatever the PREVIOUS account last picked, even while the actual numbers on
+  // screen correctly show in the new document's real currency. Resyncing here means the
+  // dropdown can never visibly disagree with the currency the app is actually using.
+  if (typeof curSelectEl !== "undefined" && curSelectEl) curSelectEl.value = currentCurrency;
 }
 
 async function doLogout() {
