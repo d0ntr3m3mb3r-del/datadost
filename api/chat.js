@@ -1,8 +1,10 @@
+import { verifyUser, checkRateLimit } from './_rateLimit.js';
+
 export default async function handler(req, res) {
   // Allow CORS from any origin (our DataDost frontend)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   // Handle preflight request
   if (req.method === 'OPTIONS') {
@@ -11,6 +13,30 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // SECURITY: previously this endpoint had no idea who was calling it at all — anyone
+  // who found this URL could call it directly, fully bypassing the app and login, and
+  // every call cost real money via the Anthropic API below. This rejects outright,
+  // before any further work happens, if the request doesn't carry a real, currently
+  // valid DataDost session token.
+  const user = await verifyUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Please log in to use DataDost chat.' });
+  }
+
+  // Generous enough for genuine heavy use (even a power user asking 50+ questions a
+  // month doesn't come close), tight enough to stop a runaway loop or basic scripted
+  // abuse from running up real API cost unnoticed.
+  const rateLimitResult = await checkRateLimit({
+    user,
+    endpoint: 'chat',
+    burstLimit: 10,
+    burstWindowSeconds: 60,
+    dailyLimit: 200,
+  });
+  if (!rateLimitResult.allowed) {
+    return res.status(rateLimitResult.status).json({ error: rateLimitResult.error });
   }
 
   const { messages, systemPrompt, fileData, fileMediaType, fileDataMulti } = req.body;

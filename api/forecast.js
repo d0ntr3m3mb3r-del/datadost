@@ -1,13 +1,36 @@
+import { verifyUser, checkRateLimit } from './_rateLimit.js';
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Same gap as chat.js had, same fix — see _rateLimit.js for the full reasoning.
+  const user = await verifyUser(req);
+  if (!user) {
+    return res.status(401).json({ error: 'Please log in to use DataDost Forecast.' });
+  }
+
+  // Lower thresholds than chat — this calls the more expensive Sonnet model, and the
+  // frontend already caches results client-side and only recomputes on a new upload, so
+  // genuine legitimate use is naturally infrequent. These limits are about catching a
+  // bypass of that caching (or direct abuse), not about constraining normal usage.
+  const rateLimitResult = await checkRateLimit({
+    user,
+    endpoint: 'forecast',
+    burstLimit: 3,
+    burstWindowSeconds: 60,
+    dailyLimit: 15,
+  });
+  if (!rateLimitResult.allowed) {
+    return res.status(rateLimitResult.status).json({ error: rateLimitResult.error });
   }
 
   const { snapshots } = req.body;
