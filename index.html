@@ -1006,6 +1006,13 @@ function resetSessionState() {
   // screen correctly show in the new document's real currency. Resyncing here means the
   // dropdown can never visibly disagree with the currency the app is actually using.
   if (typeof curSelectEl !== "undefined" && curSelectEl) curSelectEl.value = currentCurrency;
+  // Same gap, third place it showed up: the Upload screen's drop-zone carries its own
+  // visual state (the "done!" checklist look via the "ok" class, the checked consent box,
+  // button visibility) entirely separately from sessionDocuments — found via direct
+  // testing, where a cleared/relogged-in account still showed the PREVIOUS session's
+  // finished-upload screen. resetUploadBoxVisuals() already existed and does exactly the
+  // right job here; it just was never called anywhere in the login/logout/clear-data path.
+  if (typeof resetUploadBoxVisuals === "function" && document.getElementById("dz")) resetUploadBoxVisuals();
 }
 
 async function doLogout() {
