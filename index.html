@@ -908,6 +908,7 @@ async function doLogin() {
     return;
   }
   applySessionUser(result.data.user);
+  resetSessionState(); // clean slate before loading THIS user's data — see resetSessionState's comment above doLogout
   await loadDashboardFromSnapshots();
   goTo("s-dash");
   toast("Welcome back, " + uName + "! 👋");
@@ -958,6 +959,7 @@ async function doSignup() {
   uName = fn.charAt(0).toUpperCase() + fn.slice(1);
   uInit = uName.charAt(0).toUpperCase();
   setUser();
+  resetSessionState(); // clean slate — a brand-new account must never inherit a previous session's leftovers
   goTo("s-dash");
   toast("Welcome to DataDost, " + uName + "! 🎉");
   setTimeout(function() { document.getElementById("welcome-currency-modal").style.display = "flex"; }, 800);
@@ -967,8 +969,38 @@ function doGoogle() {
   toast("Google sign-in is coming soon — please use email signup for now 🙏");
 }
 
+// CRITICAL SECURITY FIX: none of sessionDocuments, conversationHistory, activeDoc, and
+// the other in-memory globals below were ever cleared on logout. Since logout/login here
+// never triggers a full page reload, every one of these module-level JS variables stayed
+// alive in memory across the switch — meaning User A's documents, chat history, and even
+// their masked account number were still sitting in memory when User B logged in right
+// after, and loadDashboardFromSnapshots() only ADDS entries rather than clearing first, so
+// the two users' data ended up layered on top of each other rather than either being shown
+// cleanly. This single function is now the one place this list lives, called from logout,
+// from the start of every successful login, and from signup — so it can never drift out of
+// sync the way it already had (clearAllUserData had its own partial copy of this list).
+function resetSessionState() {
+  sessionDocuments = {};
+  realDashboardData = null;
+  activeDashDoc = null;
+  conversationHistory = [];
+  uploadedDocContext = "";
+  detectedDocName = "";
+  accountId = "";
+  activeDoc = "general";
+  docType = "bank";
+  fileBase64 = "";
+  fileMediaType = "";
+  compareDocsPayload = null;
+  pendingFollowupQuestion = "";
+  pendingUniqueKey = "";
+  forecastCache = null;
+  lastMsgTimestamp = null;
+}
+
 async function doLogout() {
   if (sb) { await sb.auth.signOut(); }
+  resetSessionState();
   uName = "Friend"; uInit = "F";
   goTo("s-land");
   toast("Logged out — see you soon! 👋");
@@ -1007,16 +1039,9 @@ async function clearAllUserData() {
 
   // Reset every piece of in-memory state that reflects the now-deleted data, so the
   // app immediately reflects reality instead of showing stale information until
-  // someone happens to reload the page.
-  sessionDocuments = {};
-  realDashboardData = null;
-  activeDashDoc = null;
-  conversationHistory = [];
-  uploadedDocContext = "";
-  detectedDocName = "";
-  accountId = "";
-  activeDoc = "general";
-  docType = "bank";
+  // someone happens to reload the page. Same shared reset used on logout/login —
+  // see resetSessionState's comment above doLogout for why this is centralised.
+  resetSessionState();
 
   toast("All your data has been cleared. 🧹");
   goTo("s-dash");
