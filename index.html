@@ -773,15 +773,6 @@ function applySessionUser(user) {
   setUser();
 }
 
-// Fixes a real, long-standing gap: financial_snapshots already existed for Forecast's
-// sake, but the Dashboard's own stat cards never actually read from it — meaning every
-// fresh login still silently fell back to sample numbers, even for a returning user with
-// real history. This reconstructs the dashboard exactly as if those documents had just
-// been re-uploaded, without ever re-reading the original files (which are never stored).
-function snapshotIdentityKey(snap) {
-  return accountInfoFor(snap.doc_type, snap.doc_name, snap.account_id).accountKey;
-}
-
 // A readable label for one specific scan within an account's history — the real
 // detected statement period when we have one ("Jun 2026"), or the upload date as a
 // fallback for older snapshots saved before period detection existed.
@@ -795,6 +786,11 @@ function scanLabelFor(snap) {
   return "Uploaded";
 }
 
+// Fixes a real, long-standing gap: financial_snapshots already existed for Forecast's
+// sake, but the Dashboard's own stat cards never actually read from it — meaning every
+// fresh login still silently fell back to sample numbers, even for a returning user with
+// real history. This reconstructs the dashboard exactly as if those documents had just
+// been re-uploaded, without ever re-reading the original files (which are never stored).
 async function loadDashboardFromSnapshots() {
   var snapshots = await loadSnapshotsFromDb();
   if (!snapshots || snapshots.length === 0) return; // genuinely new user — nothing to restore
