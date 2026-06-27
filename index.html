@@ -747,6 +747,25 @@ function setUser() {
 
 // ── SUPABASE SETUP ──
 var sb = null;
+
+// SECURITY: chat.js and forecast.js previously had no way to know who was actually
+// calling them — no auth check at all, meaning anyone who found the URL could call
+// either endpoint directly, completely bypassing login, and run up real Anthropic costs
+// with zero accountability. This attaches the user's real, signed Supabase session token
+// so the backend can verify it independently rather than trust anything the client claims.
+// Returns {} (no header) if there's genuinely no active session — the backend rejects that
+// outright rather than silently treating it as anonymous-but-allowed.
+async function getAuthHeader() {
+  if (!sb) return {};
+  try {
+    var sessionResult = await sb.auth.getSession();
+    var token = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.access_token : null;
+    return token ? { "Authorization": "Bearer " + token } : {};
+  } catch (err) {
+    console.error("[DataDost] Could not read session for auth header:", err);
+    return {};
+  }
+}
 async function initSupabase() {
   try {
     var resp = await fetch("/api/config");
@@ -2221,9 +2240,10 @@ async function analyseRealDocument() {
     // function ceiling, so our own friendly error fires first if something really is stuck,
     // rather than a raw platform timeout cutting in first.
     var timeoutId = setTimeout(function() { controller.abort(); }, 55000);
+    var authHeader = await getAuthHeader();
     var resp = await fetch("/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
       body: JSON.stringify(payload),
       signal: controller.signal
     });
@@ -3347,9 +3367,10 @@ var forecastCache = null;
 async function getOrComputeForecast(snapshots) {
   if (forecastCache) return forecastCache;
   try {
+    var authHeader3 = await getAuthHeader();
     var resp = await fetch("/api/forecast", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: Object.assign({ "Content-Type": "application/json" }, authHeader3),
       body: JSON.stringify({ snapshots: snapshots })
     });
     var data = await resp.json();
@@ -3776,9 +3797,10 @@ async function callClaudeAPI(userMsg) {
     }
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 55000); // same safety margin as document analysis
+    var authHeader2 = await getAuthHeader();
     var resp = await fetch("/api/chat", {
       method:"POST",
-      headers: { "Content-Type": "application/json" },
+      headers: Object.assign({ "Content-Type": "application/json" }, authHeader2),
       body: JSON.stringify(payload),
       signal: controller.signal
     });
