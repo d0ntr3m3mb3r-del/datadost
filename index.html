@@ -1403,6 +1403,25 @@ window.switchDashboardDoc = switchDashboardDoc; // called from the inline onclic
 function renderDash() {
   renderDashDocSwitcher();
   var usingReal = realDashboardData !== null;
+  // The currency dropdown previously only ever reflected currentCurrency (the device's
+  // stored preference) — completely independent of what the numbers on screen actually
+  // show. That's harmless while showing sample data (the dropdown genuinely drives those
+  // numbers), but actively misleading once a real document is loaded: real figures always
+  // display in the DOCUMENT's true currency by design (never converted), so the dropdown
+  // could show "AED" right next to a ₹ figure with no connection between the two — exactly
+  // the mismatch reported directly. Syncing it here, and disabling it while inert, means
+  // the dropdown can never visibly disagree with the numbers it's sitting next to.
+  if (typeof curSelectEl !== "undefined" && curSelectEl) {
+    if (usingReal) {
+      curSelectEl.value = realDashboardData.currency || "INR";
+      curSelectEl.disabled = true;
+      curSelectEl.title = "This document's real currency — switching it off until you view sample data again, since real figures are never converted.";
+    } else {
+      curSelectEl.value = currentCurrency;
+      curSelectEl.disabled = false;
+      curSelectEl.title = "";
+    }
+  }
   var bannerEl = document.getElementById("dash-data-banner");
   if (bannerEl) {
     if (usingReal && realDashboardData.incomeFlagged) {
