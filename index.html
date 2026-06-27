@@ -2120,6 +2120,17 @@ function isUnreadableDocError(msg) {
   return /password|encrypt/i.test(msg || "");
 }
 
+// The rate-limit and auth-required errors from chat.js/forecast.js were previously falling
+// through to the generic "I had trouble reading that" message — actively misleading, since
+// it sounds like a document problem when it's neither. Surfacing the backend's OWN message
+// text directly here, since it's already specific and accurate — no need to write a new one.
+function isRateLimitError(msg) {
+  return /too many requests|usage limit/i.test(msg || "");
+}
+function isAuthRequiredError(msg) {
+  return /please log in/i.test(msg || "");
+}
+
 // Distinct from a locked file or a transient network blip — this means the underlying
 // AI account itself has run out of credits. "Try again in a moment" would be actively
 // misleading here, since retrying changes nothing until the account is topped up — this
@@ -2153,11 +2164,22 @@ function showAnalysisFailedError(errMsg) {
   console.error("[DataDost] Document analysis failed:", errMsg);
   document.getElementById("sov-sub").textContent = "";
   var el = document.getElementById("sov-ins");
+  var title = "Couldn't read this document";
+  var body = "Something went wrong while I was reading it — usually temporary. Please try uploading it again in a moment.";
+  if (isRateLimitError(errMsg)) {
+    // Not a document problem at all — say so plainly rather than implying the file
+    // itself is the issue, which would send someone hunting for a "better" file to upload.
+    title = "Too many uploads, too fast";
+    body = errMsg; // the backend's own message already distinguishes burst vs. daily cap
+  } else if (isAuthRequiredError(errMsg)) {
+    title = "You've been logged out";
+    body = "Please log back in, then try uploading this again.";
+  }
   el.innerHTML =
     "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
     "<div style=\"font-size:2rem\">⚠️</div>" +
-    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">Couldn't read this document</div>" +
-    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Something went wrong while I was reading it — usually temporary. Please try uploading it again in a moment.</div>" +
+    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">" + title + "</div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">" + body + "</div>" +
     "</div>";
   document.getElementById("sov-chat").style.display = "none";
   document.getElementById("sov-close").textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try again";
@@ -3837,6 +3859,17 @@ async function callClaudeAPI(userMsg) {
       // somehow made it this far (e.g. it was added to the sidebar before this check
       // existed) can still fail here later, not just at upload time.
       addMsg("ai", "🔒 I actually can't open this file — it looks password-protected, so I'm not able to see what's inside it at all. Quickest fix: open the PDF, unlock it with its password, save an unlocked copy, then upload that one instead — happy to help the moment I can actually see it!");
+    } else if (data.error && isRateLimitError(data.error)) {
+      // Surface the backend's own message directly — it's already specific (burst vs.
+      // daily cap have different wording) and accurate. This used to fall through to the
+      // generic "I had trouble reading that" message, which actively misled anyone who
+      // hit it into thinking something was wrong with their document or question.
+      addMsg("ai", "⏳ " + data.error);
+    } else if (data.error && isAuthRequiredError(data.error)) {
+      // Session expired or was never established — retrying the same message won't help
+      // until they're actually logged in again, so say that plainly rather than implying
+      // a generic glitch.
+      addMsg("ai", "🔑 Looks like you've been logged out. Please log back in, then ask me again — I'll have everything right where you left it.");
     } else if (data.error) {
       addMsg("ai", "Sorry, I had trouble reading that. Please try again!");
     } else {
