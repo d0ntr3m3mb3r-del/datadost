@@ -3303,7 +3303,7 @@ async function renderChat() {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, slightly nosy money companion. 😄<br><br>No document needed — just talk to me! Ask about budgeting, savings, investing basics, or anything on your mind about money. What's up?");
     uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
   } else {
-    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + (realLabel || m.title) + "</b>. Ask me anything — or tap a question above!");
+    addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + (realLabel || m.title) + "</b>. Ask me anything — or tap a question below!");
     if (pendingFollowupQuestion) {
       setTimeout(function() {
         addMsg("ai", pendingFollowupQuestion);
@@ -3951,7 +3951,7 @@ function getReply(q) {
   for (var k in rs) { if (lq.indexOf(k) !== -1) return rs[k]; }
   if (lq.indexOf("hello") !== -1 || lq.indexOf("hi") !== -1 || lq.indexOf("namaste") !== -1) return "Namaste! 🙏 Ask me anything about your " + (chatMeta[activeDoc]||chatMeta.bank).title + "!";
   if (lq.indexOf("thank") !== -1) return "Happy to help! That's what a good dost does. 😊 Any more questions?";
-  return "Great question! In the full DataDost, I'd analyse your actual document data and give you a specific, personalised answer.<br><br>Try one of the suggested questions above, or ask about spending, savings, or how to cut costs! 😄";
+  return "Great question! In the full DataDost, I'd analyse your actual document data and give you a specific, personalised answer.<br><br>Try one of the suggested questions below, or ask about spending, savings, or how to cut costs! 😄";
 }
 
 function askQ(q) {
