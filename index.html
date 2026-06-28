@@ -7,6 +7,22 @@
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<style>
+/* Added: hero demo now cycles through 4 real scenarios instead of 1 static one.
+   Self-contained on purpose — doesn't touch style.css, so it can't conflict with
+   any existing .demo-body / .d-file / .d-user / .d-ai rules already defined there. */
+.demo-slide-wrap{position:relative}
+.demo-slide{position:absolute;top:0;left:0;width:100%}
+@keyframes ddDemo1{0%{opacity:0}2%{opacity:1}22%{opacity:1}25%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo2{0%,25%{opacity:0}27%{opacity:1}47%{opacity:1}50%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo3{0%,50%{opacity:0}52%{opacity:1}72%{opacity:1}75%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo4{0%,75%{opacity:0}77%{opacity:1}97%{opacity:1}100%{opacity:0}}
+/* Added: one-time "file read and deleted" confirmation inside the success overlay.
+   Plays once when the overlay opens, then holds — deliberately not a repeating loop,
+   since it's confirming a real event that just happened, not an ambient demo. */
+@keyframes ddShredOut{0%{opacity:1}100%{opacity:0}}
+@keyframes ddSettleIn{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
@@ -35,10 +51,28 @@
           <div class="demo-dots"><span style="background:#FF5F57"></span><span style="background:#FFBD2E"></span><span style="background:#28C840"></span></div>
           <span style="margin:0 auto">DataDost — Chat with your data</span>
         </div>
-        <div class="demo-body">
-          <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
-          <div class="d-user">Yaar, where is all my money going? 😅</div>
-          <div class="d-ai">Haha, valid question! Here's the honest picture:<br><br>🍔 <span class="warn">Food delivery: ₹4,820</span> — Swiggy + Zomato, 10% of your salary!<br>📱 <span class="warn">Subscriptions: ₹1,566</span> — 4 services, do you use all of them?<br><br>Cut delivery + cancel 2 subscriptions = <span class="hi">save ₹3,400/month</span> — that's a solid SIP start! 🎯</div>
+        <div class="demo-body demo-slide-wrap">
+          <div style="animation:ddDemo1 16s ease-in-out infinite">
+            <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
+            <div class="d-user">Yaar, where is all my money going? 😅</div>
+            <div class="d-ai">Haha, valid question! Here's the honest picture:<br><br>🍔 <span class="warn">Food delivery: ₹4,820</span> — Swiggy + Zomato, 10% of your salary!<br>📱 <span class="warn">Subscriptions: ₹1,566</span> — 4 services, do you use all of them?<br><br>Cut delivery + cancel 2 subscriptions = <span class="hi">save ₹3,400/month</span> — that's a solid SIP start! 🎯</div>
+          </div>
+          <div class="demo-slide" style="animation:ddDemo2 16s ease-in-out infinite">
+            <div class="d-file">📄 HDFC_CreditCard_June2026.pdf uploaded</div>
+            <div class="d-user">Am I using this card's full benefits?</div>
+            <div class="d-ai">Checked your card's terms against your last 6 months — <span class="warn">you're missing free airport lounge access</span>, worth about <span class="hi">₹6,000 a year</span>, at no extra cost. Want to see how to use it?</div>
+          </div>
+          <div class="demo-slide" style="animation:ddDemo3 16s ease-in-out infinite">
+            <div class="d-file">📄 ICICI_Statement_June2026.pdf uploaded</div>
+            <div class="d-user">Why is nothing left by month end? 😩</div>
+            <div class="d-ai">Looked at your last 3 months — <span class="warn">dining out is up 32%</span>, that's about <span class="hi">₹4,200/month</span> you could redirect to savings. Want a plan that doesn't feel like punishment?</div>
+          </div>
+          <div class="demo-slide" style="animation:ddDemo4 16s ease-in-out infinite">
+            <div class="d-file">📄 SBI_Card_Rewards.pdf uploaded</div>
+            <div class="d-user">Did I miss any cashback this month?</div>
+            <div class="d-ai"><span class="warn">₹340 cashback expires in 12 days</span> on your SBI card — redeem it before it's gone. Want the fastest way to do that?</div>
+          </div>
+          <div style="font-size:.66rem;color:var(--slate);text-align:center;padding-top:.5rem">Sample numbers for illustration — your real numbers come from your own documents.</div>
         </div>
       </div>
     </div>
@@ -48,6 +82,18 @@
       <div class="feat"><div class="feat-i">📊</div>Spend vs save breakdown</div>
       <div class="feat"><div class="feat-i">🔒</div>Built on DPDP Act principles · India servers</div>
       <div class="feat"><div class="feat-i">😄</div>Friendly · honest · a little funny</div>
+    </div>
+    <div style="max-width:680px;margin:2rem auto 0;padding:1.5rem;background:var(--mist);border-radius:16px">
+      <div style="font-family:Sora,sans-serif;font-weight:700;font-size:1rem;color:var(--ink);text-align:center;margin-bottom:1rem">How we handle your data</div>
+      <div style="display:flex;flex-direction:column;gap:.6rem;max-width:520px;margin:0 auto">
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>No bank login, ever. You choose what to upload.</div>
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>Your file is deleted right after reading. We keep a short summary, never the document.</div>
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>We never sell or share your data. No ads, ever.</div>
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>Delete everything yourself, anytime, in one click.</div>
+      </div>
+      <div style="text-align:center;margin-top:1rem">
+        <button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.82rem;color:var(--sf);cursor:pointer;text-decoration:underline;font-family:inherit">Read the full FAQ →</button>
+      </div>
     </div>
     <div class="pricing">
       <h2>Simple, honest pricing</h2>
@@ -63,7 +109,7 @@
       <p>Free for life for the first 500 signups.</p>
       <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Join the waitlist →</button>
     </div>
-    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
+    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
   </div>
 </div>
 
@@ -264,6 +310,10 @@
   <div class="sc"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>
   <p id="sov-sub">I've read through your document. Here's what I found:</p>
   <div class="sov-ins" id="sov-ins"></div>
+  <div style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.74rem;color:var(--green);background:var(--green-l);border-radius:100px;padding:.4rem 1rem;margin:.75rem auto;width:fit-content;opacity:0;animation:ddSettleIn .8s ease-out .3s forwards">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+    File read and deleted — only a short summary was kept
+  </div>
   <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
   <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline" id="sov-close">Upload a different document</button>
 </div>
@@ -469,6 +519,57 @@
               <a href="https://www.cert-in.org.in" target="_blank" style="color:var(--sf)">CERT-In — India's cybersecurity incident response authority</a><br>
               <a href="https://www.dpdpa.gov.in" target="_blank" style="color:var(--sf)">Data Protection Board of India</a>
             </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="card" style="padding:2rem" id="anchor-faq">
+        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">FAQ</div>
+        <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">How we handle your data</h1>
+        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">The plain-language version. For the full legal detail, see the <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-privacy')" style="color:var(--sf);text-decoration:underline">Privacy Policy</a> above.</p>
+
+        <div style="display:flex;flex-direction:column;gap:1.25rem">
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Do you save my bank statement or salary slip?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">No. The moment DataDost finishes reading it — usually a few seconds — the file itself is deleted from our servers for good. We never keep the original PDF or photo.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Then what exactly do you save?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">A short summary of what was in it — your spending by category, your balance, things like that — plus your chat history with DataDost. Never your raw account number, card number, Aadhaar, or PAN. We keep this so DataDost can pick up where you left off next time, instead of starting from zero.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Do I have to re-upload every time I come back?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">No — that's exactly what the summary above is for. Reopen an old conversation and DataDost already remembers your numbers and what you discussed. You'd only upload again to ask about a different document.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Can you see my actual bank account?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">No, never. DataDost never asks for your net banking login or any account access. You choose what to upload, and that's the only thing we ever see.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Can I delete everything?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Yes, yourself, anytime — no need to email anyone first. <b>"Clear all my data"</b> on your History screen permanently wipes every conversation and document summary tied to your account, with a clear warning before it happens.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Do you sell my data or show me ads?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">No. Not to advertisers, not to banks, not to anyone, ever. We don't use Google Analytics, Facebook Pixel, or any ad-tracking tool either. Our plan is paid subscriptions, not your data.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Is my data safe?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">It's stored only in India (Mumbai), encrypted both at rest and in transit. If anything ever did go wrong, you'd hear from us directly — not just a notice buried on a website.</div>
+          </div>
+
+          <div>
+            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Who do I talk to if I'm not happy with an answer?</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Email <b>privacy@datadost.in</b>. Every message gets a reference number and a response within 30 days — faster than the law requires.</div>
           </div>
 
         </div>
