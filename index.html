@@ -32,6 +32,16 @@
    since it's confirming a real event that just happened, not an ambient demo. */
 @keyframes ddShredOut{0%{opacity:1}100%{opacity:0}}
 @keyframes ddSettleIn{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+/* Added: small auto-animating loan-affordability teaser card, sitting next to the
+   hero demo, pre-login. Bars and verdict colors deliberately mirror the real dashboard
+   calculator exactly (same green/amber/red logic) so nothing here over-promises
+   something the real, logged-in tool doesn't actually do. */
+@keyframes ddBarInc{0%{width:88%}45%{width:88%}55%{width:68%}90%{width:68%}100%{width:88%}}
+@keyframes ddBarEx{0%{width:15%}45%{width:15%}55%{width:32%}90%{width:38%}100%{width:15%}}
+@keyframes ddBarNew{0%{width:18%}45%{width:18%}55%{width:38%}90%{width:48%}100%{width:18%}}
+@keyframes ddVerd1{0%,2%{opacity:1}43%{opacity:1}45%{opacity:0}98%{opacity:0}100%{opacity:1}}
+@keyframes ddVerd2{0%,45%{opacity:0}47%{opacity:1}88%{opacity:1}90%{opacity:0}100%{opacity:0}}
+@keyframes ddVerd3{0%,88%{opacity:0}90%{opacity:1}98%{opacity:1}100%{opacity:0}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -56,7 +66,8 @@
         <button class="btn btn-sf" id="hero-signup">Start for free — no card needed</button>
         <button class="btn btn-out" id="hero-demo-btn">See how it works ↓</button>
       </div>
-      <div class="demo-wrap">
+      <div style="display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center;align-items:flex-start">
+      <div class="demo-wrap" style="flex:2 1 380px;max-width:460px">
         <div class="demo-bar">
           <div class="demo-dots"><span style="background:#FF5F57"></span><span style="background:#FFBD2E"></span><span style="background:#28C840"></span></div>
           <span style="margin:0 auto">DataDost — Chat with your data</span>
@@ -89,6 +100,30 @@
           </div>
           <div style="font-size:.66rem;color:var(--slate);text-align:center;padding-top:.5rem">Sample numbers for illustration — your real numbers come from your own documents. Not a loan recommendation.</div>
         </div>
+      </div>
+      <div style="background:var(--white);border-radius:16px;border:1px solid var(--mist);padding:1.25rem;flex:1 1 260px;max-width:300px">
+        <div style="font-family:Sora,sans-serif;font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:.85rem">Can I afford this loan?</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">Income</div>
+            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarInc 9s ease-in-out infinite"></div></div>
+          </div>
+          <div>
+            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">Existing EMIs</div>
+            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarEx 9s ease-in-out infinite"></div></div>
+          </div>
+          <div>
+            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">New loan EMI</div>
+            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarNew 9s ease-in-out infinite"></div></div>
+          </div>
+        </div>
+        <div style="position:relative;height:34px;margin-top:14px">
+          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--green-l);color:var(--green);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd1 9s ease-in-out infinite">✓ 30% of income, comfortable</div>
+          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-amber-bg);color:var(--dd-amber-text);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd2 9s ease-in-out infinite">⚠ 46% of income, getting tight</div>
+          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-red-bg);color:var(--dd-red-text);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd3 9s ease-in-out infinite">⚠ 71% of income, lenders hesitate</div>
+        </div>
+        <button type="button" id="hero-loan-cta" style="width:100%;margin-top:14px;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.7rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit">Try it yourself, free ↗</button>
+      </div>
       </div>
     </div>
     <div class="feats">
@@ -1234,6 +1269,7 @@ document.getElementById("land-login").addEventListener("click", function() { goT
 document.getElementById("land-signup").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("hero-signup").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("hero-demo-btn").addEventListener("click", function() { document.querySelector(".feats").scrollIntoView({behavior:"smooth"}); });
+document.getElementById("hero-loan-cta").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("plan-free").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("plan-plus").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("plan-fam").addEventListener("click", function() { goTo("s-auth","signup"); });
