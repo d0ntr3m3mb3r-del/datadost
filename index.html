@@ -8,15 +8,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
-/* Added: hero demo now cycles through 4 real scenarios instead of 1 static one.
+/* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
    any existing .demo-body / .d-file / .d-user / .d-ai rules already defined there. */
 .demo-slide-wrap{position:relative}
 .demo-slide{position:absolute;top:0;left:0;width:100%}
-@keyframes ddDemo1{0%{opacity:0}2%{opacity:1}22%{opacity:1}25%{opacity:0}100%{opacity:0}}
-@keyframes ddDemo2{0%,25%{opacity:0}27%{opacity:1}47%{opacity:1}50%{opacity:0}100%{opacity:0}}
-@keyframes ddDemo3{0%,50%{opacity:0}52%{opacity:1}72%{opacity:1}75%{opacity:0}100%{opacity:0}}
-@keyframes ddDemo4{0%,75%{opacity:0}77%{opacity:1}97%{opacity:1}100%{opacity:0}}
+@keyframes ddDemo1{0%{opacity:0}2%{opacity:1}18%{opacity:1}20%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo2{0%,20%{opacity:0}22%{opacity:1}38%{opacity:1}40%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo3{0%,40%{opacity:0}42%{opacity:1}58%{opacity:1}60%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo4{0%,60%{opacity:0}62%{opacity:1}78%{opacity:1}80%{opacity:0}100%{opacity:0}}
+@keyframes ddDemo5{0%,80%{opacity:0}82%{opacity:1}98%{opacity:1}100%{opacity:0}}
 /* Added: one-time "file read and deleted" confirmation inside the success overlay.
    Plays once when the overlay opens, then holds — deliberately not a repeating loop,
    since it's confirming a real event that just happened, not an ambient demo. */
@@ -52,27 +53,32 @@
           <span style="margin:0 auto">DataDost — Chat with your data</span>
         </div>
         <div class="demo-body demo-slide-wrap">
-          <div style="animation:ddDemo1 16s ease-in-out infinite">
+          <div style="animation:ddDemo1 20s ease-in-out infinite">
             <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
             <div class="d-user">Yaar, where is all my money going? 😅</div>
             <div class="d-ai">Haha, valid question! Here's the honest picture:<br><br>🍔 <span class="warn">Food delivery: ₹4,820</span> — Swiggy + Zomato, 10% of your salary!<br>📱 <span class="warn">Subscriptions: ₹1,566</span> — 4 services, do you use all of them?<br><br>Cut delivery + cancel 2 subscriptions = <span class="hi">save ₹3,400/month</span> — that's a solid SIP start! 🎯</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo2 16s ease-in-out infinite">
+          <div class="demo-slide" style="animation:ddDemo2 20s ease-in-out infinite">
             <div class="d-file">📄 HDFC_CreditCard_June2026.pdf uploaded</div>
             <div class="d-user">Am I using this card's full benefits?</div>
             <div class="d-ai">Checked your card's terms against your last 6 months — <span class="warn">you're missing free airport lounge access</span>, worth about <span class="hi">₹6,000 a year</span>, at no extra cost. Want to see how to use it?</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo3 16s ease-in-out infinite">
+          <div class="demo-slide" style="animation:ddDemo3 20s ease-in-out infinite">
             <div class="d-file">📄 ICICI_Statement_June2026.pdf uploaded</div>
             <div class="d-user">Why is nothing left by month end? 😩</div>
             <div class="d-ai">Looked at your last 3 months — <span class="warn">dining out is up 32%</span>, that's about <span class="hi">₹4,200/month</span> you could redirect to savings. Want a plan that doesn't feel like punishment?</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo4 16s ease-in-out infinite">
+          <div class="demo-slide" style="animation:ddDemo4 20s ease-in-out infinite">
             <div class="d-file">📄 SBI_Card_Rewards.pdf uploaded</div>
             <div class="d-user">Did I miss any cashback this month?</div>
             <div class="d-ai"><span class="warn">₹340 cashback expires in 12 days</span> on your SBI card — redeem it before it's gone. Want the fastest way to do that?</div>
           </div>
-          <div style="font-size:.66rem;color:var(--slate);text-align:center;padding-top:.5rem">Sample numbers for illustration — your real numbers come from your own documents.</div>
+          <div class="demo-slide" style="animation:ddDemo5 20s ease-in-out infinite">
+            <div class="d-file">📄 HDFC_SalarySlip_June2026.pdf uploaded</div>
+            <div class="d-user">Can I afford a ₹22,000 EMI for a new car?</div>
+            <div class="d-ai">You're already paying ₹8,000 in EMIs on a ₹65,000 income. Adding ₹22,000 would push you to <span class="warn">46% of your income</span> — inside what most lenders look for, but it wouldn't leave much room for a surprise expense. Want to see what changes at a smaller amount?</div>
+          </div>
+          <div style="font-size:.66rem;color:var(--slate);text-align:center;padding-top:.5rem">Sample numbers for illustration — your real numbers come from your own documents. Not a loan recommendation.</div>
         </div>
       </div>
     </div>
@@ -203,6 +209,32 @@
         <div class="card-title">What's coming up this month</div>
         <div id="forecast-body"></div>
       </div>
+      <div class="card" id="loan-card">
+        <div class="card-title">Can I afford this loan?</div>
+        <div style="display:flex;flex-direction:column;gap:1rem;margin-top:.5rem">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Monthly take-home income</span><span id="loan-inc-out" style="font-weight:600;color:var(--ink)"></span></div>
+            <input type="range" id="loan-inc" min="15000" max="150000" step="1000" value="48500" style="width:100%">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Existing EMIs and card minimums</span><span id="loan-ex-out" style="font-weight:600;color:var(--ink)"></span></div>
+            <input type="range" id="loan-ex" min="0" max="50000" step="500" value="5000" style="width:100%">
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>New loan EMI you're considering</span><span id="loan-new-out" style="font-weight:600;color:var(--ink)"></span></div>
+            <input type="range" id="loan-new" min="0" max="50000" step="500" value="15000" style="width:100%">
+          </div>
+          <div style="background:var(--mist);border-radius:10px;padding:.85rem 1rem;display:flex;gap:1.75rem">
+            <div><div style="font-size:.72rem;color:var(--slate)">Total obligations</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-tot-out"></div></div>
+            <div><div style="font-size:.72rem;color:var(--slate)">Share of income</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-foir-out"></div></div>
+          </div>
+          <div id="loan-verdict" style="font-size:.82rem;display:flex;align-items:flex-start;gap:.5rem;background:var(--mist);color:var(--ink);border-radius:10px;padding:.6rem .9rem">
+            <span id="loan-verdict-icon"></span><span id="loan-verdict-text"></span>
+          </div>
+          <button type="button" class="btn-analyse" id="loan-ask-btn" style="margin-top:0">Ask DataDost about my real numbers →</button>
+          <div style="font-size:.7rem;color:var(--slate);text-align:center;line-height:1.5">Educational estimate only, based on a common lender threshold — not a loan recommendation, and not a real eligibility check. The decision is always yours.</div>
+        </div>
+      </div>
       <div class="dash-grid">
         <div style="display:flex;flex-direction:column;gap:1.1rem">
           <div class="card"><div class="card-title">Where your money went <button class="card-action" id="dash-ask">Ask DataDost →</button></div><div id="spend-bars"></div></div>
@@ -214,6 +246,7 @@
             <div class="qa-btn" id="qa-chat"><div class="qa-icon">💬</div><div class="qa-label">Ask anything</div><div class="qa-desc">Chat with DataDost</div></div>
             <div class="qa-btn" id="qa-report"><div class="qa-icon">📊</div><div class="qa-label">Monthly report</div><div class="qa-desc">Full breakdown</div></div>
             <div class="qa-btn" id="qa-goal"><div class="qa-icon">🎯</div><div class="qa-label">Set a goal</div><div class="qa-desc">Save for something</div></div>
+            <div class="qa-btn" id="qa-loan"><div class="qa-icon">🧮</div><div class="qa-label">Loan check</div><div class="qa-desc">Can I afford this EMI?</div></div>
           </div></div>
           <div class="card"><div class="card-title">Recent documents <button class="card-action" id="dash-add">Add new →</button></div><div id="recent-docs"></div></div>
         </div>
@@ -1241,6 +1274,10 @@ document.getElementById("qa-upload").addEventListener("click", function() { goTo
 document.getElementById("qa-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("qa-report").addEventListener("click", function() { toast("Monthly report coming soon!"); });
 document.getElementById("qa-goal").addEventListener("click", function() { toast("Savings goals coming in Phase 2!"); });
+document.getElementById("qa-loan").addEventListener("click", function() {
+  var el = document.getElementById("loan-card");
+  if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+});
 document.getElementById("user-pill-dash").addEventListener("click", function() {
   if (confirm("Log out of DataDost?")) { doLogout(); }
 });
@@ -1335,6 +1372,57 @@ function fmtCurrency(amount, currencyCode) {
   var rounded = isInr ? Math.round(amount) : Math.round(amount * 100) / 100;
   var formatted = rounded.toLocaleString(cur.locale, isInr ? {} : { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   return cur.symbol + formatted;
+}
+
+// Loan affordability card — deliberately a calculator, not a recommendation engine.
+// Same FOIR (fixed-obligation-to-income ratio) math lenders already use internally,
+// just handed to the user first and for free. No lender names, no "apply" action,
+// no real CIBIL or bureau lookup — purely arithmetic on numbers the user enters here,
+// or eventually on numbers already extracted from their own uploaded documents.
+function updateLoanCalc() {
+  var incEl = document.getElementById("loan-inc");
+  if (!incEl) return;
+  var inc = parseInt(incEl.value, 10);
+  var ex = parseInt(document.getElementById("loan-ex").value, 10);
+  var nw = parseInt(document.getElementById("loan-new").value, 10);
+  document.getElementById("loan-inc-out").textContent = fmtCurrency(inc);
+  document.getElementById("loan-ex-out").textContent = fmtCurrency(ex);
+  document.getElementById("loan-new-out").textContent = fmtCurrency(nw);
+  var tot = ex + nw;
+  var foir = Math.round((tot / inc) * 100);
+  document.getElementById("loan-tot-out").textContent = fmtCurrency(tot);
+  document.getElementById("loan-foir-out").textContent = foir + "%";
+  var verdictEl = document.getElementById("loan-verdict");
+  var iconEl = document.getElementById("loan-verdict-icon");
+  var textEl = document.getElementById("loan-verdict-text");
+  if (foir < 40) {
+    verdictEl.style.background = "var(--green-l)";
+    verdictEl.style.color = "var(--green)";
+    iconEl.textContent = "✓";
+    textEl.textContent = "Comfortable room left at this level, based on a common lender threshold.";
+  } else if (foir <= 50) {
+    verdictEl.style.background = "var(--mist)";
+    verdictEl.style.color = "var(--ink)";
+    iconEl.textContent = "⚠";
+    textEl.textContent = "Getting tight — most lenders start hesitating once this crosses 50%.";
+  } else {
+    verdictEl.style.background = "var(--mist)";
+    verdictEl.style.color = "var(--ink)";
+    iconEl.textContent = "⚠";
+    textEl.textContent = "Above what most lenders accept. Real approval odds would likely be low here.";
+  }
+}
+["loan-inc", "loan-ex", "loan-new"].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) { el.addEventListener("input", updateLoanCalc); }
+});
+updateLoanCalc();
+var loanAskBtn = document.getElementById("loan-ask-btn");
+if (loanAskBtn) {
+  loanAskBtn.addEventListener("click", function() {
+    goTo("s-chat");
+    toast("Ask me about your real numbers from your uploaded documents 💬");
+  });
 }
 
 var curSelectEl = document.getElementById("currency-select");
