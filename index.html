@@ -67,12 +67,12 @@
         <button class="btn btn-out" id="hero-demo-btn">See how it works ↓</button>
       </div>
       <div style="display:flex;gap:1.25rem;flex-wrap:wrap;justify-content:center;align-items:stretch">
-      <div class="demo-wrap" style="flex:1 1 380px;max-width:420px;display:flex;flex-direction:column">
+      <div class="demo-wrap" style="flex:1 1 380px;max-width:420px;display:flex;flex-direction:column;min-height:0">
         <div class="demo-bar">
           <div class="demo-dots"><span style="background:#FF5F57"></span><span style="background:#FFBD2E"></span><span style="background:#28C840"></span></div>
           <span style="margin:0 auto">DataDost — Chat with your data</span>
         </div>
-        <div class="demo-body demo-slide-wrap" style="flex:1">
+        <div class="demo-body demo-slide-wrap" style="flex:1;min-height:230px">
           <div style="animation:ddDemo1 20s ease-in-out infinite">
             <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
             <div class="d-user">Yaar, where is all my money going? 😅</div>
@@ -103,26 +103,28 @@
       </div>
       <div style="background:var(--white);border-radius:16px;border:1px solid var(--mist);padding:1.25rem;flex:1 1 380px;max-width:420px;display:flex;flex-direction:column">
         <div style="font-family:Sora,sans-serif;font-size:.92rem;font-weight:700;color:var(--ink);margin-bottom:.85rem">Can I afford this loan?</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div>
-            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">Income</div>
-            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarInc 9s ease-in-out infinite"></div></div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="font-size:.7rem;color:var(--slate);margin-bottom:5px">Income</div>
+              <div style="background:var(--mist);border-radius:100px;height:9px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarInc 9s ease-in-out infinite"></div></div>
+            </div>
+            <div>
+              <div style="font-size:.7rem;color:var(--slate);margin-bottom:5px">Existing EMIs</div>
+              <div style="background:var(--mist);border-radius:100px;height:9px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarEx 9s ease-in-out infinite"></div></div>
+            </div>
+            <div>
+              <div style="font-size:.7rem;color:var(--slate);margin-bottom:5px">New loan EMI</div>
+              <div style="background:var(--mist);border-radius:100px;height:9px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarNew 9s ease-in-out infinite"></div></div>
+            </div>
           </div>
-          <div>
-            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">Existing EMIs</div>
-            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarEx 9s ease-in-out infinite"></div></div>
-          </div>
-          <div>
-            <div style="font-size:.68rem;color:var(--slate);margin-bottom:4px">New loan EMI</div>
-            <div style="background:var(--mist);border-radius:100px;height:8px;overflow:hidden"><div style="height:100%;background:var(--sf);border-radius:100px;animation:ddBarNew 9s ease-in-out infinite"></div></div>
+          <div style="position:relative;height:36px">
+            <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--green-l);color:var(--green);border-radius:100px;padding:8px 12px;font-size:.78rem;animation:ddVerd1 9s ease-in-out infinite">✓ 30% of income, comfortable</div>
+            <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-amber-bg);color:var(--dd-amber-text);border-radius:100px;padding:8px 12px;font-size:.78rem;animation:ddVerd2 9s ease-in-out infinite">⚠ 46% of income, getting tight</div>
+            <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-red-bg);color:var(--dd-red-text);border-radius:100px;padding:8px 12px;font-size:.78rem;animation:ddVerd3 9s ease-in-out infinite">⚠ 71% of income, lenders hesitate</div>
           </div>
         </div>
-        <div style="position:relative;height:34px;margin-top:14px">
-          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--green-l);color:var(--green);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd1 9s ease-in-out infinite">✓ 30% of income, comfortable</div>
-          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-amber-bg);color:var(--dd-amber-text);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd2 9s ease-in-out infinite">⚠ 46% of income, getting tight</div>
-          <div style="position:absolute;width:100%;display:flex;align-items:center;gap:6px;background:var(--dd-red-bg);color:var(--dd-red-text);border-radius:100px;padding:7px 12px;font-size:.74rem;animation:ddVerd3 9s ease-in-out infinite">⚠ 71% of income, lenders hesitate</div>
-        </div>
-        <button type="button" id="hero-loan-cta" style="width:100%;margin-top:auto;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.7rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit">Try it yourself, free ↗</button>
+        <button type="button" id="hero-loan-cta" style="width:100%;margin-top:18px;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.7rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit">Try it yourself, free ↗</button>
       </div>
       </div>
     </div>
