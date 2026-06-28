@@ -18,6 +18,15 @@
 @keyframes ddDemo3{0%,40%{opacity:0}42%{opacity:1}58%{opacity:1}60%{opacity:0}100%{opacity:0}}
 @keyframes ddDemo4{0%,60%{opacity:0}62%{opacity:1}78%{opacity:1}80%{opacity:0}100%{opacity:0}}
 @keyframes ddDemo5{0%,80%{opacity:0}82%{opacity:1}98%{opacity:1}100%{opacity:0}}
+/* Added: amber and red pairs for the loan-affordability verdict states. style.css has
+   no confirmed --amber or --red token, so these are defined here instead of guessed —
+   self-contained, won't conflict with anything, easy to swap for real brand colors later. */
+:root{
+  --dd-amber-bg:#FAEEDA;
+  --dd-amber-text:#633806;
+  --dd-red-bg:#FCEBEB;
+  --dd-red-text:#791F1F;
+}
 /* Added: one-time "file read and deleted" confirmation inside the success overlay.
    Plays once when the overlay opens, then holds — deliberately not a repeating loop,
    since it's confirming a real event that just happened, not an ambient demo. */
@@ -1401,13 +1410,13 @@ function updateLoanCalc() {
     iconEl.textContent = "✓";
     textEl.textContent = "Comfortable room left at this level, based on a common lender threshold.";
   } else if (foir <= 50) {
-    verdictEl.style.background = "var(--mist)";
-    verdictEl.style.color = "var(--ink)";
+    verdictEl.style.background = "var(--dd-amber-bg)";
+    verdictEl.style.color = "var(--dd-amber-text)";
     iconEl.textContent = "⚠";
     textEl.textContent = "Getting tight — most lenders start hesitating once this crosses 50%.";
   } else {
-    verdictEl.style.background = "var(--mist)";
-    verdictEl.style.color = "var(--ink)";
+    verdictEl.style.background = "var(--dd-red-bg)";
+    verdictEl.style.color = "var(--dd-red-text)";
     iconEl.textContent = "⚠";
     textEl.textContent = "Above what most lenders accept. Real approval odds would likely be low here.";
   }
