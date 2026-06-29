@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(rateLimitResult.status).json({ error: rateLimitResult.error });
   }
 
-  const { messages, systemPrompt, fileData, fileMediaType, fileDataMulti } = req.body;
+  const { messages, systemPrompt, dynamicContext, fileData, fileMediaType, fileDataMulti } = req.body;
 
   // Validate input
   if (!messages || !Array.isArray(messages)) {
@@ -114,18 +114,39 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 2800,
-        // The system prompt barely changes between messages in the SAME conversation —
-        // it's the same personality instructions and the same document context every
-        // time, only the growing message history differs. Marking it cacheable means a
-        // 90% cost cut on every message after the first, IF it clears Haiku 4.5's
-        // 4,096-token minimum (raised from 1,024) — borderline for DataDost's current
-        // prompt by rough estimate, so this may not engage on every call. No downside
-        // either way: below the minimum, this is silently ignored, nothing breaks.
-        system: [{
-          type: 'text',
-          text: systemPrompt || 'You are DataDost, a friendly AI financial companion for Indian families.',
-          cache_control: { type: 'ephemeral' },
-        }],
+        // Split into two cache breakpoints, not one. systemPrompt is now ONLY the
+        // personality, coaching rules, and behaviour instructions — identical for
+        // every user, every message, forever. dynamicContext (income type + the
+        // current document's extracted content) is specific to one conversation.
+        // Splitting them means the large, expensive static block gets cached ONCE
+        // and reused by every conversation from every user, instead of being
+        // re-written from scratch every time just because it was bundled together
+        // with something that actually does change. dynamicContext gets its own
+        // cache_control too, so repeat messages within the SAME conversation still
+        // benefit exactly as before — this only adds a second, shared win on top,
+        // it doesn't remove the per-conversation one that already existed.
+        //
+        // dynamicContext is absent on the short document-scanner call elsewhere in
+        // this same file's caller — that call falls through to the single-block
+        // form below, completely unchanged from before this split.
+        system: dynamicContext
+          ? [
+              {
+                type: 'text',
+                text: systemPrompt || 'You are DataDost, a friendly AI financial companion for Indian families.',
+                cache_control: { type: 'ephemeral' },
+              },
+              {
+                type: 'text',
+                text: dynamicContext,
+                cache_control: { type: 'ephemeral' },
+              },
+            ]
+          : [{
+              type: 'text',
+              text: systemPrompt || 'You are DataDost, a friendly AI financial companion for Indian families.',
+              cache_control: { type: 'ephemeral' },
+            }],
         messages: apiMessages,
       }),
     });
