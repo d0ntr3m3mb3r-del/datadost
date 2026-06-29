@@ -2530,7 +2530,22 @@ async function analyseRealDocument() {
         }
         if (line.indexOf("ACCOUNT_ID:") === 0) {
           var aid = line.replace("ACCOUNT_ID:", "").trim();
-          if (aid && aid.toUpperCase() !== "NONE") accountId = aid;
+          // CRITICAL — never trust the model to have masked this itself: the extraction
+          // instruction asks for "the masked or partial account/card number", but real
+          // bank statements often print the FULL account number, and the model correctly
+          // transcribes "exactly what's printed" — which means a full number, not a
+          // masked one, whenever the source document itself isn't masked. A real bug
+          // found via testing: this was flowing through unmasked into the sidebar label,
+          // the dashboard banner, the chat welcome message, AND the saved financial_snapshots
+          // row in Supabase — the database was capturing more than the Privacy Policy
+          // promises. Same principle as the deterministic-arithmetic fix elsewhere in this
+          // file: don't rely on the model's compliance for something this sensitive — force
+          // it down to the last 4 characters here, in code, so every single place that
+          // later reads the global accountId variable is already safe, with no separate
+          // fix needed anywhere downstream.
+          if (aid && aid.toUpperCase() !== "NONE") {
+            accountId = aid.replace(/[^0-9A-Za-z]/g, "").slice(-4);
+          }
         }
         if (line.indexOf("ACCOUNT_HOLDER:") === 0) {
           var aholder = line.replace("ACCOUNT_HOLDER:", "").trim();
