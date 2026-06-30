@@ -3029,6 +3029,16 @@ document.getElementById("sov-chat").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   if (detectedDocName) {
     var newKey = addRealDocToSidebar(docType, detectedDocName, accountId);
+    // CRITICAL: clear conversationHistory before selectRealDoc runs. If the user is
+    // re-uploading a document after reopening an old conversation that already contains
+    // "I don't have transaction detail, please re-upload" messages, those stale disclaimers
+    // stay in conversationHistory and the model anchors to them — the "never repeat yourself"
+    // rule then makes it keep saying the same thing even though the full document is now
+    // freshly attached and visible. Clearing history here means the next message starts from
+    // a clean context where the document IS available, not one poisoned by prior no-file
+    // responses. The saved DB history is untouched — the user can still see it by reopening
+    // from History — but the live chat window starts fresh, like a new upload always does.
+    conversationHistory = [];
     selectRealDoc(newKey, docType, detectedDocName, true); // true = skip render, goTo below will do it once
   } else {
     activeDoc = docType;
@@ -4562,7 +4572,14 @@ async function callClaudeAPI(userMsg, requestDocKey) {
   // Everything below is specific to THIS user and THIS document right now, so it gets
   // its own, separate cache entry — one that's still worth caching across this same
   // conversation's later messages, just never shared with anyone else's conversation.
-  var dynamicContext = "IMPORTANT — Income type awareness: " + (currentIncomeType === "regular" ? "This user has REGULAR income (salary, pension, or similar predictable monthly credit). You can reasonably assume a monthly income pattern, use standard benchmarks like the 50-30-20 rule or a 20% savings rate target, and calculate things like days-until-next-salary when relevant." : currentIncomeType === "variable" ? "This user has VARIABLE income (student, business owner, freelancer, gig worker, or similar — money that does NOT arrive predictably every month). Do NOT assume a monthly salary pattern exists. Before treating any inflow as income for budgeting purposes, ask whether it is one-time or genuinely recurring. Avoid applying standard percentage-based benchmarks unless the user has confirmed a real recurring pattern. Be more curious and ask more before assuming what a transaction represents." : "This user has not specified their income type yet — stay neutral, ask naturally if it becomes relevant.") + "\n\nDocument context:\n" + uploadedDocContext;
+  // When a fresh document has just been re-uploaded onto an existing conversation, the
+  // dynamicContext must explicitly confirm the file is NOW attached — the document context
+  // string may still contain the restored-summary language ("file is NOT currently attached")
+  // from when the conversation was previously loaded without the file, and we need to
+  // override that clearly so the model doesn't defer to its own prior "I can't see it" stance.
+  var fileIsLive = !!(fileBase64 && fileMediaType);
+  var freshFileNote = fileIsLive ? "\n\n[IMPORTANT — Document status: the original file IS attached to this message right now — you can see the full transaction list, all dates and amounts. Disregard any earlier context or conversation message that said the file was not available. Re-read the document directly and answer from what you actually see in it.]" : "";
+  var dynamicContext = "IMPORTANT — Income type awareness: " + (currentIncomeType === "regular" ? "This user has REGULAR income (salary, pension, or similar predictable monthly credit). You can reasonably assume a monthly income pattern, use standard benchmarks like the 50-30-20 rule or a 20% savings rate target, and calculate things like days-until-next-salary when relevant." : currentIncomeType === "variable" ? "This user has VARIABLE income (student, business owner, freelancer, gig worker, or similar — money that does NOT arrive predictably every month). Do NOT assume a monthly salary pattern exists. Before treating any inflow as income for budgeting purposes, ask whether it is one-time or genuinely recurring. Avoid applying standard percentage-based benchmarks unless the user has confirmed a real recurring pattern. Be more curious and ask more before assuming what a transaction represents." : "This user has not specified their income type yet — stay neutral, ask naturally if it becomes relevant.") + "\n\nDocument context:\n" + uploadedDocContext + freshFileNote;
   try {
     // fileBase64/fileMediaType are SHARED variables — visiting Upload for a totally
     // different document legitimately resets them as part of upload's own normal
