@@ -3312,7 +3312,24 @@ function addRealDocToSidebar(doc, name, accountId) {
     if (d.dataset.realName === name && d.dataset.realType === doc && !existingMatch) existingMatch = d;
   });
   if (existingMatch) {
-    return existingMatch.dataset.doc;
+    // A re-upload of an existing document — update its entry in sessionDocuments with the
+    // fresh file data RIGHT NOW, before selectRealDoc reads it. Without this, the old
+    // entry (restored from a saved snapshot at login) has base64: "" and context: "" and
+    // selectRealDoc would immediately overwrite the global fileBase64 with empty string,
+    // silently discarding the freshly uploaded file. This was the root cause of the
+    // "re-upload loop" — the file was correctly scanned and loaded into memory, then thrown
+    // away here the moment an existing sidebar match was found, so every subsequent API call
+    // had no file attached and the model kept saying it couldn't see the document.
+    var existingKey = existingMatch.dataset.doc;
+    if (sessionDocuments[existingKey]) {
+      sessionDocuments[existingKey].base64 = fileBase64;
+      sessionDocuments[existingKey].mediaType = fileMediaType;
+      sessionDocuments[existingKey].context = uploadedDocContext;
+      sessionDocuments[existingKey].shortCode = detectedShortCode;
+      if (realDashboardData) sessionDocuments[existingKey].dashboardData = JSON.parse(JSON.stringify(realDashboardData));
+    }
+    pendingUniqueKey = ""; // consumed — prevent it leaking into the next unrelated upload
+    return existingKey;
   }
   // Reuse the key generated at analysis time so this document's file cache, its persisted
   // financial_snapshots row, and (once chat starts) its messages rows all share the exact
@@ -4580,9 +4597,29 @@ async function callClaudeAPI(userMsg, requestDocKey) {
     // come back and keep typing in the SAME conversation — and the correct file had
     // quietly been wiped out from under it, even though the chat still looked the same.
     if (activeDoc && sessionDocuments[activeDoc]) {
-      fileBase64 = sessionDocuments[activeDoc].base64;
-      fileMediaType = sessionDocuments[activeDoc].mediaType;
-      uploadedDocContext = sessionDocuments[activeDoc].context || uploadedDocContext;
+      var stored2 = sessionDocuments[activeDoc];
+      // Harden: if the stored entry has a real base64 (a re-upload updated it), always use
+      // that. If the stored entry has EMPTY base64 but the global fileBase64 is populated
+      // (meaning a fresh upload just happened but hasn't been committed into sessionDocuments
+      // yet for some reason), keep the live global rather than overwriting with empty.
+      // This guards against a race where callClaudeAPI fires before sessionDocuments is
+      // fully updated, discarding a valid just-uploaded file.
+      if (stored2.base64) {
+        fileBase64 = stored2.base64;
+        fileMediaType = stored2.mediaType;
+      }
+      // Prefer stored context only if it is richer than what we already have — a restored
+      // "file NOT currently attached" string is always WORSE than a full upload context.
+      if (stored2.context && stored2.context.indexOf("NOT currently attached") === -1) {
+        uploadedDocContext = stored2.context;
+      }
+      console.log("[DataDost] callClaudeAPI re-sync:", {
+        activeDoc: activeDoc,
+        hasBase64: !!(fileBase64 && fileBase64.length > 100),
+        contextSnippet: (uploadedDocContext || "").slice(0, 120),
+        storedBase64: !!(stored2.base64 && stored2.base64.length > 100),
+        storedContextSnippet: (stored2.context || "").slice(0, 80)
+      });
     }
     // When a live file is freshly attached, filter out prior assistant messages that contain
     // "re-upload" disclaimers before sending to the API. These stale disclaimers come from
