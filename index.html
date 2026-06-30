@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260630b">
+<link rel="stylesheet" href="style.css?v=20260630c">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -438,7 +438,11 @@
       </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="qbtns" id="qbtns"></div>
-      <div class="chat-inp-row">
+      <div class="chat-inp-row" style="position:relative">
+        <div id="chat-nudge" style="display:none;position:absolute;bottom:100%;left:3.2rem;margin-bottom:.35rem;flex-direction:column;align-items:center;gap:.1rem;pointer-events:none;animation:ddNudgeBob 1.4s ease-in-out infinite">
+          <span style="font-size:.7rem;font-weight:700;color:var(--sf);white-space:nowrap;background:var(--white);padding:.15rem .5rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)">Try asking here</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sf)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19,12 12,19 5,12"/></svg>
+        </div>
         <button class="chat-up-btn" id="chat-up-btn" title="Upload document"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
         <button class="chat-up-btn" id="chat-cash-btn" title="Break down cash spending">💵</button>
         <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
@@ -1238,6 +1242,8 @@ function resetSessionState() {
   if (histBar) histBar.style.display = "none";
   var ddOverlay = document.getElementById("dd-confirm-overlay");
   if (ddOverlay) ddOverlay.style.display = "none";
+  var chatNudgeEl = document.getElementById("chat-nudge");
+  if (chatNudgeEl) chatNudgeEl.style.display = "none";
   // Clearing the variables above is not enough on its own — the sidebar's left-hand
   // document list is RENDERED DOM, populated by renderGroupedRealDocs(), and nothing
   // forces that to redraw just because sessionDocuments changed underneath it. Found via
@@ -1729,13 +1735,46 @@ function renderDash() {
       // discarded it rather than show a number we know is wrong — tell the user honestly
       // why income/savings-rate cards aren't shown, instead of silently hiding them.
       bannerEl.innerHTML = "📄 Showing spending from <b title=\"" + (realDashboardData.docName || "").replace(/\"/g, "&quot;") + "\">" + (realDashboardData.shortCode || realDashboardData.docName) + "</b> — income figure looked off, so we're not showing it. Ask DataDost directly for your income/savings breakdown instead.";
+      bannerEl.style.background = "var(--green-l)";
+      bannerEl.style.color = "var(--green)";
+      bannerEl.style.padding = ".6rem 1rem";
+    } else if (usingReal) {
+      bannerEl.innerHTML = "📄 Showing real numbers from <b title=\"" + (realDashboardData.docName || "").replace(/\"/g, "&quot;") + "\">" + (realDashboardData.shortCode || realDashboardData.docName) + "</b>";
+      bannerEl.style.background = "var(--green-l)";
+      bannerEl.style.color = "var(--green)";
+      bannerEl.style.padding = ".6rem 1rem";
+    } else if (hasAnyRealDocuments()) {
+      // Real documents exist somewhere on the account, just none currently selected for
+      // the Dashboard view — the original, simpler one-line prompt still fits here, since
+      // this user has already proven they know how to upload.
+      bannerEl.innerHTML = "👋 Upload your first statement to see your real financial picture here — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload now</span>";
+      bannerEl.style.background = "var(--mist)";
+      bannerEl.style.color = "var(--slate)";
+      bannerEl.style.padding = ".6rem 1rem";
     } else {
-      bannerEl.innerHTML = usingReal
-        ? "📄 Showing real numbers from <b title=\"" + (realDashboardData.docName || "").replace(/\"/g, "&quot;") + "\">" + (realDashboardData.shortCode || realDashboardData.docName) + "</b>"
-        : "👋 Upload your first statement to see your real financial picture here — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload now</span>";
+      // Genuinely brand-new account, zero real documents anywhere — the richer guided
+      // card. Deliberately leads with the lowest-trust-barrier example (a self-made Excel
+      // tracker, no bank-issued document or account number involved at all) rather than
+      // defaulting straight into the Bank Statement sample, which carries the highest
+      // trust barrier of any document type. "See sample documents" surfaces the existing
+      // sample entries already sitting in the sidebar rather than building a separate
+      // picker; "Upload my own" goes straight to the real Upload flow for anyone ready.
+      bannerEl.innerHTML =
+        "<div style=\"display:flex;gap:.75rem;align-items:flex-start\">" +
+          "<div style=\"width:34px;height:34px;border-radius:50%;background:var(--white);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem\">✨</div>" +
+          "<div style=\"flex:1\">" +
+            "<div style=\"font-weight:700;font-size:.88rem;color:var(--sf);margin-bottom:.2rem\">Haven't uploaded anything yet?</div>" +
+            "<div style=\"font-size:.8rem;color:var(--ink-s);margin-bottom:.6rem;line-height:1.5\">Try whatever's easiest — even your own Excel budget tracker counts. No bank statement required to see how this works.</div>" +
+            "<div style=\"display:flex;gap:.5rem;flex-wrap:wrap\">" +
+              "<button onclick=\"goTo('s-chat')\" style=\"padding:.4rem .9rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit\">See sample documents</button>" +
+              "<button onclick=\"goTo('s-upload')\" style=\"padding:.4rem .9rem;border-radius:100px;background:var(--white);border:1px solid var(--border);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit\">Upload my own</button>" +
+            "</div>" +
+          "</div>" +
+        "</div>";
+      bannerEl.style.background = "var(--sf-l)";
+      bannerEl.style.color = "var(--ink-s)";
+      bannerEl.style.padding = "1rem";
     }
-    bannerEl.style.background = usingReal ? "var(--green-l)" : "var(--mist)";
-    bannerEl.style.color = usingReal ? "var(--green)" : "var(--slate)";
   }
 
   var statCards = document.querySelectorAll(".stat-card");
@@ -2858,6 +2897,16 @@ function fallbackLabelFor(type) {
   return {bank:"Bank Statement",salary:"Salary Slip",utility:"Utility Bill",insurance:"Insurance",tax:"Tax Document",creditcard:"Credit Card Statement",other:"Document"}[type] || "Document";
 }
 
+// Shared gate for both the Dashboard empty-state card and the General Chat nudge — a
+// genuinely brand-new account has zero entries here; the moment even one real document
+// exists (uploaded this session, via "real_", or restored from a saved snapshot at login,
+// via "loaded_"), both nudges should stop showing, on every device, permanently.
+function hasAnyRealDocuments() {
+  return Object.keys(sessionDocuments).some(function(k) {
+    return k.indexOf("real_") === 0 || k.indexOf("loaded_") === 0;
+  });
+}
+
 // ── COMPACT DOCUMENT CODES (e.g. "CCS-ADCB-1111-MAR26") ──
 // Built specifically for tight-space UI — dashboard banner, dashboard dropdown, chat top
 // bar — where the full descriptive name ("Emirates NBD Bank •9772 — Credit Card Statement
@@ -3453,6 +3502,11 @@ async function renderChat() {
 
   msgsEl.innerHTML = "";
   lastMsgTimestamp = null; // fresh view — the next message should always start with a divider
+  // Default to hidden every render — only the specific branch below (General Chat, zero
+  // messages ever, zero real documents anywhere on the account) turns it back on. Covers
+  // switching to a document chat, or this same chat once it has history, automatically.
+  var nudgeEl = document.getElementById("chat-nudge");
+  if (nudgeEl) nudgeEl.style.display = "none";
   // Real uploaded documents use a unique activeDoc key (e.g. "real_utility_2") — resolve back
   // to the underlying type (e.g. "utility") for quick-question and persona lookups.
   var activeBtn = document.querySelector(".csb-doc[data-doc='" + activeDoc + "']");
@@ -3514,6 +3568,12 @@ async function renderChat() {
   if (activeDoc === "general") {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, slightly nosy money companion. 😄<br><br>No document needed — just talk to me! Ask about budgeting, savings, investing basics, or anything on your mind about money. What's up?");
     uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
+    // This branch only ever runs when savedMessages.length === 0 (the earlier branch
+    // returns otherwise) — meaning General Chat genuinely has zero messages ever. Combined
+    // with zero real documents anywhere on the account, this is the precise "brand new,
+    // hasn't engaged at all yet" moment the nudge exists for — never shown to a returning
+    // user who simply prefers asking through a document instead.
+    if (nudgeEl && !hasAnyRealDocuments()) nudgeEl.style.display = "flex";
   } else {
     addMsg("ai", "Namaste! 🙏 I'm DataDost — your friendly, <span class='hi'>slightly nosy</span> money companion. 😄<br><br>I've read your <b>" + (realLabel || m.title) + "</b>. Ask me anything — or tap a question below!");
     if (pendingFollowupQuestion) {
@@ -4461,6 +4521,11 @@ function sendMsg() {
   inp.value = "";
   addMsg("user", txt);
   conversationHistory.push({ role:"user", content: txt });
+  // Disappears the instant the first message is sent — answers your own question, so no
+  // separate dismiss action is needed, and since the underlying check is "has a message
+  // ever been sent", it can never come back once this fires.
+  var nudgeEl2 = document.getElementById("chat-nudge");
+  if (nudgeEl2) nudgeEl2.style.display = "none";
   showTyping();
   // CRITICAL fix for a real, confirmed bug: this decision used to read uploadedDocContext
   // directly, which is a SHARED variable that visiting Upload (for a completely different

@@ -321,3 +321,4 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   .hist-cap{flex-direction:column;gap:.3rem;padding:.6rem .3rem;font-size:.7rem;border-radius:14px}
   .hist-cap-ic{width:22px;height:22px}
 }
+@keyframes ddNudgeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
