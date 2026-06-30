@@ -465,8 +465,17 @@
     <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
       <div style="font-family:Sora,sans-serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:.3rem">Past Conversations</div>
       <div style="font-size:.85rem;color:var(--slate);margin-bottom:.6rem">Every conversation you've had with DataDost, saved and ready to reopen anytime.</div>
-      <button type="button" id="clear-all-data-btn" style="background:none;border:none;font-family:inherit;font-size:.78rem;color:#E24B4A;text-decoration:underline;cursor:pointer;padding:0;margin-bottom:1.25rem">Clear all my data</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+        <button type="button" id="hist-download-btn" title="Select items to download" style="background:none;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:#3B6D11">⬇</button>
+        <button type="button" id="clear-all-data-btn" style="background:none;border:none;font-family:inherit;font-size:.76rem;color:var(--slate);text-decoration:underline;cursor:pointer;padding:0">Clear everything at once</button>
+        <button type="button" id="hist-delete-btn" title="Select items to delete" style="background:none;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:#A32D2D">🗑</button>
+      </div>
+      <div id="hist-mode-banner" style="display:none;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:10px;margin-bottom:.6rem;font-size:.8rem"></div>
       <div id="history-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
+      <div id="hist-action-bar" style="display:none;align-items:center;justify-content:space-between;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)">
+        <span id="hist-selected-count" style="font-size:.8rem;color:var(--slate)"></span>
+        <button type="button" id="hist-confirm-btn" style="background:none;border:1px solid var(--border);border-radius:10px;padding:.45rem 1rem;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer"></button>
+      </div>
       <div id="history-empty" style="display:none;text-align:center;padding:3rem 1rem;color:var(--slate)">
         <div style="font-size:2rem;margin-bottom:.5rem">💬</div>
         <div style="font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:.3rem">No conversations yet</div>
@@ -571,7 +580,7 @@
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">4. Your rights under DPDP Act 2023</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You have the right to: access all data DataDost holds about you, correct any inaccurate data, delete all your data permanently, withdraw consent at any time, and nominate someone to exercise these rights on your behalf. To delete your data, use <b>"Clear all my data"</b> on the History screen — this permanently removes every chat conversation and document summary tied to your account immediately, with a clear warning before anything happens. (Note: this clears your data, not your login itself — to fully close your account as well, email us and we'll do that by hand for now.) For anything else, email us at privacy@datadost.in.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You have the right to: access all data DataDost holds about you, correct any inaccurate data, delete your data permanently (in full or by individual item), withdraw consent at any time, and nominate someone to exercise these rights on your behalf. On the History screen, use the <b>download icon</b> to export your data, the <b>trash icon</b> to delete specific items, or <b>"Clear everything at once"</b> to remove all your data immediately — each comes with a clear warning before anything happens. (Note: this clears your data, not your login itself — to fully close your account as well, email us and we'll do that by hand for now.) For anything else, email us at privacy@datadost.in.</div>
           </div>
 
           <div>
@@ -633,7 +642,7 @@
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Can I delete everything?</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Yes, yourself, anytime — no need to email anyone first. <b>"Clear all my data"</b> on your History screen permanently wipes every conversation and document summary tied to your account, with a clear warning before it happens.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Yes, yourself, anytime — no need to email anyone first. On your History screen, the download and trash icons let you pick specific conversations or documents, or use <b>"Clear everything at once"</b> to wipe all of it — either way, you'll always see a clear warning before anything is actually deleted.</div>
           </div>
 
           <div>
@@ -1193,6 +1202,12 @@ function resetSessionState() {
   pendingUniqueKey = "";
   forecastCache = null;
   lastMsgTimestamp = null;
+  historyMode = null;
+  historySelected = {};
+  var histBanner = document.getElementById("hist-mode-banner");
+  var histBar = document.getElementById("hist-action-bar");
+  if (histBanner) histBanner.style.display = "none";
+  if (histBar) histBar.style.display = "none";
   // Clearing the variables above is not enough on its own — the sidebar's left-hand
   // document list is RENDERED DOM, populated by renderGroupedRealDocs(), and nothing
   // forces that to redraw just because sessionDocuments changed underneath it. Found via
@@ -3745,6 +3760,7 @@ async function renderHistoryList() {
   loadingEl.style.display = "block";
 
   var conversations = await loadAllConversationsFromDb();
+  lastLoadedConversations = conversations;
   loadingEl.style.display = "none";
 
   if (conversations.length === 0) {
@@ -3755,10 +3771,13 @@ async function renderHistoryList() {
   conversations.forEach(function(conv) {
     var display = docKeyToDisplay(conv.docKey);
     var preview = conv.lastMessage.replace(/<[^>]*>/g, "").slice(0, 90);
-    var card = document.createElement("button");
-    card.type = "button";
+    // In selection mode the row becomes a plain div (a checkbox can't legally nest inside
+    // a <button>), with the checkbox itself driving selection instead of navigation.
+    var card = document.createElement(historyMode ? "div" : "button");
+    if (!historyMode) card.type = "button";
     card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit";
     card.innerHTML =
+      (historyMode ? "<input type=\"checkbox\" data-dockey=\"" + conv.docKey + "\" style=\"width:18px;height:18px;flex-shrink:0;margin-top:.2rem\" " + (historySelected[conv.docKey] ? "checked" : "") + "/>" : "") +
       "<div style=\"width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0\">" + display.icon + "</div>" +
       "<div style=\"flex:1;min-width:0\">" +
         "<div style=\"display:flex;justify-content:space-between;align-items:baseline;gap:.5rem\">" +
@@ -3767,11 +3786,214 @@ async function renderHistoryList() {
         "</div>" +
         "<div style=\"font-size:.78rem;color:var(--slate);margin-top:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (conv.lastRole === "user" ? "You: " : "") + preview + "</div>" +
       "</div>";
-    card.addEventListener("click", function() {
-      reopenConversation(conv.docKey);
-    });
+    if (historyMode) {
+      card.addEventListener("click", function() {
+        if (historySelected[conv.docKey]) delete historySelected[conv.docKey];
+        else historySelected[conv.docKey] = true;
+        renderHistoryList();
+        updateHistoryActionBar();
+      });
+    } else {
+      card.addEventListener("click", function() {
+        reopenConversation(conv.docKey);
+      });
+    }
     listEl.appendChild(card);
   });
+}
+
+// ── SELECTIVE DELETE / DOWNLOAD (History screen) ──
+// Reuses the same doc_key grouping renderHistoryList already relies on — one row per
+// account/document, exactly matching what financial_snapshots already tracks. No schema
+// change needed for this category-level granularity; per-session granularity within a
+// single doc_key is a separate, later phase that needs its own session_id column.
+var historyMode = null; // null | "delete" | "download"
+var historySelected = {};
+var lastLoadedConversations = [];
+
+function updateHistoryActionBar() {
+  var bar = document.getElementById("hist-action-bar");
+  var count = Object.keys(historySelected).length;
+  if (!historyMode) { bar.style.display = "none"; return; }
+  bar.style.display = "flex";
+  document.getElementById("hist-selected-count").textContent = count + (count === 1 ? " item selected" : " items selected");
+  var btn = document.getElementById("hist-confirm-btn");
+  if (historyMode === "delete") {
+    btn.textContent = "Delete selected";
+    btn.style.color = count ? "#A32D2D" : "var(--slate)";
+  } else {
+    btn.textContent = "Download selected";
+    btn.style.color = count ? "#3B6D11" : "var(--slate)";
+  }
+}
+
+function enterHistoryMode(mode) {
+  historyMode = mode;
+  historySelected = {};
+  var banner = document.getElementById("hist-mode-banner");
+  banner.style.display = "flex";
+  banner.style.background = mode === "delete" ? "#FCEBEB" : "#EAF3DE";
+  banner.style.color = mode === "delete" ? "#A32D2D" : "#3B6D11";
+  banner.innerHTML =
+    "<span>" + (mode === "delete" ? "Select items to delete" : "Select items to download") + "</span>" +
+    "<button type=\"button\" id=\"hist-mode-cancel\" style=\"background:none;border:none;font-family:inherit;font-size:.78rem;color:inherit;text-decoration:underline;cursor:pointer\">Cancel</button>";
+  document.getElementById("hist-mode-cancel").addEventListener("click", exitHistoryMode);
+  renderHistoryList();
+  updateHistoryActionBar();
+}
+
+function exitHistoryMode() {
+  historyMode = null;
+  historySelected = {};
+  document.getElementById("hist-mode-banner").style.display = "none";
+  document.getElementById("hist-action-bar").style.display = "none";
+  renderHistoryList();
+}
+
+document.getElementById("hist-download-btn").addEventListener("click", function() {
+  if (historyMode === "download") exitHistoryMode(); else enterHistoryMode("download");
+});
+document.getElementById("hist-delete-btn").addEventListener("click", function() {
+  if (historyMode === "delete") exitHistoryMode(); else enterHistoryMode("delete");
+});
+document.getElementById("hist-confirm-btn").addEventListener("click", function() {
+  if (!Object.keys(historySelected).length) return;
+  if (historyMode === "delete") deleteSelectedHistoryItems();
+  else downloadSelectedHistoryItems();
+});
+
+async function deleteSelectedHistoryItems() {
+  var docKeys = Object.keys(historySelected);
+  if (!docKeys.length) return;
+  var n = docKeys.length;
+  var confirmed = confirm(
+    "Data will be deleted permanently, kindly confirm.\n\n" +
+    "This removes the chat and document summary for " + n + " item" + (n > 1 ? "s" : "") + ". " +
+    "If you need this again, you'll need to re-upload the statement.\n\n" +
+    "This cannot be undone."
+  );
+  if (!confirmed) return;
+
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+  var sessionResult = await sb.auth.getSession();
+  var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+  if (!user) { toast("Please log in again, then try this once more."); return; }
+
+  try {
+    var delMsgs = await sb.from("messages").delete().eq("user_id", user.id).in("doc_key", docKeys);
+    var delSnaps = await sb.from("financial_snapshots").delete().eq("user_id", user.id).in("doc_key", docKeys);
+    if (delMsgs.error || delSnaps.error) {
+      console.error("[DataDost] Selective delete error:", (delMsgs.error || delSnaps.error).message);
+      toast("Something went wrong deleting your data — please try again.");
+      return;
+    }
+  } catch (err) {
+    console.error("[DataDost] Selective delete error:", err);
+    toast("Something went wrong deleting your data — please try again.");
+    return;
+  }
+
+  // Same "in-memory state must reflect reality immediately" principle as clearAllUserData
+  // (see resetSessionState's comment) — but scoped only to what was actually deleted here,
+  // not a full reset, since the rest of the user's session is untouched.
+  forecastCache = null;
+  if (docKeys.indexOf(activeDoc) !== -1) {
+    activeDoc = "general";
+    conversationHistory = [];
+  }
+  docKeys.forEach(function(dk) { delete sessionDocuments[dk]; });
+  if (typeof renderGroupedRealDocs === "function") renderGroupedRealDocs();
+
+  toast(n + " item" + (n > 1 ? "s" : "") + " deleted. 🧹");
+  exitHistoryMode();
+}
+
+async function downloadSelectedHistoryItems() {
+  var docKeys = Object.keys(historySelected);
+  if (!docKeys.length) return;
+
+  if (!sb) { toast("Connecting... please try again in a moment"); return; }
+  var sessionResult = await sb.auth.getSession();
+  var user = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+  if (!user) { toast("Please log in again, then try this once more."); return; }
+
+  toast("Preparing your download...");
+
+  try {
+    // Conversations export as plain text — full message history per selected item, not
+    // just the latest-message preview the history list itself shows.
+    var msgResult = await sb.from("messages")
+      .select("doc_key, role, content, created_at")
+      .eq("user_id", user.id)
+      .in("doc_key", docKeys)
+      .order("created_at", { ascending: true });
+    if (msgResult.error) throw msgResult.error;
+
+    var textParts = [];
+    docKeys.forEach(function(dk) {
+      var display = docKeyToDisplay(dk);
+      textParts.push("=== " + display.name + " ===\n");
+      var rows = (msgResult.data || []).filter(function(r) { return r.doc_key === dk; });
+      rows.forEach(function(r) {
+        textParts.push((r.role === "user" ? "You" : "DataDost") + " (" + new Date(r.created_at).toLocaleString("en-IN") + "):\n" + r.content.replace(/<[^>]*>/g, "") + "\n");
+      });
+      textParts.push("");
+    });
+    var textBlob = new Blob([textParts.join("\n")], { type: "text/plain" });
+    var textUrl = URL.createObjectURL(textBlob);
+    var a1 = document.createElement("a");
+    a1.href = textUrl;
+    a1.download = "DataDost_conversations_" + new Date().toISOString().slice(0, 10) + ".txt";
+    document.body.appendChild(a1);
+    a1.click();
+    document.body.removeChild(a1);
+    URL.revokeObjectURL(textUrl);
+
+    // Financial summaries export as Excel — reuses the SheetJS library already loaded for
+    // Excel statement uploads, so no new dependency is introduced for this export path.
+    var snapResult = await sb.from("financial_snapshots")
+      .select("doc_type, doc_name, income, spending, saved, opening_balance, closing_balance, months_covered, currency, account_id, doc_key, created_at")
+      .eq("user_id", user.id)
+      .in("doc_key", docKeys);
+    if (snapResult.error) throw snapResult.error;
+
+    if (snapResult.data && snapResult.data.length) {
+      var sheetRows = snapResult.data.map(function(s) {
+        return {
+          "Document": s.doc_name || s.doc_type,
+          "Account": s.account_id || "",
+          "Income": s.income,
+          "Spending": s.spending,
+          "Saved": s.saved,
+          "Opening balance": s.opening_balance,
+          "Closing balance": s.closing_balance,
+          "Currency": s.currency,
+          "Months covered": s.months_covered,
+          "Uploaded": new Date(s.created_at).toLocaleDateString("en-IN")
+        };
+      });
+      var ws = XLSX.utils.json_to_sheet(sheetRows);
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Financial summary");
+      XLSX.writeFile(wb, "DataDost_financial_summary_" + new Date().toISOString().slice(0, 10) + ".xlsx");
+    }
+
+    toast("Download ready. 📥");
+
+    // The "download then delete" pattern users naturally reach for — offered right here so
+    // they don't have to re-select the same items a second time in a separate delete pass.
+    // Deliberately sequenced AFTER the download has genuinely completed above, so a failed
+    // or cancelled export can never lead into a delete of data that wasn't actually saved.
+    var n = docKeys.length;
+    setTimeout(function() {
+      var alsoDelete = confirm("Downloaded. Delete these " + n + " item" + (n > 1 ? "s" : "") + " now too?");
+      if (alsoDelete) deleteSelectedHistoryItems();
+      else exitHistoryMode();
+    }, 600);
+  } catch (err) {
+    console.error("[DataDost] Download error:", err);
+    toast("Something went wrong preparing your download — please try again.");
+  }
 }
 
 // Shows the current persona and a gentle, non-blocking password-age reminder — never
