@@ -3029,16 +3029,6 @@ document.getElementById("sov-chat").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   if (detectedDocName) {
     var newKey = addRealDocToSidebar(docType, detectedDocName, accountId);
-    // CRITICAL: clear conversationHistory before selectRealDoc runs. If the user is
-    // re-uploading a document after reopening an old conversation that already contains
-    // "I don't have transaction detail, please re-upload" messages, those stale disclaimers
-    // stay in conversationHistory and the model anchors to them — the "never repeat yourself"
-    // rule then makes it keep saying the same thing even though the full document is now
-    // freshly attached and visible. Clearing history here means the next message starts from
-    // a clean context where the document IS available, not one poisoned by prior no-file
-    // responses. The saved DB history is untouched — the user can still see it by reopening
-    // from History — but the live chat window starts fresh, like a new upload always does.
-    conversationHistory = [];
     selectRealDoc(newKey, docType, detectedDocName, true); // true = skip render, goTo below will do it once
   } else {
     activeDoc = docType;
@@ -4594,7 +4584,36 @@ async function callClaudeAPI(userMsg, requestDocKey) {
       fileMediaType = sessionDocuments[activeDoc].mediaType;
       uploadedDocContext = sessionDocuments[activeDoc].context || uploadedDocContext;
     }
-    var messages = conversationHistory.slice(-8).map(function(m){ return { role: m.role, content: m.content }; });
+    // When a live file is freshly attached, filter out prior assistant messages that contain
+    // "re-upload" disclaimers before sending to the API. These stale disclaimers come from
+    // a previous session where the document genuinely wasn't present — they are correct as
+    // historical record (and stay visible in the UI), but sending them to the model when the
+    // file IS now attached causes the model to anchor to its previously stated "I can't see it"
+    // position regardless of what the attached document actually contains. The user sees the
+    // full conversation history on screen; the API receives a clean view where the live file
+    // speaks for itself. This is a UI/API decoupling, not a data deletion.
+    var noFilePatterns = [
+      "re-upload the",
+      "re-upload it",
+      "need you to re-upload",
+      "need the full statement",
+      "don't have the transaction",
+      "don't have that level of detail",
+      "I don't have transaction",
+      "isn't in your saved summary",
+      "saved summary doesn",
+      "file is NOT currently attached",
+      "not currently attached"
+    ];
+    var rawMessages = conversationHistory.slice(-8);
+    var filteredMessages = (fileIsLive)
+      ? rawMessages.filter(function(m) {
+          if (m.role !== "assistant") return true;
+          var lower = (m.content || "").toLowerCase();
+          return !noFilePatterns.some(function(pat) { return lower.indexOf(pat.toLowerCase()) !== -1; });
+        })
+      : rawMessages;
+    var messages = filteredMessages.map(function(m){ return { role: m.role, content: m.content }; });
     var payload = { messages: messages, systemPrompt: systemPrompt, dynamicContext: dynamicContext };
     // Compare mode: send ALL selected documents together, every single request, so Claude
     // can genuinely cross-reference transactions between them (e.g. a credit card payment
