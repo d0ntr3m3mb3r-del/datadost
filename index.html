@@ -880,6 +880,10 @@ var fileMediaType = "";
 var sessionDocuments = {}; // { uniqueKey: { base64, mediaType, name, type } }
 var compareDocsPayload = null; // set when starting a multi-document comparison conversation
 var detectedDocName = ""; // filled in if Claude can identify the institution
+var detectedShortCode = ""; // compact form of detectedDocName (e.g. "CCS-ADCB-1111-MAR26") — used in tight-space
+                             // UI (dashboard banner, dashboard dropdown, chat top bar). The full descriptive name
+                             // in detectedDocName is kept everywhere else (sidebar, History screen) since there's
+                             // room there and the full bank name is itself a trust signal worth showing.
 var accountId = ""; // the masked account/card number, if detected — global for the same reason as detectedDocName: needed by the sov-close/sov-chat handlers, which run outside the analysis function itself
 var pendingUniqueKey = ""; // the doc_key generated at analysis time, BEFORE the user reaches sov-close/sov-chat —
                             // generating it here (once) and reusing it everywhere (sessionDocuments, financial_snapshots,
@@ -1036,6 +1040,7 @@ async function loadDashboardFromSnapshots() {
       return { l: c.l, a: c.a, c: barColors[i % barColors.length], p: Math.min(100, Math.round((c.a / maxCatAmt) * 100)) };
     });
     var hasIncome = snap.income !== null && snap.income !== undefined;
+    var snapShortCode = buildShortCode(snap.doc_type, institutionFromDocName(snap.doc_name || ""), snap.account_id, snap.months_covered || []);
     var dashboardData = {
       hasIncomeConcept: hasIncome,
       income: hasIncome ? snap.income : null,
@@ -1045,6 +1050,7 @@ async function loadDashboardFromSnapshots() {
       closingBalance: (snap.closing_balance !== null && snap.closing_balance !== undefined) ? snap.closing_balance : null,
       bars: bars,
       docName: snap.doc_name || fallbackLabelFor(snap.doc_type),
+      shortCode: snapShortCode,
       docTypeLabel: fallbackLabelFor(snap.doc_type),
       currency: snap.currency || "INR",
       incomeFlagged: false
@@ -1058,7 +1064,7 @@ async function loadDashboardFromSnapshots() {
     // way to recover their original key retroactively.
     var key = snap.doc_key || ("loaded_" + idx + "_" + snap.doc_type);
     sessionDocuments[key] = {
-      name: dashboardData.docName, type: snap.doc_type, dashboardData: dashboardData,
+      name: dashboardData.docName, shortCode: snapShortCode, type: snap.doc_type, dashboardData: dashboardData,
       base64: "", mediaType: "", context: "",
       accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, scanLabel: scanLabelFor(snap),
       createdAt: snap.created_at
@@ -1213,6 +1219,7 @@ function resetSessionState() {
   conversationHistory = [];
   uploadedDocContext = "";
   detectedDocName = "";
+  detectedShortCode = "";
   accountId = "";
   activeDoc = "general";
   docType = "bank";
@@ -1672,7 +1679,7 @@ function renderDashDocSwitcher() {
   container.style.gap = ".5rem";
   var options = keys.map(function(k) {
     var d = sessionDocuments[k];
-    return "<option value=\"" + k + "\"" + (k === selectedKey ? " selected" : "") + ">" + d.name + "</option>";
+    return "<option value=\"" + k + "\" title=\"" + (d.name || "").replace(/\"/g, "&quot;") + "\"" + (k === selectedKey ? " selected" : "") + ">" + shortCodeFor(d, d.name) + "</option>";
   }).join("");
   // A dropdown rather than a row of pills — pills work fine for 2-3 documents, but turn
   // into a cluttered, wrapping mess once someone has uploaded several. A single-line
@@ -1721,10 +1728,10 @@ function renderDash() {
       // We caught an implausible income figure ourselves (savings exceeded income) and
       // discarded it rather than show a number we know is wrong — tell the user honestly
       // why income/savings-rate cards aren't shown, instead of silently hiding them.
-      bannerEl.innerHTML = "📄 Showing spending from <b>" + realDashboardData.docName + "</b> — income figure looked off, so we're not showing it. Ask DataDost directly for your income/savings breakdown instead.";
+      bannerEl.innerHTML = "📄 Showing spending from <b title=\"" + (realDashboardData.docName || "").replace(/\"/g, "&quot;") + "\">" + (realDashboardData.shortCode || realDashboardData.docName) + "</b> — income figure looked off, so we're not showing it. Ask DataDost directly for your income/savings breakdown instead.";
     } else {
       bannerEl.innerHTML = usingReal
-        ? "📄 Showing real numbers from <b>" + realDashboardData.docName + "</b>"
+        ? "📄 Showing real numbers from <b title=\"" + (realDashboardData.docName || "").replace(/\"/g, "&quot;") + "\">" + (realDashboardData.shortCode || realDashboardData.docName) + "</b>"
         : "👋 Upload your first statement to see your real financial picture here — <span style=\"text-decoration:underline;cursor:pointer\" onclick=\"goTo('s-upload')\">upload now</span>";
     }
     bannerEl.style.background = usingReal ? "var(--green-l)" : "var(--mist)";
@@ -2087,6 +2094,7 @@ function handleFile(f) {
   fileBase64 = "";
   fileMediaType = "";
   detectedDocName = "";
+  detectedShortCode = "";
   uploadedDocContext = "";
   var dz = document.getElementById("dz");
   dz.classList.remove("ok","read");
@@ -2104,6 +2112,7 @@ function resetUpload() {
   fileBase64 = "";
   fileMediaType = "";
   detectedDocName = "";
+  detectedShortCode = "";
   uploadedDocContext = "";
   conversationHistory = [];
   resetUploadBoxVisuals();
@@ -2118,6 +2127,7 @@ function resetUploadBoxVisuals() {
   fileBase64 = "";
   fileMediaType = "";
   detectedDocName = ""; // critical: prevents a stale name from being silently re-added to the sidebar
+  detectedShortCode = "";
   var dz = document.getElementById("dz");
   dz.classList.remove("ok","read");
   document.getElementById("btn-analyse").classList.remove("vis");
@@ -2693,6 +2703,7 @@ async function analyseRealDocument() {
       detectedDocName = (institution && institution.toUpperCase() !== "UNKNOWN")
         ? (institution + acctSuffix + " — " + fallbackLabel + periodSuffix)
         : (fallbackLabel + " " + new Date().toLocaleDateString("en-IN", {day:"numeric", month:"short"}) + (analysisCount > 1 ? " (" + analysisCount + ")" : ""));
+      detectedShortCode = buildShortCode(docType, institution, accountId, periodMonths);
       // Feeds the self-transfer detection behaviour in the system prompt — without
       // knowing the account holder's own name, Claude has no way to recognise when a
       // transaction recipient is actually the same person, just worded differently
@@ -2747,6 +2758,7 @@ async function analyseRealDocument() {
           closingBalance: closingBalance,
           bars: bars.length > 0 ? bars : spendData,
           docName: detectedDocName || docTypeName,
+          shortCode: detectedShortCode || docTypeName,
           docTypeLabel: docTypeName,
           currency: docCurrency, // the document's REAL currency — never converted, just remembered
           incomeFlagged: hasIncomeConcept && !incomeIsPlausible // so the UI can explain WHY these cards are hidden
@@ -2831,6 +2843,97 @@ async function analyseRealDocument() {
 function fallbackLabelFor(type) {
   return {bank:"Bank Statement",salary:"Salary Slip",utility:"Utility Bill",insurance:"Insurance",tax:"Tax Document",creditcard:"Credit Card Statement",other:"Document"}[type] || "Document";
 }
+
+// ── COMPACT DOCUMENT CODES (e.g. "CCS-ADCB-1111-MAR26") ──
+// Built specifically for tight-space UI — dashboard banner, dashboard dropdown, chat top
+// bar — where the full descriptive name ("Emirates NBD Bank •9772 — Credit Card Statement
+// (Mar 2026)") was confirmed too long to read at a glance. The full name is intentionally
+// kept everywhere else (sidebar, History screen) — it's not being removed, just not used
+// in these three spots. Type+bank+last4+period is enough to stay fully unambiguous even
+// with multiple accounts at the same bank; the card PRODUCT name (e.g. "Touch", "Noon")
+// is a deliberate Phase 2 addition — it isn't extracted today, and last4 already guarantees
+// uniqueness without it, so it's a real but separate scope add, not a quick win here.
+var DOC_TYPE_CODES = { bank:"BS", salary:"SAL", utility:"UTIL", insurance:"INS", tax:"ITR", creditcard:"CCS", other:"OTH" };
+
+// Best-effort lookup for the banks DataDost's actual users are most likely to hold accounts
+// with, given the India + UAE/Dubai-NRI positioning. Anything not in this table falls back
+// to shortInstitutionLabel's existing acronym/first-word logic below, clipped to 6 letters —
+// it just won't be as polished as a recognised name until added here.
+var BANK_SHORT_CODES = {
+  "ADCB": "ADCB", "ABU DHABI COMMERCIAL BANK": "ADCB",
+  "ENBD": "ENBD", "EMIRATES NBD": "ENBD", "EMIRATES NBD BANK": "ENBD",
+  "FAB": "FAB", "FIRST ABU DHABI BANK": "FAB",
+  "DIB": "DIB", "DUBAI ISLAMIC BANK": "DIB",
+  "MASHREQ": "MASQ", "MASHREQ BANK": "MASQ",
+  "RAKBANK": "RAKB", "RAK BANK": "RAKB", "NATIONAL BANK OF RAS AL KHAIMAH": "RAKB",
+  "CBD": "CBD", "COMMERCIAL BANK OF DUBAI": "CBD",
+  "ADIB": "ADIB", "ABU DHABI ISLAMIC BANK": "ADIB",
+  "HDFC": "HDFC", "HDFC BANK": "HDFC",
+  "ICICI": "ICICI", "ICICI BANK": "ICICI",
+  "SBI": "SBI", "STATE BANK OF INDIA": "SBI",
+  "AXIS": "AXIS", "AXIS BANK": "AXIS",
+  "KOTAK": "KOTAK", "KOTAK MAHINDRA BANK": "KOTAK",
+  "PNB": "PNB", "PUNJAB NATIONAL BANK": "PNB",
+  "BANK OF BARODA": "BOB", "BOB": "BOB",
+  "CITI": "CITI", "CITIBANK": "CITI",
+  "HSBC": "HSBC",
+  "AMEX": "AMEX", "AMERICAN EXPRESS": "AMEX",
+  "STANDARD CHARTERED": "SC", "SC": "SC"
+};
+
+function bankShortCode(institutionName) {
+  var clean = (institutionName || "").trim();
+  if (!clean) return "BANK";
+  var upper = clean.toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
+  if (BANK_SHORT_CODES[upper]) return BANK_SHORT_CODES[upper];
+  for (var key in BANK_SHORT_CODES) {
+    if (upper.indexOf(key) !== -1) return BANK_SHORT_CODES[key];
+  }
+  var fallback = shortInstitutionLabel(clean).toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return fallback.slice(0, 6) || "BANK";
+}
+
+// Parses one period-string entry (the same "Mon YYYY" format already used in the
+// human-readable "(Mar 2026)" suffix) into separate month/year codes for compact display.
+function monthYearCode(periodStr) {
+  var m = (periodStr || "").trim().match(/([A-Za-z]{3,})\.?\s+(\d{4}|\d{2})/);
+  if (!m) return null;
+  return { mon: m[1].slice(0, 3).toUpperCase(), yr: m[2].length === 4 ? m[2].slice(-2) : m[2] };
+}
+
+// Single month: "MAR26". Multi-month, same year: "JAN-MAR26". Multi-month crossing a year
+// boundary: "NOV25-JAN26" — the year must show on both ends here, or a Nov-Jan span would
+// silently look like it stayed within one year when it didn't.
+function periodCode(periodMonths) {
+  if (!periodMonths || periodMonths.length === 0) return "";
+  var first = monthYearCode(periodMonths[0]);
+  var last = monthYearCode(periodMonths[periodMonths.length - 1]);
+  if (!first || !last) return (periodMonths[periodMonths.length - 1] || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (first.mon === last.mon && first.yr === last.yr) return first.mon + first.yr;
+  if (first.yr === last.yr) return first.mon + "-" + last.mon + last.yr;
+  return first.mon + first.yr + "-" + last.mon + last.yr;
+}
+
+function buildShortCode(docTypeVal, institution, acctId, periodMonths) {
+  var parts = [DOC_TYPE_CODES[docTypeVal] || "OTH", bankShortCode(institution)];
+  if (acctId) parts.push(acctId);
+  var pc = periodCode(periodMonths);
+  if (pc) parts.push(pc);
+  return parts.join("-");
+}
+
+// Resolves the best available short code for a stored document: the precomputed one if
+// present, otherwise derived on the fly from whatever's available, otherwise the full name
+// as a last-resort fallback — so older sessionDocuments entries saved before this existed
+// never show as blank or broken, just slightly less compact until next re-upload.
+function shortCodeFor(stored, fallbackName) {
+  if (stored && stored.shortCode) return stored.shortCode;
+  if (stored) {
+    return buildShortCode(stored.type, institutionFromDocName(stored.name || fallbackName || ""), (stored.accountLabel || "").replace(/[^0-9A-Za-z]/g, "").slice(-4), null);
+  }
+  return fallbackName || "";
+}
+
 
 
 document.getElementById("sov-close").addEventListener("click", function() {
@@ -3159,7 +3262,7 @@ function addRealDocToSidebar(doc, name, accountId) {
   // Save this document's actual file data so it can be cross-referenced with others later —
   // capturing it now, before the next upload overwrites the shared fileBase64/fileMediaType variables.
   sessionDocuments[uniqueKey] = {
-    base64: fileBase64, mediaType: fileMediaType, name: name, type: doc, context: uploadedDocContext,
+    base64: fileBase64, mediaType: fileMediaType, name: name, shortCode: detectedShortCode, type: doc, context: uploadedDocContext,
     dashboardData: realDashboardData ? JSON.parse(JSON.stringify(realDashboardData)) : null,
     accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, scanLabel: "Just uploaded",
     createdAt: new Date().toISOString()
@@ -3212,7 +3315,9 @@ function selectRealDoc(uniqueKey, realType, realName, skipRender) {
   document.querySelectorAll(".csb-doc").forEach(function(d) { if (d.dataset.doc === uniqueKey) d.classList.add("act"); });
   var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
   document.getElementById("chat-hdr-ico").textContent = icoMap[realType] || "📄";
-  document.getElementById("chat-hdr-title").textContent = realName;
+  var hdrTitleEl = document.getElementById("chat-hdr-title");
+  hdrTitleEl.textContent = shortCodeFor(stored, realName);
+  hdrTitleEl.title = realName;
   document.getElementById("chat-hdr-sub").textContent = "Uploaded this session";
   if (!skipRender) renderChat();
 }
@@ -3303,7 +3408,9 @@ function selectDoc(doc, skipRender) {
   var m = chatMeta[doc] || chatMeta.bank;
   document.getElementById("chat-hdr-ico").textContent = m.ico;
   // Use the real detected name (e.g. "HDFC Bank Statement") if we found one, otherwise the generic label
-  document.getElementById("chat-hdr-title").textContent = detectedDocName ? (detectedDocName + " — " + m.title) : m.title;
+  var hdrTitleEl2 = document.getElementById("chat-hdr-title");
+  hdrTitleEl2.textContent = detectedShortCode ? (detectedShortCode + " — " + m.title) : m.title;
+  hdrTitleEl2.title = detectedDocName ? (detectedDocName + " — " + m.title) : "";
   document.getElementById("chat-hdr-sub").textContent = detectedDocName ? "Uploaded just now" : m.sub;
   if (!skipRender) renderChat();
 }
@@ -4220,7 +4327,9 @@ function reopenConversation(docKey) {
     }
     var icoMap = {bank:"🏦",salary:"💼",utility:"⚡",insurance:"🛡️",tax:"📋",creditcard:"💳",other:"📄"};
     document.getElementById("chat-hdr-ico").textContent = icoMap[type] || "📄";
-    document.getElementById("chat-hdr-title").textContent = realName;
+    var hdrTitleEl3 = document.getElementById("chat-hdr-title");
+    hdrTitleEl3.textContent = shortCodeFor(stored, realName);
+    hdrTitleEl3.title = realName;
     document.getElementById("chat-hdr-sub").textContent = "Reopened from history";
   } else {
     activeDoc = docKey;
