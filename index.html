@@ -45,6 +45,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 <body>
 
@@ -491,6 +492,17 @@
         <div style="font-size:.82rem">Upload a document or start a General Chat to begin — it'll show up here once you do.</div>
       </div>
       <div id="history-loading" style="text-align:center;padding:3rem 1rem;color:var(--slate);font-size:.85rem">Loading your conversations...</div>
+    </div>
+  </div>
+  <div id="dd-confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,.45);z-index:500;align-items:center;justify-content:center;padding:1.25rem">
+    <div style="background:var(--white);border-radius:16px;padding:1.5rem;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.18)">
+      <div id="dd-confirm-icon-wrap" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem"></div>
+      <div id="dd-confirm-title" style="font-family:Sora,sans-serif;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:.35rem"></div>
+      <div id="dd-confirm-body" style="font-size:.85rem;color:var(--slate);line-height:1.5;margin-bottom:1.25rem"></div>
+      <div style="display:flex;gap:.6rem">
+        <button type="button" id="dd-confirm-cancel-btn" style="flex:1;padding:.65rem;border-radius:10px;border:1px solid var(--border);background:var(--white);font-family:inherit;font-size:.85rem;font-weight:600;color:var(--ink);cursor:pointer"></button>
+        <button type="button" id="dd-confirm-ok-btn" style="flex:1;padding:.65rem;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer"></button>
+      </div>
     </div>
   </div>
 </div>
@@ -1217,6 +1229,8 @@ function resetSessionState() {
   var histBar = document.getElementById("hist-action-bar");
   if (histBanner) histBanner.style.display = "none";
   if (histBar) histBar.style.display = "none";
+  var ddOverlay = document.getElementById("dd-confirm-overlay");
+  if (ddOverlay) ddOverlay.style.display = "none";
   // Clearing the variables above is not enough on its own — the sidebar's left-hand
   // document list is RENDERED DOM, populated by renderGroupedRealDocs(), and nothing
   // forces that to redraw just because sessionDocuments changed underneath it. Found via
@@ -3871,16 +3885,73 @@ document.getElementById("hist-confirm-btn").addEventListener("click", function()
   else downloadSelectedHistoryItems();
 });
 
+// ── CENTERED CONFIRM MODAL ──
+// Replaces the browser's native confirm() for History-screen actions. The native dialog
+// can't be restyled or repositioned — Chrome always docks it near the address bar, which
+// in testing visually collided with the capsule row right above it. This renders inside
+// the page instead, centered, dimmed background, dismiss-by-tapping-outside only for the
+// non-destructive case (the download-then-delete offer); the actual delete warning requires
+// an explicit button tap, never an accidental outside click.
+function showConfirmModal(opts) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById("dd-confirm-overlay");
+    var iconWrap = document.getElementById("dd-confirm-icon-wrap");
+    var titleEl = document.getElementById("dd-confirm-title");
+    var bodyEl = document.getElementById("dd-confirm-body");
+    var cancelBtn = document.getElementById("dd-confirm-cancel-btn");
+    var okBtn = document.getElementById("dd-confirm-ok-btn");
+
+    titleEl.textContent = opts.title;
+    bodyEl.textContent = opts.body;
+    cancelBtn.textContent = opts.cancelLabel || "Cancel";
+    okBtn.textContent = opts.okLabel;
+
+    if (opts.tone === "danger") {
+      iconWrap.style.background = "#FCEBEB";
+      iconWrap.innerHTML = "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#A32D2D\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 7h16\"/><path d=\"M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13\"/><path d=\"M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3\"/></svg>";
+      okBtn.style.background = "#FCEBEB";
+      okBtn.style.color = "#A32D2D";
+      okBtn.style.borderColor = "#F09595";
+    } else {
+      iconWrap.style.background = "#EAF3DE";
+      iconWrap.innerHTML = "<svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#27500A\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M8 12l2.5 2.5L16 9\"/></svg>";
+      okBtn.style.background = "#EAF3DE";
+      okBtn.style.color = "#27500A";
+      okBtn.style.borderColor = "#97C459";
+    }
+
+    function cleanup(result) {
+      overlay.style.display = "none";
+      overlay.removeEventListener("click", onOverlayClick);
+      cancelBtn.removeEventListener("click", onCancel);
+      okBtn.removeEventListener("click", onOk);
+      resolve(result);
+    }
+    function onCancel() { cleanup(false); }
+    function onOk() { cleanup(true); }
+    function onOverlayClick(e) {
+      if (e.target === overlay && opts.dismissOnOutsideTap) cleanup(false);
+    }
+
+    cancelBtn.addEventListener("click", onCancel);
+    okBtn.addEventListener("click", onOk);
+    overlay.addEventListener("click", onOverlayClick);
+    overlay.style.display = "flex";
+  });
+}
+
 async function deleteSelectedHistoryItems() {
   var docKeys = Object.keys(historySelected);
   if (!docKeys.length) return;
   var n = docKeys.length;
-  var confirmed = confirm(
-    "Data will be deleted permanently, kindly confirm.\n\n" +
-    "This removes the chat and document summary for " + n + " item" + (n > 1 ? "s" : "") + ". " +
-    "If you need this again, you'll need to re-upload the statement.\n\n" +
-    "This cannot be undone."
-  );
+  var confirmed = await showConfirmModal({
+    tone: "danger",
+    title: "Data will be deleted permanently",
+    body: "This removes the chat and document summary for " + n + " item" + (n > 1 ? "s" : "") + ". If you need this again, you'll need to re-upload the statement. This cannot be undone.",
+    okLabel: "Delete",
+    cancelLabel: "Keep it",
+    dismissOnOutsideTap: false
+  });
   if (!confirmed) return;
 
   if (!sb) { toast("Connecting... please try again in a moment"); return; }
@@ -3948,23 +4019,22 @@ async function downloadSelectedHistoryItems() {
       });
       textParts.push("");
     });
-    var textBlob = new Blob([textParts.join("\n")], { type: "text/plain" });
-    var textUrl = URL.createObjectURL(textBlob);
-    var a1 = document.createElement("a");
-    a1.href = textUrl;
-    a1.download = "DataDost_conversations_" + new Date().toISOString().slice(0, 10) + ".txt";
-    document.body.appendChild(a1);
-    a1.click();
-    document.body.removeChild(a1);
-    URL.revokeObjectURL(textUrl);
+    var textContent = textParts.join("\n");
 
     // Financial summaries export as Excel — reuses the SheetJS library already loaded for
-    // Excel statement uploads, so no new dependency is introduced for this export path.
+    // Excel statement uploads, so no new dependency is introduced for this part.
     var snapResult = await sb.from("financial_snapshots")
       .select("doc_type, doc_name, income, spending, saved, opening_balance, closing_balance, months_covered, currency, account_id, doc_key, created_at")
       .eq("user_id", user.id)
       .in("doc_key", docKeys);
     if (snapResult.error) throw snapResult.error;
+
+    // Both files are bundled into a single .zip rather than triggered as two separate
+    // downloads. Two rapid downloads from the same page trips Chrome's "wants to download
+    // multiple files" permission gate — a real interruption seen in testing. One zip avoids
+    // that gate entirely and leaves the user with one tidy file instead of two loose ones.
+    var zip = new JSZip();
+    zip.file("DataDost_conversations.txt", textContent);
 
     if (snapResult.data && snapResult.data.length) {
       var sheetRows = snapResult.data.map(function(s) {
@@ -3984,8 +4054,19 @@ async function downloadSelectedHistoryItems() {
       var ws = XLSX.utils.json_to_sheet(sheetRows);
       var wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Financial summary");
-      XLSX.writeFile(wb, "DataDost_financial_summary_" + new Date().toISOString().slice(0, 10) + ".xlsx");
+      var xlsxArrayBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+      zip.file("DataDost_financial_summary.xlsx", xlsxArrayBuffer);
     }
+
+    var zipBlob = await zip.generateAsync({ type: "blob" });
+    var zipUrl = URL.createObjectURL(zipBlob);
+    var a1 = document.createElement("a");
+    a1.href = zipUrl;
+    a1.download = "DataDost_export_" + new Date().toISOString().slice(0, 10) + ".zip";
+    document.body.appendChild(a1);
+    a1.click();
+    document.body.removeChild(a1);
+    URL.revokeObjectURL(zipUrl);
 
     toast("Download ready. 📥");
 
@@ -3994,8 +4075,15 @@ async function downloadSelectedHistoryItems() {
     // Deliberately sequenced AFTER the download has genuinely completed above, so a failed
     // or cancelled export can never lead into a delete of data that wasn't actually saved.
     var n = docKeys.length;
-    setTimeout(function() {
-      var alsoDelete = confirm("Downloaded. Delete these " + n + " item" + (n > 1 ? "s" : "") + " now too?");
+    setTimeout(async function() {
+      var alsoDelete = await showConfirmModal({
+        tone: "success",
+        title: "Download ready",
+        body: "Delete these " + n + " item" + (n > 1 ? "s" : "") + " now too?",
+        okLabel: "Delete",
+        cancelLabel: "Keep it",
+        dismissOnOutsideTap: true
+      });
       if (alsoDelete) deleteSelectedHistoryItems();
       else exitHistoryMode();
     }, 600);
