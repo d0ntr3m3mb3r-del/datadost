@@ -313,11 +313,11 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
    small to identify at a glance. Order is fixed left-to-right: download, clear, delete. */
 .hist-cap-row{display:flex;gap:.6rem;margin-bottom:1.25rem}
 .hist-cap{flex:1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.65rem 1rem;border-radius:100px;border:1px solid var(--border);background:var(--white);font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
-.hist-cap-ic{font-size:1.15rem;line-height:1}
+.hist-cap-ic{flex-shrink:0}
 .hist-cap-download{border-color:#97C459;background:#EAF3DE;color:#27500A}
 .hist-cap-clear{border-color:var(--border);background:var(--white);color:var(--slate)}
 .hist-cap-delete{border-color:#F09595;background:#FCEBEB;color:#A32D2D}
 @media(max-width:660px){
-  .hist-cap{flex-direction:column;gap:.25rem;padding:.6rem .3rem;font-size:.7rem;border-radius:14px}
-  .hist-cap-ic{font-size:1.3rem}
+  .hist-cap{flex-direction:column;gap:.3rem;padding:.6rem .3rem;font-size:.7rem;border-radius:14px}
+  .hist-cap-ic{width:22px;height:22px}
 }
