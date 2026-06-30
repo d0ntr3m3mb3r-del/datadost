@@ -465,10 +465,16 @@
     <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
       <div style="font-family:Sora,sans-serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:.3rem">Past Conversations</div>
       <div style="font-size:.85rem;color:var(--slate);margin-bottom:.6rem">Every conversation you've had with DataDost, saved and ready to reopen anytime.</div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
-        <button type="button" id="hist-download-btn" title="Select items to download" style="background:none;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:#3B6D11">⬇</button>
-        <button type="button" id="clear-all-data-btn" style="background:none;border:none;font-family:inherit;font-size:.76rem;color:var(--slate);text-decoration:underline;cursor:pointer;padding:0">Clear everything at once</button>
-        <button type="button" id="hist-delete-btn" title="Select items to delete" style="background:none;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:#A32D2D">🗑</button>
+      <div class="hist-cap-row">
+        <button type="button" id="hist-download-btn" class="hist-cap hist-cap-download" title="Select items to download">
+          <span class="hist-cap-ic">⬇️</span><span>Download</span>
+        </button>
+        <button type="button" id="clear-all-data-btn" class="hist-cap hist-cap-clear" title="Clear all your data">
+          <span class="hist-cap-ic">🧹</span><span>Clear all</span>
+        </button>
+        <button type="button" id="hist-delete-btn" class="hist-cap hist-cap-delete" title="Select items to delete">
+          <span class="hist-cap-ic">🗑️</span><span>Delete</span>
+        </button>
       </div>
       <div id="hist-mode-banner" style="display:none;align-items:center;justify-content:space-between;padding:.5rem .75rem;border-radius:10px;margin-bottom:.6rem;font-size:.8rem"></div>
       <div id="history-list" style="display:flex;flex-direction:column;gap:.6rem"></div>
