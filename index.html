@@ -1952,7 +1952,7 @@ function renderUpRecent() {
     var el = document.createElement("div");
     el.className = "doc-item";
     el.innerHTML = "<div class=\"doc-ico\">" + d.ico + "</div><div><div class=\"doc-name\">" + d.name + "</div><div class=\"doc-meta\">" + d.meta + "</div></div><div class=\"doc-arr\">›</div>";
-    el.addEventListener("click", function() { selectDoc(d.doc); goTo("s-chat"); });
+    el.addEventListener("click", function() { selectDoc(d.doc, true); goTo("s-chat"); });
     ur.appendChild(el);
   });
 }
