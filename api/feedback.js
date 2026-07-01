@@ -1,7 +1,21 @@
-// No verifyUser dependency — feedback costs nothing to receive and carries no
-// security risk, so server-side token verification only adds a failure point
-// without meaningful protection. The sender's email comes from the request body
-// (populated client-side from the Supabase session before sending).
+// Saves beta feedback directly to a Supabase table — no email dependency,
+// no domain verification, no Resend configuration needed. Santosh checks
+// feedback anytime from the Supabase dashboard: Table Editor → feedback.
+// SQL to create the table (run once in Supabase SQL editor):
+//
+//   create table public.feedback (
+//     id uuid primary key default gen_random_uuid(),
+//     sender_email text,
+//     message text not null,
+//     screen text,
+//     user_agent text,
+//     created_at timestamptz default now()
+//   );
+//   alter table public.feedback enable row level security;
+//   create policy "service role only" on public.feedback
+//     using (false) with check (false);
+//   grant insert on public.feedback to anon, authenticated;
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -19,61 +33,40 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Feedback too long — please keep it under 2000 characters.' });
   }
 
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    console.error('[DataDost] RESEND_API_KEY not configured');
-    return res.status(500).json({ error: 'Email service not configured on server.' });
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    console.error('[DataDost] Supabase env vars not configured for feedback');
+    return res.status(500).json({ error: 'Feedback service not configured.' });
   }
 
-  const fromEmail = senderEmail || 'anonymous';
-  const timestamp = new Date().toLocaleString('en-IN', {
-    timeZone: 'Asia/Dubai', dateStyle: 'full', timeStyle: 'short'
-  });
-
-  const emailBody = `
-<div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e">
-  <div style="background:#E86832;padding:16px 24px;border-radius:12px 12px 0 0">
-    <h2 style="color:#fff;margin:0;font-size:18px">DataDost Beta Feedback</h2>
-  </div>
-  <div style="border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:24px">
-    <p style="font-size:15px;line-height:1.7;margin:0 0 20px;white-space:pre-wrap">${message.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
-    <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
-    <table style="font-size:12px;color:#6b7280;width:100%">
-      <tr><td style="padding:3px 0;width:80px"><b>From:</b></td><td>${fromEmail}</td></tr>
-      <tr><td style="padding:3px 0"><b>Screen:</b></td><td>${screen || 'Not reported'}</td></tr>
-      <tr><td style="padding:3px 0"><b>Time:</b></td><td>${timestamp}</td></tr>
-      <tr><td style="padding:3px 0"><b>Device:</b></td><td>${(userAgent || 'Unknown').slice(0, 120)}</td></tr>
-    </table>
-  </div>
-</div>`.trim();
-
   try {
-    const response = await fetch('https://api.resend.com/emails', {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/feedback`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        // Using Resend's built-in onboarding domain — no custom domain DNS
-        // verification needed. Delivers reliably to any inbox including Gmail.
-        from: 'DataDost Feedback <onboarding@resend.dev>',
-        to: ['santosh@datadost.in'],
-        reply_to: fromEmail !== 'anonymous' ? fromEmail : undefined,
-        subject: `Beta Feedback — ${fromEmail}`,
-        html: emailBody
+        sender_email: senderEmail || 'anonymous',
+        message: message.trim(),
+        screen: screen || 'Unknown',
+        user_agent: (userAgent || '').slice(0, 300)
       })
     });
 
     if (!response.ok) {
       const err = await response.text();
-      console.error('[DataDost] Resend error:', err);
-      return res.status(500).json({ error: 'Could not send feedback — please try again.' });
+      console.error('[DataDost] Supabase feedback insert error:', err);
+      return res.status(500).json({ error: 'Could not save feedback — please try again.' });
     }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error('[DataDost] Feedback send error:', err);
-    return res.status(500).json({ error: 'Could not send feedback — please try again.' });
+    console.error('[DataDost] Feedback error:', err);
+    return res.status(500).json({ error: 'Could not save feedback — please try again.' });
   }
 }
