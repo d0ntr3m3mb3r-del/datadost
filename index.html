@@ -4823,7 +4823,7 @@ initSupabase().then(function() { renderChat(); });
 
   closeBtn.addEventListener("click", fbReset);
 
-  sendBtn.addEventListener("click", function() {
+  sendBtn.addEventListener("click", async function() {
     var msg = textArea.value.trim();
     if (!msg) { textArea.focus(); return; }
 
@@ -4841,30 +4841,26 @@ initSupabase().then(function() { renderChat(); });
       if (s.classList.contains("active") && screenNames[s.id]) currentScreen = screenNames[s.id];
     });
 
-    // Auth token — try via the global sb object if available, fall back gracefully
-    // so a timing edge (sb not yet initialized) doesn't silently kill the send.
-    var tokenPromise;
+    // Get the sender's email from the live Supabase session and pass it in the
+    // request body — simpler and more reliable than server-side token verification
+    // for a low-risk endpoint like feedback.
+    var senderEmail = "";
     if (typeof sb !== "undefined" && sb) {
-      tokenPromise = sb.auth.getSession().then(function(r) {
-        return (r && r.data && r.data.session) ? r.data.session.access_token : "";
-      }).catch(function() { return ""; });
-    } else {
-      tokenPromise = Promise.resolve("");
+      try {
+        var sess = await sb.auth.getSession();
+        senderEmail = (sess && sess.data && sess.data.session && sess.data.session.user)
+          ? sess.data.session.user.email : "";
+      } catch(e) { senderEmail = ""; }
     }
-
-    tokenPromise.then(function(token) {
-      return fetch("/api/feedback", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + token
-        },
-        body: JSON.stringify({
-          message: msg,
-          screen: currentScreen,
-          userAgent: navigator.userAgent
-        })
-      });
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: msg,
+        screen: currentScreen,
+        userAgent: navigator.userAgent,
+        senderEmail: senderEmail
+      })
     }).then(function(resp) {
       // Always parse as text first — if the server returns HTML (e.g. a 404 page),
       // calling .json() directly throws and swallows the real error silently.
