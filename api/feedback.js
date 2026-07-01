@@ -55,8 +55,10 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'DataDost Feedback <feedback@datadost.in>',
-        to: ['support@datadost.in'],
+        // Using Resend's built-in onboarding domain — no custom domain DNS
+        // verification needed. Delivers reliably to any inbox including Gmail.
+        from: 'DataDost Feedback <onboarding@resend.dev>',
+        to: ['santosh@datadost.in'],
         reply_to: fromEmail !== 'anonymous' ? fromEmail : undefined,
         subject: `Beta Feedback — ${fromEmail}`,
         html: emailBody
