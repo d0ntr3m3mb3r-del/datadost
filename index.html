@@ -4779,6 +4779,7 @@ initSupabase().then(function() { renderChat(); });
     <p style="font-weight:700;font-size:.88rem;color:var(--ink);margin:0 0 .25rem">Share your feedback</p>
     <p style="font-size:.75rem;color:var(--slate);margin:0 0 .7rem">What's working, what's not — Santosh reads every message.</p>
     <textarea id="fb-text" rows="4" placeholder="Tell us what's on your mind..." style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;padding:.6rem .75rem;font-family:inherit;font-size:.82rem;resize:none;outline:none;line-height:1.5"></textarea>
+    <div id="fb-status" style="display:none;font-size:.76rem;margin:.4rem 0 0;padding:.4rem .6rem;border-radius:8px"></div>
     <div style="display:flex;gap:.5rem;margin-top:.6rem">
       <button type="button" id="fb-send" style="flex:1;padding:.55rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer">Send</button>
       <button type="button" id="fb-close" style="padding:.55rem .9rem;border-radius:999px;border:1px solid var(--border);background:none;font-family:inherit;font-size:.82rem;cursor:pointer">Cancel</button>
@@ -4792,11 +4793,27 @@ initSupabase().then(function() { renderChat(); });
 
 <script>
 (function() {
-  var toggle = document.getElementById("fb-toggle");
-  var panel  = document.getElementById("fb-panel");
+  var toggle  = document.getElementById("fb-toggle");
+  var panel   = document.getElementById("fb-panel");
   var sendBtn = document.getElementById("fb-send");
   var closeBtn = document.getElementById("fb-close");
   var textArea = document.getElementById("fb-text");
+  var statusEl = document.getElementById("fb-status");
+
+  function fbStatus(msg, isError) {
+    statusEl.textContent = msg;
+    statusEl.style.display = msg ? "block" : "none";
+    statusEl.style.background = isError ? "#FCEBEB" : "#EAF3DE";
+    statusEl.style.color = isError ? "#A32D2D" : "#27500A";
+  }
+
+  function fbReset() {
+    panel.style.display = "none";
+    textArea.value = "";
+    fbStatus("", false);
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Send";
+  }
 
   toggle.addEventListener("click", function() {
     var isOpen = panel.style.display !== "none";
@@ -4804,59 +4821,76 @@ initSupabase().then(function() { renderChat(); });
     if (!isOpen) setTimeout(function() { textArea.focus(); }, 50);
   });
 
-  closeBtn.addEventListener("click", function() {
-    panel.style.display = "none";
-    textArea.value = "";
-  });
+  closeBtn.addEventListener("click", fbReset);
 
-  sendBtn.addEventListener("click", async function() {
+  sendBtn.addEventListener("click", function() {
     var msg = textArea.value.trim();
     if (!msg) { textArea.focus(); return; }
 
     sendBtn.disabled = true;
     sendBtn.textContent = "Sending...";
+    fbStatus("", false);
 
-    // Identify which screen the user is currently on — gives Santosh context without
-    // asking the user to type it manually.
+    // Detect current screen for metadata — purely DOM, no globals needed
     var screenNames = {
       "s-dash": "Dashboard", "s-upload": "Upload", "s-chat": "Chat",
       "s-history": "History", "s-profile": "Profile", "s-terms": "Terms/Privacy"
     };
     var currentScreen = "Unknown";
-    document.querySelectorAll(".screen.active").forEach(function(s) {
-      if (screenNames[s.id]) currentScreen = screenNames[s.id];
+    document.querySelectorAll(".screen").forEach(function(s) {
+      if (s.classList.contains("active") && screenNames[s.id]) currentScreen = screenNames[s.id];
     });
 
-    try {
-      // Auth token needed by the serverless function's verifyUser check — same pattern
-      // used by chat.js and forecast.js for all authenticated requests.
-      var sessionResult = sb ? await sb.auth.getSession() : null;
-      var token = sessionResult && sessionResult.data && sessionResult.data.session
-        ? sessionResult.data.session.access_token : "";
+    // Auth token — try via the global sb object if available, fall back gracefully
+    // so a timing edge (sb not yet initialized) doesn't silently kill the send.
+    var tokenPromise;
+    if (typeof sb !== "undefined" && sb) {
+      tokenPromise = sb.auth.getSession().then(function(r) {
+        return (r && r.data && r.data.session) ? r.data.session.access_token : "";
+      }).catch(function() { return ""; });
+    } else {
+      tokenPromise = Promise.resolve("");
+    }
 
-      var resp = await fetch("/api/feedback", {
+    tokenPromise.then(function(token) {
+      return fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
         body: JSON.stringify({
           message: msg,
           screen: currentScreen,
           userAgent: navigator.userAgent
         })
       });
-
-      var data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || "Send failed");
-
-      panel.style.display = "none";
-      textArea.value = "";
-      toast("Thank You — We value your feedback 🙏");
-    } catch (err) {
-      console.error("[DataDost] Feedback error:", err);
-      toast("Couldn't send feedback — please try again.");
-    } finally {
+    }).then(function(resp) {
+      // Always parse as text first — if the server returns HTML (e.g. a 404 page),
+      // calling .json() directly throws and swallows the real error silently.
+      return resp.text().then(function(text) {
+        var data = {};
+        try { data = JSON.parse(text); } catch(e) { data = { error: "Server error (" + resp.status + ")" }; }
+        if (!resp.ok) throw new Error(data.error || "Send failed (" + resp.status + ")");
+        return data;
+      });
+    }).then(function() {
+      fbReset();
+      // Use global toast if available, fall back to visible alert so success
+      // is never silent regardless of environment or timing.
+      if (typeof toast === "function") {
+        toast("Thank You — We value your feedback 🙏");
+      } else {
+        alert("Thank You — We value your feedback!");
+      }
+    }).catch(function(err) {
+      console.error("[DataDost] Feedback send error:", err.message || err);
       sendBtn.disabled = false;
       sendBtn.textContent = "Send";
-    }
+      // Show in-panel error AND a temporary alert so the failure is never invisible
+      // during diagnosis — will be dialled back once root cause is confirmed.
+      fbStatus("Couldn't send (" + (err.message || "unknown") + ") — please try again.", true);
+    });
   });
 })();
 </script>
