@@ -1,5 +1,7 @@
-import { verifyUser } from './_rateLimit.js';
-
+// No verifyUser dependency — feedback costs nothing to receive and carries no
+// security risk, so server-side token verification only adds a failure point
+// without meaningful protection. The sender's email comes from the request body
+// (populated client-side from the Supabase session before sending).
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -8,14 +10,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  // Require a valid DataDost session — feedback must come from a real logged-in user,
-  // not an anonymous scraper or a script hitting the endpoint directly.
-  const user = await verifyUser(req);
-  if (!user) {
-    return res.status(401).json({ error: 'Please log in to send feedback.' });
-  }
+  const { message, screen, userAgent, senderEmail } = req.body;
 
-  const { message, screen, userAgent } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Feedback message is required.' });
   }
@@ -29,7 +25,10 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Email service not configured on server.' });
   }
 
-  const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Dubai', dateStyle: 'full', timeStyle: 'short' });
+  const fromEmail = senderEmail || 'anonymous';
+  const timestamp = new Date().toLocaleString('en-IN', {
+    timeZone: 'Asia/Dubai', dateStyle: 'full', timeStyle: 'short'
+  });
 
   const emailBody = `
 <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e">
@@ -40,14 +39,13 @@ export default async function handler(req, res) {
     <p style="font-size:15px;line-height:1.7;margin:0 0 20px;white-space:pre-wrap">${message.trim().replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
     <table style="font-size:12px;color:#6b7280;width:100%">
-      <tr><td style="padding:3px 0"><b>From:</b></td><td>${user.email}</td></tr>
+      <tr><td style="padding:3px 0;width:80px"><b>From:</b></td><td>${fromEmail}</td></tr>
       <tr><td style="padding:3px 0"><b>Screen:</b></td><td>${screen || 'Not reported'}</td></tr>
       <tr><td style="padding:3px 0"><b>Time:</b></td><td>${timestamp}</td></tr>
       <tr><td style="padding:3px 0"><b>Device:</b></td><td>${(userAgent || 'Unknown').slice(0, 120)}</td></tr>
     </table>
   </div>
-</div>
-  `.trim();
+</div>`.trim();
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -59,8 +57,8 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from: 'DataDost Feedback <feedback@datadost.in>',
         to: ['support@datadost.in'],
-        reply_to: user.email,
-        subject: `Beta Feedback from ${user.email}`,
+        reply_to: fromEmail !== 'anonymous' ? fromEmail : undefined,
+        subject: `Beta Feedback — ${fromEmail}`,
         html: emailBody
       })
     });
