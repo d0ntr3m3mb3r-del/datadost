@@ -1,21 +1,8 @@
-// Saves beta feedback directly to a Supabase table — no email dependency,
-// no domain verification, no Resend configuration needed. Santosh checks
-// feedback anytime from the Supabase dashboard: Table Editor → feedback.
-// SQL to create the table (run once in Supabase SQL editor):
-//
-//   create table public.feedback (
-//     id uuid primary key default gen_random_uuid(),
-//     sender_email text,
-//     message text not null,
-//     screen text,
-//     user_agent text,
-//     created_at timestamptz default now()
-//   );
-//   alter table public.feedback enable row level security;
-//   create policy "service role only" on public.feedback
-//     using (false) with check (false);
-//   grant insert on public.feedback to anon, authenticated;
-
+// Saves beta feedback directly to Supabase using the existing SUPABASE_ANON_KEY
+// and SUPABASE_URL — no new env vars needed, both are already configured for chat/forecast.
+// RLS INSERT policy on the feedback table allows anon + authenticated writes:
+//   create policy "allow_feedback_insert" on public.feedback
+//     for insert to anon, authenticated with check (true);
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -34,10 +21,10 @@ export default async function handler(req, res) {
   }
 
   const SUPABASE_URL = process.env.SUPABASE_URL;
-  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-    console.error('[DataDost] Supabase env vars not configured for feedback');
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('[DataDost] Supabase env vars missing in feedback.js');
     return res.status(500).json({ error: 'Feedback service not configured.' });
   }
 
@@ -46,8 +33,8 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
@@ -60,7 +47,7 @@ export default async function handler(req, res) {
 
     if (!response.ok) {
       const err = await response.text();
-      console.error('[DataDost] Supabase feedback insert error:', err);
+      console.error('[DataDost] Supabase feedback insert error:', response.status, err);
       return res.status(500).json({ error: 'Could not save feedback — please try again.' });
     }
 
