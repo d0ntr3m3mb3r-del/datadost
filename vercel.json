@@ -1,10 +1,12 @@
 {
   "version": 2,
   "rewrites": [
-    { "source": "/api/chat", "destination": "/api/chat.js" }
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/api/feedback", "destination": "/api/feedback.js" }
   ],
   "functions": {
     "api/chat.js": { "maxDuration": 60 },
-    "api/forecast.js": { "maxDuration": 60 }
+    "api/forecast.js": { "maxDuration": 60 },
+    "api/feedback.js": { "maxDuration": 10 }
   }
 }

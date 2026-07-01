@@ -322,3 +322,5 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   .hist-cap-ic{width:22px;height:22px}
 }
 @keyframes ddNudgeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+/* Feedback button: collapse to icon-only on mobile, same breakpoint as History capsules */
+@media(max-width:660px){.fb-label{display:none}}
