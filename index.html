@@ -32,6 +32,7 @@
    since it's confirming a real event that just happened, not an ambient demo. */
 @keyframes ddShredOut{0%{opacity:1}100%{opacity:0}}
 @keyframes ddSettleIn{0%{opacity:0;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+@keyframes ddShredDoc{0%{opacity:0;transform:translateY(-8px)}20%{opacity:1;transform:translateY(0)}70%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(10px)}}
 /* Added: small auto-animating loan-affordability teaser card, sitting next to the
    hero demo, pre-login. Bars and verdict colors deliberately mirror the real dashboard
    calculator exactly (same green/amber/red logic) so nothing here over-promises
@@ -390,9 +391,25 @@
   <div class="sc"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>
   <p id="sov-sub">I've read through your document. Here's what I found:</p>
   <div class="sov-ins" id="sov-ins"></div>
-  <div style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.74rem;color:var(--green);background:var(--green-l);border-radius:100px;padding:.4rem 1rem;margin:.75rem auto;width:fit-content;opacity:0;animation:ddSettleIn .8s ease-out .3s forwards">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
-    File read and deleted — only a short summary was kept
+  <div style="display:flex;flex-direction:column;align-items:center;gap:.35rem;margin:.6rem auto">
+    <div style="position:relative;width:56px;height:64px;margin:0 auto">
+      <svg id="shred-doc" width="56" height="64" viewBox="0 0 56 64" fill="none" style="animation:ddShredDoc .5s ease-out .1s both">
+        <rect x="4" y="2" width="36" height="46" rx="4" fill="#EAF3DE" stroke="#97C459" stroke-width="1.5"/>
+        <line x1="12" y1="16" x2="32" y2="16" stroke="#97C459" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="12" y1="23" x2="32" y2="23" stroke="#97C459" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="12" y1="30" x2="24" y2="30" stroke="#97C459" stroke-width="1.5" stroke-linecap="round"/>
+        <rect x="2" y="44" width="40" height="6" rx="2" fill="#3B6D11" opacity="0.85"/>
+        <line x1="10" y1="50" x2="8" y2="62" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="16" y1="50" x2="15" y2="62" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="22" y1="50" x2="22" y2="62" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="28" y1="50" x2="29" y2="62" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <line x1="34" y1="50" x2="36" y2="62" stroke="#3B6D11" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+      </svg>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.74rem;color:var(--green);background:var(--green-l);border-radius:100px;padding:.4rem 1rem;width:fit-content;opacity:0;animation:ddSettleIn .6s ease-out .7s forwards">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+      File read and deleted — only a short summary was kept
+    </div>
   </div>
   <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
   <button style="font-size:.76rem;color:var(--slate);cursor:pointer;background:none;border:none;font-family:inherit;margin-top:.5rem;text-decoration:underline" id="sov-close">Upload a different document</button>
