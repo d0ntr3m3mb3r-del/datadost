@@ -4846,26 +4846,19 @@ initSupabase().then(function() { renderChat(); });
       if (s.classList.contains("active") && screenNames[s.id]) currentScreen = screenNames[s.id];
     });
 
-    // Get the sender's email from the live Supabase session and pass it in the
-    // request body — simpler and more reliable than server-side token verification
-    // for a low-risk endpoint like feedback.
-    var senderEmail = "";
-    if (typeof sb !== "undefined" && sb) {
-      try {
-        var sess = await sb.auth.getSession();
-        senderEmail = (sess && sess.data && sess.data.session && sess.data.session.user)
-          ? sess.data.session.user.email : "";
-      } catch(e) { senderEmail = ""; }
-    }
-    fetch("/api/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: msg,
-        screen: currentScreen,
-        userAgent: navigator.userAgent,
-        senderEmail: senderEmail
-      })
+    // Auth header carries the Supabase session token — the server extracts the
+    // verified email from it directly, so the user never needs to type their email
+    // and it can't be spoofed in the request body.
+    getAuthHeader().then(function(authHeader) {
+      return fetch("/api/feedback", {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
+        body: JSON.stringify({
+          message: msg,
+          screen: currentScreen,
+          userAgent: navigator.userAgent
+        })
+      });
     }).then(function(resp) {
       // Always parse as text first — if the server returns HTML (e.g. a 404 page),
       // calling .json() directly throws and swallows the real error silently.
