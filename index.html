@@ -906,6 +906,11 @@ function goTo(id, tab) {
     if (s.id === id) { s.classList.add("active"); }
     else { s.classList.remove("active"); }
   });
+  // Hide the feedback button on the Chat screen — the send button lives in the same
+  // bottom-right corner on mobile and they overlap. Users can still send feedback from
+  // any other screen. Show it again the moment they navigate away from Chat.
+  var fbWrap = document.getElementById("fb-wrap");
+  if (fbWrap) fbWrap.style.display = id === "s-chat" ? "none" : "flex";
   // For the Terms/Privacy screen, "tab" is reused as an anchor id (e.g. "anchor-contact")
   // so links like Privacy Policy / Terms of Use / Contact jump straight to their section
   // instead of always landing at the top of this long combined page.
