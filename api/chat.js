@@ -43,17 +43,28 @@ export default async function handler(req, res) {
   // waste a rate-limit slot on a request we're going to reject anyway. Returns a
   // specific error type ('PLAN_LIMIT') so the frontend can distinguish this from a
   // generic error and show the paywall UI rather than a generic error message.
+  //
+  // IMPORTANT: skip this check for document SCAN calls. Scans are the detection phase
+  // in analyseRealDocument() — they extract figures from an uploaded file and are NOT
+  // questions asked by the user. The reliable signal is that scan calls never include
+  // dynamicContext (regular chat messages always do). Blocking scans with the question
+  // limit would prevent free users from uploading documents at all, which is wrong —
+  // the upload limit (FREE_UPLOAD_LIMIT = 2) is the correct gate for uploads, and it
+  // is enforced client-side before the scan call even fires.
   const { docKey: reqDocKey } = req.body || {};
-  const planResult = await checkPlanLimits({ user, docKey: reqDocKey });
-  if (!planResult.allowed) {
-    return res.status(402).json({
-      error: 'PLAN_LIMIT',
-      limitType: planResult.limitType,
-      questionCount: planResult.questionCount,
-      totalAllowed: planResult.totalAllowed,
-      remaining: planResult.remaining,
-      bonusEarned: planResult.bonusEarned
-    });
+  const isScanCall = !req.body.dynamicContext;
+  if (!isScanCall) {
+    const planResult = await checkPlanLimits({ user, docKey: reqDocKey });
+    if (!planResult.allowed) {
+      return res.status(402).json({
+        error: 'PLAN_LIMIT',
+        limitType: planResult.limitType,
+        questionCount: planResult.questionCount,
+        totalAllowed: planResult.totalAllowed,
+        remaining: planResult.remaining,
+        bonusEarned: planResult.bonusEarned
+      });
+    }
   }
 
   const { messages, systemPrompt, dynamicContext, fileData, fileMediaType, fileDataMulti } = req.body;
