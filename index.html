@@ -1143,51 +1143,71 @@ var bannerDismissed       = false; // tracks whether the Q15 warning banner was 
 
 async function initUserPlan(user) {
   try {
-    // Capture any referral code from the URL before anything else — if this user
-    // arrived via datadost.in?ref=SAN7K2 we want to record that relationship now.
+    // Capture any referral code from the URL before anything else
     var urlRef = new URLSearchParams(window.location.search).get("ref") || "";
-    // Remove the ref param from the URL bar so it doesn't linger or get bookmarked
     if (urlRef && window.history && window.history.replaceState) {
-      var cleanUrl = window.location.pathname;
-      window.history.replaceState({}, "", cleanUrl);
+      window.history.replaceState({}, "", window.location.pathname);
     }
 
-    var authHeader = await getAuthHeader();
-    var resp = await fetch("/api/referral", {
-      method: "POST",
-      headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
-      body: JSON.stringify({ action: "init", refCode: urlRef, email: user.email })
-    });
-    if (resp.ok) {
-      var data = await resp.json();
-      if (data.plan) {
-        userPlan.plan                    = data.plan.plan || "free";
-        userPlan.ref_code                = data.plan.ref_code || "";
-        userPlan.bonus_questions_earned  = data.plan.bonus_questions_earned || 0;
-        userPlan.bonus_questions_used    = data.plan.bonus_questions_used || 0;
-        userPlan.waitlisted              = data.plan.waitlisted || false;
-      }
-    }
+    if (!sb) return;
 
-    // Also set upload count from financial_snapshots so the upload gate works
-    if (sb) {
-      var sessionResult = await sb.auth.getSession();
-      var usr = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
-      if (usr) {
-        var snaps = await sb.from("financial_snapshots").select("doc_key").eq("user_id", usr.id);
-        if (!snaps.error && snaps.data) {
-          var uniqueKeys = new Set(snaps.data.map(function(r) { return r.doc_key; }));
-          sessionUploadCount = uniqueKeys.size;
+    // Read user_plans directly from Supabase — no server roundtrip needed since
+    // we already have an authenticated client here. The referral.js serverless function
+    // was causing 500 errors because the Bearer token wasn't always available at the
+    // exact moment initUserPlan fires on page load (auth session hydration timing).
+    var planResult = await sb.from("user_plans")
+      .select("plan,ref_code,bonus_questions_earned,bonus_questions_used,waitlisted,referred_by")
+      .eq("user_id", user.id)
+      .single();
+
+    if (planResult.data) {
+      userPlan.plan                   = planResult.data.plan || "free";
+      userPlan.ref_code               = planResult.data.ref_code || "";
+      userPlan.bonus_questions_earned = planResult.data.bonus_questions_earned || 0;
+      userPlan.bonus_questions_used   = planResult.data.bonus_questions_used || 0;
+      userPlan.waitlisted             = planResult.data.waitlisted || false;
+    } else {
+      // No plan row yet — create one via the referral API (only needed once, on first login)
+      // Use a short delay to ensure the session is fully hydrated before calling
+      setTimeout(async function() {
+        try {
+          var authHeader = await getAuthHeader();
+          if (authHeader.Authorization) {
+            await fetch("/api/referral", {
+              method: "POST",
+              headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
+              body: JSON.stringify({ action: "init", refCode: urlRef, email: user.email })
+            });
+            // Re-read after creation
+            var retryResult = await sb.from("user_plans")
+              .select("plan,ref_code,bonus_questions_earned,bonus_questions_used,waitlisted")
+              .eq("user_id", user.id)
+              .single();
+            if (retryResult.data) {
+              userPlan.plan                   = retryResult.data.plan || "free";
+              userPlan.ref_code               = retryResult.data.ref_code || "";
+              userPlan.bonus_questions_earned = retryResult.data.bonus_questions_earned || 0;
+              userPlan.bonus_questions_used   = retryResult.data.bonus_questions_used || 0;
+              userPlan.waitlisted             = retryResult.data.waitlisted || false;
+            }
+          }
+        } catch (e) {
+          console.error("[DataDost] Plan row creation error:", e);
         }
-        // Also count questions already asked (lifetime total for flat-pool accounting)
-        var msgs = await sb.from("messages").select("id", { count: "exact" }).eq("user_id", usr.id).eq("role", "user");
-        if (!msgs.error) sessionQuestionCount = msgs.count || 0;
-      }
+      }, 1500);
     }
+
+    // Set upload count and question count from existing data
+    var snaps = await sb.from("financial_snapshots").select("doc_key").eq("user_id", user.id);
+    if (!snaps.error && snaps.data) {
+      sessionUploadCount = new Set(snaps.data.map(function(r) { return r.doc_key; })).size;
+    }
+    var msgs = await sb.from("messages").select("id", { count: "exact" }).eq("user_id", user.id).eq("role", "user");
+    if (!msgs.error) sessionQuestionCount = msgs.count || 0;
+
     console.log("[DataDost] Plan loaded:", userPlan.plan, "| Qs used:", sessionQuestionCount, "| Uploads:", sessionUploadCount);
   } catch (err) {
     console.error("[DataDost] initUserPlan error:", err);
-    // Fail open — a plan init failure must never block access to the product
   }
 }
 
@@ -5154,12 +5174,20 @@ async function renderNewsTicker() {
   var cards = document.getElementById("dash-news-cards");
   if (!section || !cards || !sb) return;
   try {
+    // Wait for the auth session to be confirmed — querying before this causes 403
+    // because the Supabase client hasn't set the Authorization header yet
+    var sessionResult = await sb.auth.getSession();
+    if (!sessionResult.data || !sessionResult.data.session) return;
+
     var result = await sb.from("news_ticker")
       .select("id,headline,source,blurb,ask_prompt")
       .eq("active", true)
       .order("published_at", { ascending: false })
       .limit(2);
-    if (result.error || !result.data || result.data.length === 0) return;
+    if (result.error || !result.data || result.data.length === 0) {
+      console.warn("[DataDost] News ticker:", result.error ? result.error.message : "no rows");
+      return;
+    }
     section.style.display = "block";
     cards.innerHTML = "";
     result.data.forEach(function(item) {
