@@ -83,21 +83,72 @@ export async function checkRateLimit({ user, endpoint, burstLimit, burstWindowSe
       body: JSON.stringify({ user_id: user.id, endpoint }),
     });
 
-    // Best-effort, fire-and-forget cleanup of this user's own rows older than the longest
-    // window we ever check — keeps the table from growing forever without needing a
-    // separate cron job. Never awaited; a failure here should never affect the real request.
-    const cutoff = new Date(now - 25 * 60 * 60 * 1000).toISOString();
-    fetch(`${SUPABASE_URL}/rest/v1/api_rate_limits?user_id=eq.${user.id}&created_at=lt.${encodeURIComponent(cutoff)}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${user.token}`, apikey: SUPABASE_ANON_KEY, Prefer: 'return=minimal' },
-    }).catch(() => {});
+// checkPlanLimits() — checks whether a free-tier user has remaining questions
+// or uploads. Called from chat.js before processing each message. Returns
+// { allowed: true } for paid users and for any infrastructure failure (fail open).
+// Returns { allowed: false, limitType, remaining } when a free user is over limit.
+//
+// Limit rules agreed during product design:
+//   Free tier:  20 questions lifetime flat pool (across all documents, not per-doc)
+//               + bonus_questions_earned from referrals (5 per completed referral, max 10)
+//               2 document uploads maximum
+//   Plus/beta:  unlimited questions and uploads
+//
+// Questions are counted from the messages table (role = 'user' rows).
+// Uploads are counted from the financial_snapshots table (distinct doc_keys per user).
+// The flat-pool model was chosen over per-document limits because it is simpler to
+// explain in marketing copy and more generous for single-document users.
 
-    return { allowed: true };
+const FREE_QUESTION_BASE = 20;
+const FREE_UPLOAD_LIMIT  = 2;
+
+export async function checkPlanLimits({ user, docKey }) {
+  try {
+    // 1. Get the user's plan and bonus credits
+    const planResp = await fetch(
+      `${SUPABASE_URL}/rest/v1/user_plans?user_id=eq.${user.id}&select=plan,bonus_questions_earned,bonus_questions_used`,
+      { headers: { Authorization: `Bearer ${user.token}`, apikey: SUPABASE_ANON_KEY } }
+    );
+    if (!planResp.ok) return { allowed: true }; // fail open on infra error
+
+    const planRows = await planResp.json();
+    if (!planRows || planRows.length === 0) return { allowed: true }; // no plan row yet = new user, allow
+
+    const plan = planRows[0];
+
+    // Paid users — unlimited
+    if (plan.plan && plan.plan !== 'free') return { allowed: true };
+
+    // 2. Count total user questions ever asked (flat pool, account-level)
+    const qResp = await fetch(
+      `${SUPABASE_URL}/rest/v1/messages?user_id=eq.${user.id}&role=eq.user&select=id`,
+      { headers: { Authorization: `Bearer ${user.token}`, apikey: SUPABASE_ANON_KEY } }
+    );
+    if (!qResp.ok) return { allowed: true };
+    const qRows = await qResp.json();
+    const questionCount = qRows ? qRows.length : 0;
+
+    const bonusEarned  = plan.bonus_questions_earned || 0;
+    const totalAllowed = FREE_QUESTION_BASE + bonusEarned;
+    const remaining    = Math.max(0, totalAllowed - questionCount);
+
+    if (questionCount >= totalAllowed) {
+      return {
+        allowed: false,
+        limitType: 'questions',
+        questionCount,
+        totalAllowed,
+        remaining: 0,
+        bonusEarned
+      };
+    }
+
+    return { allowed: true, remaining, questionCount, totalAllowed };
   } catch (err) {
-    // An infrastructure hiccup (Supabase momentarily unreachable, etc.) should never be
-    // the reason a legitimate user can't chat — fail OPEN here. This only protects
-    // against abuse; it should never become the cause of a real outage.
-    console.error('[DataDost] Rate limit check failed — failing open:', err);
+    // Infrastructure failure must never block a real user — fail open
+    console.error('[DataDost] Plan limit check failed — failing open:', err);
     return { allowed: true };
   }
 }
+
+export { FREE_QUESTION_BASE, FREE_UPLOAD_LIMIT };

@@ -1,4 +1,4 @@
-import { verifyUser, checkRateLimit } from './_rateLimit.js';
+import { verifyUser, checkRateLimit, checkPlanLimits } from './_rateLimit.js';
 
 export default async function handler(req, res) {
   // Allow CORS from any origin (our DataDost frontend)
@@ -37,6 +37,23 @@ export default async function handler(req, res) {
   });
   if (!rateLimitResult.allowed) {
     return res.status(rateLimitResult.status).json({ error: rateLimitResult.error });
+  }
+
+  // Free-tier plan enforcement — checked AFTER the API-level rate limit so we don't
+  // waste a rate-limit slot on a request we're going to reject anyway. Returns a
+  // specific error type ('PLAN_LIMIT') so the frontend can distinguish this from a
+  // generic error and show the paywall UI rather than a generic error message.
+  const { docKey: reqDocKey } = req.body || {};
+  const planResult = await checkPlanLimits({ user, docKey: reqDocKey });
+  if (!planResult.allowed) {
+    return res.status(402).json({
+      error: 'PLAN_LIMIT',
+      limitType: planResult.limitType,
+      questionCount: planResult.questionCount,
+      totalAllowed: planResult.totalAllowed,
+      remaining: planResult.remaining,
+      bonusEarned: planResult.bonusEarned
+    });
   }
 
   const { messages, systemPrompt, dynamicContext, fileData, fileMediaType, fileDataMulti } = req.body;
