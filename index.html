@@ -246,6 +246,54 @@
     <div class="dash-body">
       <div><div class="dash-h"><span id="dash-greeting">Good morning</span>, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
+
+      <!-- NEWS TICKER — curated finance news, shown to logged-in users -->
+      <div id="dash-news-section" style="display:none;margin-top:1rem">
+        <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:.6rem">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sf)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M4 22a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M10 14h8m-8 4h8m-8-8h8"/></svg>
+          Money news that matters to you
+        </div>
+        <div id="dash-news-cards"></div>
+        <div style="font-size:.68rem;color:var(--slate);text-align:right;margin-top:4px">Updated every 3 days · curated by DataDost</div>
+      </div>
+
+      <!-- REFERRAL MINI-CARD — always visible once user has a plan row -->
+      <div id="dash-ref-card" style="display:none;background:var(--white);border:1px solid var(--border-g,#97C459);border-radius:12px;padding:.9rem;margin-top:.9rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div style="width:32px;height:32px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          </div>
+          <div>
+            <div style="font-size:.82rem;font-weight:600">Refer friends, earn questions</div>
+            <div style="font-size:.7rem;color:var(--slate)">You and each friend both get 5 bonus questions</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
+          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
+            <div id="dash-ref-count" style="font-size:1.1rem;font-weight:600;color:var(--sf)">0</div>
+            <div style="font-size:.65rem;color:var(--slate)">Friends joined</div>
+          </div>
+          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
+            <div id="dash-bonus-count" style="font-size:1.1rem;font-weight:600;color:var(--green)">+0</div>
+            <div style="font-size:.65rem;color:var(--slate)">Bonus earned</div>
+          </div>
+          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
+            <div id="dash-q-remaining" style="font-size:1.1rem;font-weight:600;color:var(--sf)">20</div>
+            <div style="font-size:.65rem;color:var(--slate)">Questions left</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;background:var(--mist);border-radius:8px;padding:6px 10px;font-size:.7rem;color:var(--slate);font-family:monospace;margin-bottom:7px">
+          <span id="dash-ref-link">datadost.in?ref=...</span>
+          <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:.5rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.374 8.374 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.535 5.857L0 24l6.335-1.652A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 0 1-5.188-1.41l-.371-.22-3.762.981.999-3.651-.244-.38A9.94 9.94 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+            Share on WhatsApp
+          </button>
+          <button type="button" onclick="copyRefLink()" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:.5rem;border-radius:100px;background:var(--mist);border:1px solid var(--border);font-family:inherit;font-size:.72rem;cursor:pointer">Copy link</button>
+        </div>
+      </div>
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-val">₹48,500</div><div class="stat-lbl">Monthly income</div><div class="stat-trend t-good">↑ Same as last month</div></div>
@@ -321,6 +369,32 @@
     <div class="upload-body">
       <div class="upload-left">
         <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
+
+        <!-- Upload limit paywall — shown instead of the dropzone when free user hits 2 uploads -->
+        <div id="upload-paywall" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <div style="display:inline-flex;align-items:center;gap:5px;background:var(--sf-l);color:var(--sf);border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:600;margin-bottom:10px">
+            Free plan · 2 of 2 uploads used
+          </div>
+          <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:10px"><div style="height:100%;border-radius:2px;background:#E07B39;width:100%"></div></div>
+          <p style="font-size:.88rem;font-weight:600;color:var(--ink);margin:0 0 4px">You've explored 2 documents on the free plan</p>
+          <p style="font-size:.78rem;color:var(--slate);margin:0 0 12px;line-height:1.5">Upgrade for unlimited uploads, or refer friends to unlock 10 bonus questions on your existing documents.</p>
+          <div style="background:var(--mist);border-radius:9px;padding:9px 12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div><div style="font-size:.82rem;font-weight:600">DataDost Plus</div><div style="font-size:.72rem;color:var(--slate)">Unlimited uploads · unlimited questions</div></div>
+            <div style="font-size:.88rem;font-weight:600;color:var(--sf)">₹199<span style="font-size:.68rem;color:var(--slate)">/mo</span></div>
+          </div>
+          <button type="button" onclick="showWaitlistModal('plus')" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:.7rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;margin-bottom:10px">Join Plus waitlist</button>
+          <div style="background:var(--green-l);border:1px solid var(--border-g,#97C459);border-radius:10px;padding:10px 12px">
+            <div style="font-size:.75rem;font-weight:600;color:var(--green);margin-bottom:3px">Not ready to pay? Refer friends instead</div>
+            <div style="font-size:.75rem;color:var(--slate);margin-bottom:8px;line-height:1.5">2 referrals who upload = 10 bonus questions on your existing documents.</div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--slate);font-family:monospace;margin-bottom:7px">
+              <span id="upload-paywall-ref-link">datadost.in?ref=...</span>
+              <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
+            </div>
+            <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
+          </div>
+          <button type="button" onclick="goTo('s-chat')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.6rem;border-radius:100px;background:none;border:1px solid var(--border);font-family:inherit;font-size:.78rem;cursor:pointer;color:var(--slate);margin-top:8px">Continue with my existing documents</button>
+        </div>
+
         <div class="dz" id="dz">
           <input type="file" id="file-inp" accept=".pdf,.jpg,.jpeg,.png,.csv,.xlsx,.xls" multiple style="display:none">
           <input type="file" id="file-inp-camera" accept="image/*" capture="environment" style="display:none">
@@ -453,8 +527,48 @@
         <div class="chat-hdr-ico" id="chat-hdr-ico">🏦</div>
         <div><div class="chat-hdr-title" id="chat-hdr-title">General Chat</div><div class="chat-hdr-sub" id="chat-hdr-sub">Ask anything — no document needed</div></div>
       </div>
+      <!-- Q15 warning banner — appears from question 15 onward, green, dismissible -->
+      <div id="plan-warn-banner" style="display:none;align-items:center;gap:8px;padding:6px 14px;background:var(--green-l);border-bottom:1px solid var(--border-g, #97C459);font-size:.78rem;color:var(--green)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+        <span id="plan-warn-text">5 free questions left — refer a friend to unlock 5 more</span>
+        <button type="button" onclick="document.getElementById('plan-warn-banner').style.display='none';bannerDismissed=true;" style="margin-left:auto;background:none;border:none;cursor:pointer;padding:0;color:var(--green)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+        <button type="button" onclick="shareOnWhatsApp()" style="margin-left:4px;background:none;border:none;cursor:pointer;padding:0;color:var(--green);font-size:.75rem;font-weight:600;text-decoration:underline;font-family:inherit">Share now</button>
+      </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="qbtns" id="qbtns"></div>
+      <!-- Q20 inline paywall — replaces the input row when free limit is reached -->
+      <div id="plan-paywall" style="display:none;padding:.9rem 1.1rem;border-top:1px solid var(--border)">
+        <div style="background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1rem">
+          <div style="display:inline-flex;align-items:center;gap:5px;background:var(--sf-l);color:var(--sf);border-radius:999px;padding:3px 10px;font-size:.72rem;font-weight:600;margin-bottom:8px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span id="paywall-pill-text">20 of 20 free questions used</span>
+          </div>
+          <div style="background:var(--mist);border-radius:8px;padding:8px 10px;margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:.72rem;color:var(--slate)"><span>Questions used</span><span id="paywall-bar-label" style="color:#A32D2D;font-weight:600">20 / 20</span></div>
+            <div style="height:4px;background:var(--border);border-radius:2px;margin-top:5px;overflow:hidden"><div id="paywall-bar" style="height:100%;border-radius:2px;background:#A32D2D;width:100%"></div></div>
+          </div>
+          <p style="font-size:.84rem;font-weight:600;color:var(--ink);margin:0 0 3px">You've used all your free questions</p>
+          <p style="font-size:.78rem;color:var(--slate);margin:0 0 12px;line-height:1.5">Your documents and all answers stay right here — upgrade to keep asking, or refer a friend to unlock 5 more.</p>
+          <button type="button" onclick="showWaitlistModal('plus')" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:.65rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;margin-bottom:8px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            Join Plus waitlist — ₹199/month
+          </button>
+          <div style="background:var(--green-l);border:1px solid var(--border-g,#97C459);border-radius:10px;padding:10px 12px">
+            <div style="font-size:.75rem;font-weight:600;color:var(--green);margin-bottom:3px">Or refer a friend — you both get 5 bonus questions</div>
+            <div style="font-size:.75rem;color:var(--slate);margin-bottom:8px;line-height:1.5">Refer 2 friends who upload a document = 10 bonus questions total.</div>
+            <div id="paywall-ref-dots" style="display:flex;gap:6px;margin-bottom:4px"></div>
+            <div id="paywall-ref-status" style="font-size:.7rem;color:var(--slate);margin-bottom:7px">0 of 2 referrals completed</div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--slate);font-family:monospace;margin-bottom:8px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+              <span id="paywall-ref-link">datadost.in?ref=...</span>
+              <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
+            </div>
+            <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
+          </div>
+        </div>
+      </div>
       <div class="chat-inp-row" style="position:relative">
         <div id="chat-nudge" style="display:none;position:absolute;bottom:100%;left:3.2rem;margin-bottom:.35rem;flex-direction:column;align-items:center;gap:.1rem;pointer-events:none;animation:ddNudgeBob 1.4s ease-in-out infinite">
           <span style="font-size:.7rem;font-weight:700;color:var(--sf);white-space:nowrap;background:var(--white);padding:.15rem .5rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.08)">Try asking here</span>
@@ -516,6 +630,27 @@
     </div>
   </div>
   <div id="dd-confirm-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,.45);z-index:500;align-items:center;justify-content:center;padding:1.25rem">
+
+  <!-- WAITLIST MODAL — appears when user clicks any "Join waitlist" button -->
+  <div id="dd-waitlist-overlay" style="display:none;position:fixed;inset:0;background:rgba(26,26,46,.55);z-index:510;align-items:center;justify-content:center;padding:1.25rem">
+    <div style="background:var(--white);border-radius:18px;padding:1.6rem;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.18)">
+      <div style="width:48px;height:48px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+      </div>
+      <div style="display:inline-flex;align-items:center;gap:5px;background:var(--green-l);color:var(--green);border-radius:999px;padding:3px 12px;font-size:.75rem;font-weight:600;margin-bottom:10px">You're on the list!</div>
+      <p style="font-size:.95rem;font-weight:700;color:var(--ink);margin:0 0 5px">DataDost Plus — 14 September 2026</p>
+      <p style="font-size:.8rem;color:var(--slate);margin:0 0 14px;line-height:1.6">We'll email you at <span id="wl-email" style="color:var(--sf);font-weight:600"></span> the moment it launches. Free for the first 500 subscribers.</p>
+      <div style="background:var(--green-l);border-radius:10px;padding:10px 13px;margin-bottom:14px;text-align:left">
+        <div style="font-size:.75rem;font-weight:600;color:var(--green);margin-bottom:4px">What you get on Plus</div>
+        <div style="font-size:.78rem;color:var(--ink-s);line-height:1.7">✓ Unlimited uploads &amp; questions<br>✓ Month-over-month comparisons<br>✓ DataDost Credit Pulse™<br>✓ Priority support</div>
+      </div>
+      <button type="button" onclick="shareOnWhatsApp();document.getElementById('dd-waitlist-overlay').style.display='none';" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:.7rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;margin-bottom:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.535 5.857L0 24l6.335-1.652C8.024 23.385 9.96 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.89 0-3.663-.513-5.188-1.41l-.371-.22-3.762.981.999-3.651-.244-.38A9.94 9.94 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+        Share with a friend
+      </button>
+      <button type="button" onclick="document.getElementById('dd-waitlist-overlay').style.display='none';" style="width:100%;padding:.6rem;border-radius:100px;background:none;border:1px solid var(--border);font-family:inherit;font-size:.82rem;cursor:pointer;color:var(--slate)">Back to DataDost</button>
+    </div>
+  </div>
     <div style="background:var(--white);border-radius:16px;padding:1.5rem;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 36px rgba(0,0,0,.18)">
       <div id="dd-confirm-icon-wrap" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto .85rem"></div>
       <div id="dd-confirm-title" style="font-family:Sora,sans-serif;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:.35rem"></div>
@@ -988,6 +1123,117 @@ function setUser() {
 // ── SUPABASE SETUP ──
 var sb = null;
 
+// ── FREE TIER / PLAN STATE ──────────────────────────────────────────────────
+// userPlan is populated on every login by initUserPlan() via /api/referral?action=init.
+// It mirrors the user_plans Supabase row for this session so we can check limits
+// client-side (the server in chat.js also checks — client check is for UX, server check
+// is the real enforcement gate).
+var userPlan = {
+  plan: "free",
+  ref_code: "",
+  bonus_questions_earned: 0,
+  bonus_questions_used: 0,
+  waitlisted: false
+};
+var sessionQuestionCount = 0;    // incremented on every user message sent this session
+var sessionUploadCount    = 0;   // set from financial_snapshots count after login
+var FREE_Q_BASE           = 20;  // matches FREE_QUESTION_BASE in _rateLimit.js
+var FREE_UPLOAD_LIMIT     = 2;   // matches FREE_UPLOAD_LIMIT in _rateLimit.js
+var bannerDismissed       = false; // tracks whether the Q15 warning banner was dismissed
+
+async function initUserPlan(user) {
+  try {
+    // Capture any referral code from the URL before anything else — if this user
+    // arrived via datadost.in?ref=SAN7K2 we want to record that relationship now.
+    var urlRef = new URLSearchParams(window.location.search).get("ref") || "";
+    // Remove the ref param from the URL bar so it doesn't linger or get bookmarked
+    if (urlRef && window.history && window.history.replaceState) {
+      var cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+    }
+
+    var authHeader = await getAuthHeader();
+    var resp = await fetch("/api/referral", {
+      method: "POST",
+      headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
+      body: JSON.stringify({ action: "init", refCode: urlRef, email: user.email })
+    });
+    if (resp.ok) {
+      var data = await resp.json();
+      if (data.plan) {
+        userPlan.plan                    = data.plan.plan || "free";
+        userPlan.ref_code                = data.plan.ref_code || "";
+        userPlan.bonus_questions_earned  = data.plan.bonus_questions_earned || 0;
+        userPlan.bonus_questions_used    = data.plan.bonus_questions_used || 0;
+        userPlan.waitlisted              = data.plan.waitlisted || false;
+      }
+    }
+
+    // Also set upload count from financial_snapshots so the upload gate works
+    if (sb) {
+      var sessionResult = await sb.auth.getSession();
+      var usr = sessionResult.data && sessionResult.data.session ? sessionResult.data.session.user : null;
+      if (usr) {
+        var snaps = await sb.from("financial_snapshots").select("doc_key").eq("user_id", usr.id);
+        if (!snaps.error && snaps.data) {
+          var uniqueKeys = new Set(snaps.data.map(function(r) { return r.doc_key; }));
+          sessionUploadCount = uniqueKeys.size;
+        }
+        // Also count questions already asked (lifetime total for flat-pool accounting)
+        var msgs = await sb.from("messages").select("id", { count: "exact" }).eq("user_id", usr.id).eq("role", "user");
+        if (!msgs.error) sessionQuestionCount = msgs.count || 0;
+      }
+    }
+    console.log("[DataDost] Plan loaded:", userPlan.plan, "| Qs used:", sessionQuestionCount, "| Uploads:", sessionUploadCount);
+  } catch (err) {
+    console.error("[DataDost] initUserPlan error:", err);
+    // Fail open — a plan init failure must never block access to the product
+  }
+}
+
+// Returns the total allowed questions for this user (base + bonus)
+function totalQuestionsAllowed() {
+  return FREE_Q_BASE + (userPlan.bonus_questions_earned || 0);
+}
+
+// Returns how many questions remain — used by the banner and paywall
+function questionsRemaining() {
+  return Math.max(0, totalQuestionsAllowed() - sessionQuestionCount);
+}
+
+// Returns true if this free-tier user has hit the question limit
+function isAtQuestionLimit() {
+  return userPlan.plan === "free" && sessionQuestionCount >= totalQuestionsAllowed();
+}
+
+// Returns true if this free-tier user has hit the upload limit
+function isAtUploadLimit() {
+  return userPlan.plan === "free" && sessionUploadCount >= FREE_UPLOAD_LIMIT;
+}
+
+// Copies the referral link to the clipboard and shows a toast
+function copyRefLink() {
+  var link = "https://datadost.in?ref=" + userPlan.ref_code;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function() { toast("Referral link copied! 🎉"); });
+  } else {
+    var el = document.createElement("textarea");
+    el.value = link;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    toast("Referral link copied! 🎉");
+  }
+}
+
+// Opens WhatsApp with a pre-filled referral message
+function shareOnWhatsApp() {
+  var link = "https://datadost.in?ref=" + userPlan.ref_code;
+  var msg = encodeURIComponent("Hey! I've been using DataDost to understand my bank statements and it's actually brilliant 😄 It reads your statement and answers questions in plain English (or Hindi!). Try it free — no bank login needed: " + link);
+  window.open("https://wa.me/?text=" + msg, "_blank");
+}
+
 // SECURITY: chat.js and forecast.js previously had no way to know who was actually
 // calling them — no auth check at all, meaning anyone who found the URL could call
 // either endpoint directly, completely bypassing login, and run up real Anthropic costs
@@ -1016,6 +1262,10 @@ async function initSupabase() {
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
         applySessionUser(sessionResult.data.session.user);
         await loadDashboardFromSnapshots();
+        // Initialise or restore user plan data — also captures any ?ref= code from the URL
+        // so a referred user who lands on datadost.in?ref=SAN7K2 gets the relationship
+        // recorded the first time they log in or sign up on that device/session.
+        await initUserPlan(sessionResult.data.session.user);
         goTo("s-dash");
       }
     }
@@ -1169,6 +1419,7 @@ async function doLogin() {
   applySessionUser(result.data.user);
   resetSessionState(); // clean slate before loading THIS user's data — see resetSessionState's comment above doLogout
   await loadDashboardFromSnapshots();
+  await initUserPlan(result.data.user);
   goTo("s-dash");
   toast("Welcome back, " + uName + "! 👋");
 }
@@ -1219,6 +1470,8 @@ async function doSignup() {
   uInit = uName.charAt(0).toUpperCase();
   setUser();
   resetSessionState(); // clean slate — a brand-new account must never inherit a previous session's leftovers
+  // Init plan for new user — captures referral code from URL if they arrived via a referral link
+  if (result.data && result.data.user) initUserPlan(result.data.user).catch(function() {});
   goTo("s-dash");
   toast("Welcome to DataDost, " + uName + "! 🎉");
   setTimeout(function() { document.getElementById("welcome-currency-modal").style.display = "flex"; }, 800);
@@ -1258,6 +1511,25 @@ function resetSessionState() {
   lastMsgTimestamp = null;
   historyMode = null;
   historySelected = {};
+  // Reset plan state — next login will re-init from DB via initUserPlan()
+  userPlan = { plan: "free", ref_code: "", bonus_questions_earned: 0, bonus_questions_used: 0, waitlisted: false };
+  sessionQuestionCount = 0;
+  sessionUploadCount = 0;
+  bannerDismissed = false;
+  var planBanner = document.getElementById("plan-warn-banner");
+  var planPaywall = document.getElementById("plan-paywall");
+  var chatInpRow = document.querySelector(".chat-inp-row");
+  var uploadPaywall = document.getElementById("upload-paywall");
+  var dz = document.getElementById("dz");
+  if (planBanner) planBanner.style.display = "none";
+  if (planPaywall) planPaywall.style.display = "none";
+  if (chatInpRow) chatInpRow.style.display = "flex";
+  if (uploadPaywall) uploadPaywall.style.display = "none";
+  if (dz) dz.style.display = "";
+  var dashRefCard = document.getElementById("dash-ref-card");
+  var dashNewsSection = document.getElementById("dash-news-section");
+  if (dashRefCard) dashRefCard.style.display = "none";
+  if (dashNewsSection) dashNewsSection.style.display = "none";
   var histBanner = document.getElementById("hist-mode-banner");
   var histBar = document.getElementById("hist-action-bar");
   if (histBanner) histBanner.style.display = "none";
@@ -1346,8 +1618,18 @@ document.getElementById("hero-signup").addEventListener("click", function() { go
 document.getElementById("hero-demo-btn").addEventListener("click", function() { document.querySelector(".feats").scrollIntoView({behavior:"smooth"}); });
 document.getElementById("hero-loan-cta").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("plan-free").addEventListener("click", function() { goTo("s-auth","signup"); });
-document.getElementById("plan-plus").addEventListener("click", function() { goTo("s-auth","signup"); });
-document.getElementById("plan-fam").addEventListener("click", function() { goTo("s-auth","signup"); });
+document.getElementById("plan-plus").addEventListener("click", function() {
+  if (sb) sb.auth.getSession().then(function(r) {
+    if (r.data && r.data.session) showWaitlistModal("plus");
+    else goTo("s-auth", "signup");
+  }); else goTo("s-auth", "signup");
+});
+document.getElementById("plan-fam").addEventListener("click", function() {
+  if (sb) sb.auth.getSession().then(function(r) {
+    if (r.data && r.data.session) showWaitlistModal("family");
+    else goTo("s-auth", "signup");
+  }); else goTo("s-auth", "signup");
+});
 document.getElementById("cta-btn").addEventListener("click", function() { goTo("s-auth","signup"); });
 
 // ── WIRE AUTH ──
@@ -1956,6 +2238,8 @@ function renderDash() {
   }
   var dn = document.getElementById("dash-name"); if(dn) dn.textContent = uName;
   var dg2 = document.getElementById("dash-greeting"); if(dg2) dg2.textContent = getTimeOfDayGreeting();
+  renderNewsTicker();
+  renderDashRefCard();
 }
 
 // ── FORECAST ──
@@ -2534,6 +2818,36 @@ function showAnalysisFailedError(errMsg) {
 }
 
 function renderSuccessInsights(ins) {
+  // Increment upload count — this is the moment the scan is confirmed complete
+  sessionUploadCount++;
+  console.log("[DataDost] Upload complete. Total uploads this account:", sessionUploadCount);
+
+  // If this is the user's FIRST upload ever and they were referred, mark the referral
+  // as completed — this grants bonus questions to their referrer and to themselves.
+  // The "first upload" trigger is the agreed condition: a referred user must upload
+  // at least one document before the referrer's bonus is granted.
+  if (sessionUploadCount === 1) {
+    getAuthHeader().then(function(authHeader) {
+      fetch("/api/referral", {
+        method: "POST",
+        headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
+        body: JSON.stringify({ action: "complete" })
+      }).then(function(r) {
+        if (r.ok) {
+          console.log("[DataDost] Referral completion check done.");
+          // Refresh bonus count so the UI reflects any newly granted questions
+          r.json().then(function(data) {
+            if (data.ok && data.bonusGrantedToReferrer !== undefined) {
+              // Refresh the user's own plan data to pick up any bonus granted to them
+              initUserPlan({ email: "" }).catch(function() {});
+            }
+          });
+        }
+      }).catch(function(err) {
+        console.error("[DataDost] Referral complete call failed:", err);
+      });
+    });
+  }
   document.getElementById("sov-chat").style.display = "inline-block";
   document.getElementById("sov-chat").disabled = false;
   document.getElementById("sov-chat").style.opacity = "1";
@@ -2576,6 +2890,14 @@ var analysisCount = 0; // ensures fallback document names are always unique, eve
                         // documents uploaded on the same day with no extractable institution name
 async function analyseRealDocument() {
   analysisCount++;
+
+  // ── UPLOAD GATE ──────────────────────────────────────────────────────────
+  // Check BEFORE showing the scan overlay so a free user hitting their upload
+  // limit sees the paywall card immediately, not a spinning scan that then fails.
+  if (isAtUploadLimit()) {
+    showUploadPaywall();
+    return;
+  }
   console.log("[DataDost] analyseRealDocument started");
   // Show the modal immediately with a fun "still working" message so the user isn't staring at nothing
   var el = document.getElementById("sov-ins");
@@ -4557,9 +4879,23 @@ function sendMsg() {
   var inp = document.getElementById("chat-inp");
   var txt = inp.value.trim();
   if (!txt) return;
+
+  // ── FREE TIER QUESTION GATE ──────────────────────────────────────────────
+  // Client-side check for UX — the real enforcement is in chat.js server-side.
+  // We check BEFORE clearing the input so the user's question isn't lost.
+  if (isAtQuestionLimit()) {
+    showPlanPaywall();
+    return; // do not send — show paywall instead
+  }
+
   inp.value = "";
   addMsg("user", txt);
   conversationHistory.push({ role:"user", content: txt });
+
+  // Increment question counter and update banner if needed
+  sessionQuestionCount++;
+  updatePlanBanner();
+
   // Disappears the instant the first message is sent — answers your own question, so no
   // separate dismiss action is needed, and since the underlying check is "has a message
   // ever been sent", it can never come back once this fires.
@@ -4735,6 +5071,12 @@ async function callClaudeAPI(userMsg, requestDocKey) {
         var awayLabel = awayStored ? shortCodeFor(awayStored, awayStored.name) : "your other document";
         toast("💬 DataDost replied on " + awayLabel + " — switch back to see it");
       }
+    } else if (data.error === "PLAN_LIMIT") {
+      // Server confirmed free tier limit reached — show the paywall. Catches any case
+      // where the client-side check in sendMsg() was bypassed or miscounted.
+      removeTyping();
+      if (data.questionCount) sessionQuestionCount = data.questionCount;
+      showPlanPaywall();
     } else if (data.error && isBillingError(data.error)) {
       console.error("[DataDost] AI service unavailable — billing/credits issue, not a chat problem");
       if (stillOnSameDoc) addMsg("ai", "🛠️ DataDost's AI is temporarily unavailable on our end — nothing to do with your question or your document. Please try again a bit later.");
@@ -4776,6 +5118,188 @@ document.getElementById("chat-inp").addEventListener("keydown", function(e) {
 });
 
 // ── TOAST ──
+// ── FREE TIER PLAN UI HELPERS ─────────────────────────────────────────────
+
+// Called after every user message is sent. Updates the Q15 warning banner
+// (shows from Q15 onward with dynamic countdown) and wires up paywall state.
+// Shows the upload limit paywall on the Upload screen
+function showUploadPaywall() {
+  var dz = document.getElementById("dz");
+  var uploadPaywall = document.getElementById("upload-paywall");
+  if (dz) dz.style.display = "none";
+  if (uploadPaywall) {
+    uploadPaywall.style.display = "block";
+    var refLink = document.getElementById("upload-paywall-ref-link");
+    if (refLink) refLink.textContent = "datadost.in?ref=" + (userPlan.ref_code || "...");
+  }
+}
+
+// Fetches and renders the news ticker on the Dashboard
+async function renderNewsTicker() {
+  var section = document.getElementById("dash-news-section");
+  var cards = document.getElementById("dash-news-cards");
+  if (!section || !cards || !sb) return;
+  try {
+    var result = await sb.from("news_ticker")
+      .select("id,headline,source,blurb,ask_prompt")
+      .eq("active", true)
+      .order("published_at", { ascending: false })
+      .limit(2);
+    if (result.error || !result.data || result.data.length === 0) return;
+    section.style.display = "block";
+    cards.innerHTML = "";
+    result.data.forEach(function(item) {
+      var card = document.createElement("div");
+      card.style.cssText = "background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem";
+      card.innerHTML =
+        "<div style=\"display:inline-flex;align-items:center;gap:4px;background:var(--sf-l);color:var(--sf);border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:600;margin-bottom:5px\">" + escHtml(item.source) + "</div>" +
+        "<div style=\"font-size:.82rem;font-weight:600;color:var(--ink);margin:0 0 3px;line-height:1.4\">" + escHtml(item.headline) + "</div>" +
+        "<div style=\"font-size:.74rem;color:var(--slate);margin:0 0 8px;line-height:1.5\">" + escHtml(item.blurb) + "</div>" +
+        "<button type=\"button\" style=\"display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--green-l);color:var(--green);border:1px solid var(--border-g,#97C459);font-size:.72rem;font-weight:500;cursor:pointer;font-family:inherit\" " +
+        "onclick=\"openNewsInChat(" + JSON.stringify(item.ask_prompt) + ")\">Ask DataDost what this means for me</button>";
+      cards.appendChild(card);
+    });
+  } catch (err) {
+    console.error("[DataDost] News ticker load error:", err);
+  }
+}
+
+// Pre-fills General Chat with a news-driven question and navigates to Chat
+function openNewsInChat(prompt) {
+  activeDoc = "general";
+  selectDoc("general", true);
+  goTo("s-chat");
+  setTimeout(function() {
+    var inp = document.getElementById("chat-inp");
+    if (inp) { inp.value = prompt; inp.focus(); }
+  }, 300);
+}
+
+// Renders the referral mini-card on the Dashboard with live counts
+function renderDashRefCard() {
+  var card = document.getElementById("dash-ref-card");
+  if (!card || !userPlan.ref_code) return;
+  card.style.display = "block";
+
+  // Update counts
+  var refCountEl = document.getElementById("dash-ref-count");
+  var bonusCountEl = document.getElementById("dash-bonus-count");
+  var qRemainEl = document.getElementById("dash-q-remaining");
+  var refLinkEl = document.getElementById("dash-ref-link");
+
+  if (refLinkEl) refLinkEl.textContent = "datadost.in?ref=" + userPlan.ref_code;
+  if (bonusCountEl) bonusCountEl.textContent = "+" + (userPlan.bonus_questions_earned || 0);
+  if (qRemainEl) qRemainEl.textContent = questionsRemaining();
+
+  // Load actual referral count from DB
+  if (sb) {
+    sb.auth.getSession().then(function(sr) {
+      var user = sr.data && sr.data.session ? sr.data.session.user : null;
+      if (!user) return;
+      sb.from("referrals").select("id", { count: "exact" }).eq("referrer_id", user.id).eq("status", "completed").then(function(r) {
+        if (!r.error && refCountEl) refCountEl.textContent = (r.count || 0);
+      });
+    });
+  }
+}
+
+// Simple HTML escape for news ticker content
+function escHtml(str) {
+  return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function updatePlanBanner() {
+  if (userPlan.plan !== "free") return; // paid users never see the banner
+  var banner = document.getElementById("plan-warn-banner");
+  var paywall = document.getElementById("plan-paywall");
+  var chatInpRow = document.querySelector(".chat-inp-row");
+  if (!banner) return;
+
+  var remaining = questionsRemaining();
+  var total = totalQuestionsAllowed();
+
+  // Q20 — show paywall, hide everything else
+  if (sessionQuestionCount >= total) {
+    showPlanPaywall();
+    return;
+  }
+
+  // Q15–19 — show warning banner if not dismissed
+  if (remaining <= 5 && !bannerDismissed) {
+    banner.style.display = "flex";
+    var warnText = document.getElementById("plan-warn-text");
+    if (warnText) warnText.textContent = remaining + " free question" + (remaining === 1 ? "" : "s") + " left — refer a friend to unlock 5 more";
+  }
+}
+
+// Shows the Q20 paywall card replacing the chat input row
+function showPlanPaywall() {
+  var paywall = document.getElementById("plan-paywall");
+  var chatInpRow = document.querySelector(".chat-inp-row");
+  var banner = document.getElementById("plan-warn-banner");
+  var qbtns = document.getElementById("qbtns");
+  if (paywall) paywall.style.display = "block";
+  if (chatInpRow) chatInpRow.style.display = "none";
+  if (banner) banner.style.display = "none";
+  if (qbtns) qbtns.style.display = "none";
+
+  // Populate dynamic values in the paywall
+  var total = totalQuestionsAllowed();
+  var pill = document.getElementById("paywall-pill-text");
+  var barLabel = document.getElementById("paywall-bar-label");
+  var bar = document.getElementById("paywall-bar");
+  var refLink = document.getElementById("paywall-ref-link");
+  var refDots = document.getElementById("paywall-ref-dots");
+  var refStatus = document.getElementById("paywall-ref-status");
+  if (pill) pill.textContent = sessionQuestionCount + " of " + total + " free questions used";
+  if (barLabel) barLabel.textContent = sessionQuestionCount + " / " + total;
+  if (bar) bar.style.width = Math.min(100, Math.round(sessionQuestionCount / total * 100)) + "%";
+  if (refLink) refLink.textContent = "datadost.in?ref=" + (userPlan.ref_code || "...");
+
+  // Referral dots (max 2)
+  if (refDots) {
+    refDots.innerHTML = "";
+    for (var i = 0; i < 2; i++) {
+      var dot = document.createElement("div");
+      dot.style.cssText = "flex:1;height:4px;border-radius:2px;background:var(--border)";
+      refDots.appendChild(dot);
+    }
+  }
+}
+
+// Shows the waitlist confirmation modal for a given plan tier
+// Called from "Join Plus waitlist" buttons throughout the app
+function showWaitlistModal(planWanted) {
+  // Save to Supabase waitlist table if not already enrolled
+  if (!userPlan.waitlisted && sb) {
+    sb.auth.getSession().then(function(sr) {
+      var user = sr.data && sr.data.session ? sr.data.session.user : null;
+      if (!user) return;
+      sb.from("waitlist").insert({
+        user_id: user.id,
+        email: user.email,
+        plan_wanted: planWanted || "plus"
+      }).then(function(r) {
+        if (!r.error) {
+          userPlan.waitlisted = true;
+          console.log("[DataDost] Waitlist enrolled:", user.email);
+        }
+      });
+      // Set email in modal
+      var wlEmail = document.getElementById("wl-email");
+      if (wlEmail) wlEmail.textContent = user.email;
+    });
+  } else if (sb) {
+    sb.auth.getSession().then(function(sr) {
+      var user = sr.data && sr.data.session ? sr.data.session.user : null;
+      var wlEmail = document.getElementById("wl-email");
+      if (wlEmail && user) wlEmail.textContent = user.email;
+    });
+  }
+  var overlay = document.getElementById("dd-waitlist-overlay");
+  if (overlay) overlay.style.display = "flex";
+}
+
 function toast(msg) {
   var t = document.getElementById("toast");
   t.textContent = msg;
