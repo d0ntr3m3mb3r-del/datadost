@@ -2830,11 +2830,14 @@ function showAnalysisFailedError(errMsg) {
   var el = document.getElementById("sov-ins");
   var title = "Couldn't read this document";
   var body = "Something went wrong while I was reading it — usually temporary. Please try uploading it again in a moment.";
-  if (isRateLimitError(errMsg)) {
-    // Not a document problem at all — say so plainly rather than implying the file
-    // itself is the issue, which would send someone hunting for a "better" file to upload.
+
+  if (errMsg === "__TIMEOUT__") {
+    // Large multi-month statement timeout — specific and actionable, not generic
+    title = "This statement has a lot to read";
+    body = "I ran out of time going through all the months. Try uploading 2–3 months at a time instead of all 6 — you'll get richer, more accurate insights that way too. Your file was never stored.";
+  } else if (isRateLimitError(errMsg)) {
     title = "Too many uploads, too fast";
-    body = errMsg; // the backend's own message already distinguishes burst vs. daily cap
+    body = errMsg;
   } else if (isAuthRequiredError(errMsg)) {
     title = "You've been logged out";
     body = "Please log back in, then try uploading this again.";
@@ -2846,7 +2849,11 @@ function showAnalysisFailedError(errMsg) {
     "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">" + body + "</div>" +
     "</div>";
   document.getElementById("sov-chat").style.display = "none";
-  document.getElementById("sov-close").textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try again";
+  // Timeout: nudge toward trying with fewer months. Other errors: generic retry.
+  var closeLabel = uploadQueue.length > 0
+    ? ("Skip & continue" + queueProgressLabel())
+    : (errMsg === "__TIMEOUT__" ? "Try uploading fewer months" : "Try again");
+  document.getElementById("sov-close").textContent = closeLabel;
   document.getElementById("sov").classList.add("show");
   resetUpload();
   document.getElementById("dz").classList.remove("read");
@@ -2934,12 +2941,34 @@ async function analyseRealDocument() {
     return;
   }
   console.log("[DataDost] analyseRealDocument started");
-  // Show the modal immediately with a fun "still working" message so the user isn't staring at nothing
+
+  // ── PRE-SCAN SIZE CHECK ─────────────────────────────────────────────────
+  // Large multi-month statements (6-month ADCB, full-year ITR) take 90-110s
+  // to process — well within the new 120s limit, but long enough that a user
+  // staring at a static spinner assumes it broke. Detect large files BEFORE
+  // sending and show a specific patience message so they know it's working.
+  var isLargeDocument = curFile && curFile.size > 400 * 1024; // > 400KB = likely multi-month
+  var isVeryLargeDocument = curFile && curFile.size > 900 * 1024; // > 900KB = definitely multi-month
+
+  // Show the modal immediately with a patience message or a fun quip
   var el = document.getElementById("sov-ins");
-  var quip = scanningQuips[Math.floor(Math.random() * scanningQuips.length)];
-  el.innerHTML = "<div class=\"si\" style=\"opacity:1\"><div class=\"si-dot\" style=\"background:#FF6B1A\"></div><span>" + quip + "</span></div>";
-  document.getElementById("sov-sub").textContent = "Give me just a moment with your real document..." + queueProgressLabel();
+  var subEl = document.getElementById("sov-sub");
+  if (isLargeDocument) {
+    el.innerHTML =
+      "<div class=\"si\" style=\"opacity:1\">" +
+      "<div class=\"si-dot\" style=\"background:#FF6B1A\"></div>" +
+      "<span>" + (isVeryLargeDocument
+        ? "This looks like a detailed multi-month statement — I'll go through every transaction carefully ☕"
+        : "This is a longer document — I'll take a moment to read it properly 🔍") +
+      "</span></div>";
+    subEl.textContent = "Hang tight — this one needs a bit more time than usual." + queueProgressLabel();
+  } else {
+    var quip = scanningQuips[Math.floor(Math.random() * scanningQuips.length)];
+    el.innerHTML = "<div class=\"si\" style=\"opacity:1\"><div class=\"si-dot\" style=\"background:#FF6B1A\"></div><span>" + quip + "</span></div>";
+    subEl.textContent = "Give me just a moment with your real document..." + queueProgressLabel();
+  }
   document.getElementById("sov").classList.add("show");
+
   // The button was previously clickable throughout the entire scan, not just once
   // results were actually in — a real bug spotted via testing. Disabled here, and only
   // re-enabled in renderSuccessInsights() once there's something real to chat about.
@@ -2947,17 +2976,34 @@ async function analyseRealDocument() {
   sovChatBtn.disabled = true;
   sovChatBtn.style.opacity = "0.5";
   sovChatBtn.style.cursor = "not-allowed";
-  // Same disable as above, but for sov-close — a real bug confirmed via testing: from the
-  // SECOND document in a batch onward, sov-close has already been promoted by the previous
-  // document's renderSuccessInsights() into the big, bold "Continue to next document →"
-  // button, and stays in that state while THIS document is still scanning. Document 1 never
-  // showed the bug because sov-close starts out as a plain, unstyled link before any document
-  // has finished — but from document 2 onward, that promoted button sat fully clickable
-  // throughout the entire scan. Re-enabled in renderSuccessInsights(), same as sov-chat.
   var sovCloseBtn = document.getElementById("sov-close");
   sovCloseBtn.disabled = true;
   sovCloseBtn.style.opacity = "0.5";
   sovCloseBtn.style.cursor = "not-allowed";
+
+  // ── LIVE STATUS MESSAGES ─────────────────────────────────────────────────
+  // Replaces the static quip with updating messages during the scan so the user
+  // sees genuine progress rather than a spinner that could be frozen.
+  var liveStatusMessages = isLargeDocument ? [
+    { delay: 8000,  text: "Reading all your transactions... 📋" },
+    { delay: 25000, text: "Found your income credits — checking for patterns... 💰" },
+    { delay: 45000, text: "Mapping out recurring payments across all months... 🔄" },
+    { delay: 65000, text: "Almost done — putting the summary together... ✍️" },
+    { delay: 85000, text: "Just a moment more — this is a thorough one! ☕" }
+  ] : [
+    { delay: 5000,  text: "Reading your transactions... 📋" },
+    { delay: 15000, text: "Finding what matters... 💰" },
+    { delay: 28000, text: "Almost there... ✍️" }
+  ];
+  var liveStatusTimers = liveStatusMessages.map(function(msg) {
+    return setTimeout(function() {
+      var subElLive = document.getElementById("sov-sub");
+      if (subElLive && document.getElementById("sov").classList.contains("show")) {
+        subElLive.textContent = msg.text;
+      }
+    }, msg.delay);
+  });
+
   console.log("[DataDost] success modal shown, fileBase64 length:", fileBase64 ? fileBase64.length : 0);
 
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
@@ -2985,6 +3031,8 @@ async function analyseRealDocument() {
       signal: controller.signal
     });
     clearTimeout(timeoutId);
+    // Clear all live status message timers — scan is done
+    liveStatusTimers.forEach(function(t) { clearTimeout(t); });
     var data = await resp.json();
     if (data.reply && data.reply.trim().toUpperCase().indexOf("LOCKED: YES") === 0) {
       showLockedDocumentError();
@@ -3263,7 +3311,15 @@ async function analyseRealDocument() {
       return;
     }
   } catch (err) {
-    if (isUnreadableDocError(err && err.message)) {
+    // Always clear live status timers on any failure path
+    if (typeof liveStatusTimers !== "undefined") {
+      liveStatusTimers.forEach(function(t) { clearTimeout(t); });
+    }
+    // AbortError means our 110s client timeout fired — give specific, actionable guidance
+    // rather than the generic "something went wrong" message which leaves the user confused.
+    if (err && err.name === "AbortError") {
+      showAnalysisFailedError("__TIMEOUT__");
+    } else if (isUnreadableDocError(err && err.message)) {
       showLockedDocumentError();
     } else {
       showAnalysisFailedError(err && err.message);
