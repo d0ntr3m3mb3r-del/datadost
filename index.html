@@ -3651,6 +3651,14 @@ function createDocButton(uniqueKey, doc, name, scanLabel) {
   newBtn.dataset.doc = uniqueKey;
   newBtn.dataset.realType = doc; // remember the underlying type for chat questions/meta lookup
   newBtn.dataset.realName = name;
+  // Store the masked account ID (last 4 digits) so the deduplication secondary check
+  // in addRealDocToSidebar can detect when a bank statement's scanner mistakenly picks
+  // up a credit card account number from a payment reference within its transactions,
+  // which would otherwise create a ghost duplicate entry under the wrong category.
+  var storedDoc = sessionDocuments[uniqueKey];
+  if (storedDoc && storedDoc.accountId) {
+    newBtn.dataset.realAccountId = storedDoc.accountId.replace(/[^0-9A-Za-z]/g, "").slice(-4);
+  }
   newBtn.title = name; // full name still available on hover, for anyone who wants it
   newBtn.innerHTML = "<span class=\"compare-check-wrap\" style=\"display:flex;align-items:center;flex-shrink:0\"><input type=\"checkbox\" class=\"compare-check\" data-key=\"" + uniqueKey + "\"></span><div class=\"csb-doc-em\">" + icon + "</div><div><div class=\"csb-doc-name\">" + displayText + "</div></div>";
   newBtn.style.display = "flex";
@@ -3749,9 +3757,29 @@ function addRealDocToSidebar(doc, name, accountId) {
   // Checking type too (not just name) matters: a bank statement and a credit card
   // statement from the same institution must never be treated as "the same document"
   // just because they happen to share a name — that was a real bug found via testing.
+  //
+  // SECOND GUARD: also deduplicate on accountId alone. When the bank statement scanner
+  // picks up a credit card account number (e.g. "9772") from a payment reference within
+  // the transactions — rather than the bank's own account number — it can produce a
+  // sidebar label like "Credit •9772" under BANK ACCOUNTS, which then clashes visually
+  // with the real "Credit •9772" already sitting under CREDIT CARDS. The name-and-type
+  // check misses this because the types differ (bank vs creditcard). Checking the raw
+  // accountId as a secondary key catches it: if any existing sidebar entry already uses
+  // this accountId, regardless of type, treat this as a duplicate and return the existing key.
+  var last4 = accountId ? accountId.replace(/[^0-9A-Za-z]/g, "").slice(-4) : "";
   var existingMatch = null;
   document.querySelectorAll(".csb-doc[data-real-name]").forEach(function(d) {
-    if (d.dataset.realName === name && d.dataset.realType === doc && !existingMatch) existingMatch = d;
+    if (existingMatch) return;
+    // Primary check: exact name + type match
+    if (d.dataset.realName === name && d.dataset.realType === doc) {
+      existingMatch = d;
+      return;
+    }
+    // Secondary check: same account ID digits, different type — prevents a bank
+    // statement that references a credit card number from creating a ghost duplicate
+    if (last4 && last4.length >= 4 && d.dataset.realAccountId === last4 && d.dataset.realType !== doc) {
+      existingMatch = d;
+    }
   });
   if (existingMatch) {
     // A re-upload of an existing document — update its entry in sessionDocuments with the
@@ -3786,8 +3814,8 @@ function addRealDocToSidebar(doc, name, accountId) {
   sessionDocuments[uniqueKey] = {
     base64: fileBase64, mediaType: fileMediaType, name: name, shortCode: detectedShortCode, type: doc, context: uploadedDocContext,
     dashboardData: realDashboardData ? JSON.parse(JSON.stringify(realDashboardData)) : null,
-    accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, scanLabel: "Just uploaded",
-    createdAt: new Date().toISOString()
+    accountKey: acctInfo.accountKey, accountLabel: acctInfo.accountLabel, accountId: accountId || "",
+    scanLabel: "Just uploaded", createdAt: new Date().toISOString()
   };
   activeDashDoc = null; // a fresh upload becomes the new default-shown document again
   document.querySelectorAll(".csb-doc.act").forEach(function(d) { d.classList.remove("act"); });
