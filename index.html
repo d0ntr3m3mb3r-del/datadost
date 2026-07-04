@@ -462,7 +462,7 @@
         </div>
         <button class="chat-up-btn" id="chat-up-btn" title="Upload document"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
         <button class="chat-up-btn" id="chat-cash-btn" title="Break down cash spending">💵</button>
-        <input type="text" class="chat-inp" id="chat-inp" placeholder="Ask anything about your money...">
+        <textarea class="chat-inp" id="chat-inp" placeholder="Ask anything about your money..." rows="4"></textarea>
         <button class="chat-send" id="chat-send"><svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg></button>
       </div>
     </div>
@@ -4767,7 +4767,13 @@ async function callClaudeAPI(userMsg, requestDocKey) {
 }
 
 document.getElementById("chat-send").addEventListener("click", sendMsg);
-document.getElementById("chat-inp").addEventListener("keydown", function(e) { if(e.key === "Enter") sendMsg(); });
+document.getElementById("chat-inp").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // stop the textarea from inserting a newline on plain Enter
+    sendMsg();
+  }
+  // Shift+Enter falls through naturally — textarea inserts a line break as expected
+});
 
 // ── TOAST ──
 function toast(msg) {

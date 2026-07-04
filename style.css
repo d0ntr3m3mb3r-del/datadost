@@ -273,8 +273,8 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .qbtns{display:flex;gap:.4rem;flex-wrap:wrap;padding:0 1.1rem .65rem}
 .qb{font-size:.73rem;padding:.35rem .8rem;border:1px solid var(--border);border-radius:100px;background:var(--white);color:var(--slate);cursor:pointer;transition:all .15s;font-family:inherit}
 .qb:hover{border-color:var(--sf);color:var(--sf);background:var(--sf-l)}
-.chat-inp-row{border-top:1px solid var(--border);padding:.8rem 1.1rem;display:flex;gap:.65rem;align-items:center;background:var(--white);flex-shrink:0}
-.chat-inp{flex:1;border:1.5px solid var(--border);border-radius:100px;padding:.6rem 1rem;font-size:.85rem;font-family:inherit;color:var(--ink);background:var(--white);outline:none;transition:border-color .2s}
+.chat-inp-row{border-top:1px solid var(--border);padding:.8rem 1.1rem;display:flex;gap:.65rem;align-items:flex-end;background:var(--white);flex-shrink:0}
+.chat-inp{flex:1;border:1.5px solid var(--border);border-radius:14px;padding:.6rem 1rem;font-size:.85rem;font-family:inherit;color:var(--ink);background:var(--white);outline:none;transition:border-color .2s;resize:none;line-height:1.5;overflow-y:auto;max-height:9rem}
 .chat-inp:focus{border-color:var(--sf)}
 .chat-send{width:34px;height:34px;border-radius:50%;background:var(--sf);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s}
 .chat-send:hover{transform:scale(1.08)}
