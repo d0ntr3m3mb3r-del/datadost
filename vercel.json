@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "rewrites": [
+    { "source": "/api/chat", "destination": "/api/chat.js" },
+    { "source": "/api/feedback", "destination": "/api/feedback.js" },
+    { "source": "/api/referral", "destination": "/api/referral.js" }
+  ],
+  "functions": {
+    "api/chat.js": { "maxDuration": 120 },
+    "api/forecast.js": { "maxDuration": 120 },
+    "api/feedback.js": { "maxDuration": 10 },
+    "api/referral.js": { "maxDuration": 10 }
+  }
+}
