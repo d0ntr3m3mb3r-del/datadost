@@ -2972,12 +2972,11 @@ async function analyseRealDocument() {
       fileMediaType: fileMediaType
     };
     var controller = new AbortController();
-    // Was 30s — too short for the current detection prompt, which can ask for dozens of
-    // RECURRING lines across a long multi-month statement and genuinely takes longer to
-    // both generate and process. 55s leaves a safety margin under Vercel's 60s Hobby-plan
-    // function ceiling, so our own friendly error fires first if something really is stuck,
-    // rather than a raw platform timeout cutting in first.
-    var timeoutId = setTimeout(function() { controller.abort(); }, 55000);
+    // Was 55s — increased to 110s to handle large multi-month statements (e.g. a 6-month
+    // ADCB statement with 50+ transactions generates many RECURRING and INCOME_ITEM lines
+    // and was timing out under the old limit). 110s leaves a 10s safety margin under the
+    // new 120s Vercel function ceiling so our own friendly error fires first.
+    var timeoutId = setTimeout(function() { controller.abort(); }, 110000);
     var authHeader = await getAuthHeader();
     var resp = await fetch("/api/chat", {
       method: "POST",
@@ -3387,6 +3386,14 @@ document.getElementById("sov-close").addEventListener("click", function() {
   document.getElementById("sov").classList.remove("show");
   resetUpload();
   document.getElementById("dz").classList.remove("read");
+
+  // Ensure the dropzone is always visible after closing/retrying — if the upload paywall
+  // was showing (beta users shouldn't see it, but defensive reset on any close path)
+  // restore it so the user can actually try again without the screen being stuck.
+  var dzEl = document.getElementById("dz");
+  var uploadPaywallEl = document.getElementById("upload-paywall");
+  if (dzEl) dzEl.style.display = "";
+  if (uploadPaywallEl && userPlan.plan !== "free") uploadPaywallEl.style.display = "none";
 
   if (uploadQueue.length > 0) {
     // More files waiting in this batch — move straight to the next one automatically.
