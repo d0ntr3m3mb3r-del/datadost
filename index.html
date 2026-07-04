@@ -247,53 +247,6 @@
       <div><div class="dash-h"><span id="dash-greeting">Good morning</span>, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
 
-      <!-- NEWS TICKER — curated finance news, shown to logged-in users -->
-      <div id="dash-news-section" style="display:none;margin-top:1rem">
-        <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--ink);margin-bottom:.6rem">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sf)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M4 22a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M10 14h8m-8 4h8m-8-8h8"/></svg>
-          Money news that matters to you
-        </div>
-        <div id="dash-news-cards"></div>
-        <div style="font-size:.68rem;color:var(--slate);text-align:right;margin-top:4px">Updated every 3 days · curated by DataDost</div>
-      </div>
-
-      <!-- REFERRAL MINI-CARD — always visible once user has a plan row -->
-      <div id="dash-ref-card" style="display:none;background:var(--white);border:1px solid var(--border-g,#97C459);border-radius:12px;padding:.9rem;margin-top:.9rem">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div style="width:32px;height:32px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
-          </div>
-          <div>
-            <div style="font-size:.82rem;font-weight:600">Refer friends, earn questions</div>
-            <div style="font-size:.7rem;color:var(--slate)">You and each friend both get 5 bonus questions</div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">
-          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
-            <div id="dash-ref-count" style="font-size:1.1rem;font-weight:600;color:var(--sf)">0</div>
-            <div style="font-size:.65rem;color:var(--slate)">Friends joined</div>
-          </div>
-          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
-            <div id="dash-bonus-count" style="font-size:1.1rem;font-weight:600;color:var(--green)">+0</div>
-            <div style="font-size:.65rem;color:var(--slate)">Bonus earned</div>
-          </div>
-          <div style="background:var(--mist);border-radius:8px;padding:7px;text-align:center">
-            <div id="dash-q-remaining" style="font-size:1.1rem;font-weight:600;color:var(--sf)">20</div>
-            <div style="font-size:.65rem;color:var(--slate)">Questions left</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;background:var(--mist);border-radius:8px;padding:6px 10px;font-size:.7rem;color:var(--slate);font-family:monospace;margin-bottom:7px">
-          <span id="dash-ref-link">datadost.in?ref=...</span>
-          <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:.5rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.374 8.374 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.535 5.857L0 24l6.335-1.652A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 0 1-5.188-1.41l-.371-.22-3.762.981.999-3.651-.244-.38A9.94 9.94 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-            Share on WhatsApp
-          </button>
-          <button type="button" onclick="copyRefLink()" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:.5rem;border-radius:100px;background:var(--mist);border:1px solid var(--border);font-family:inherit;font-size:.72rem;cursor:pointer">Copy link</button>
-        </div>
-      </div>
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
         <div class="stat-card"><div class="stat-val">₹48,500</div><div class="stat-lbl">Monthly income</div><div class="stat-trend t-good">↑ Same as last month</div></div>
@@ -305,30 +258,82 @@
         <div class="card-title">What's coming up this month</div>
         <div id="forecast-body"></div>
       </div>
-      <div class="card" id="loan-card">
-        <div class="card-title">Can I afford this loan?</div>
-        <div style="display:flex;flex-direction:column;gap:1rem;margin-top:.5rem">
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Monthly take-home income</span><span id="loan-inc-out" style="font-weight:600;color:var(--ink)"></span></div>
-            <input type="range" id="loan-inc" min="15000" max="150000" step="1000" value="48500" style="width:100%">
+
+      <!-- TWO-COLUMN: Loan calculator left + Combined news & referral right -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0">
+        <div class="card" id="loan-card">
+          <div class="card-title">Can I afford this loan?</div>
+          <div style="display:flex;flex-direction:column;gap:1rem;margin-top:.5rem">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Monthly take-home income</span><span id="loan-inc-out" style="font-weight:600;color:var(--ink)"></span></div>
+              <input type="range" id="loan-inc" min="15000" max="150000" step="1000" value="48500" style="width:100%">
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Existing EMIs and card minimums</span><span id="loan-ex-out" style="font-weight:600;color:var(--ink)"></span></div>
+              <input type="range" id="loan-ex" min="0" max="50000" step="500" value="5000" style="width:100%">
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>New loan EMI you're considering</span><span id="loan-new-out" style="font-weight:600;color:var(--ink)"></span></div>
+              <input type="range" id="loan-new" min="0" max="50000" step="500" value="15000" style="width:100%">
+            </div>
+            <div style="background:var(--mist);border-radius:10px;padding:.85rem 1rem;display:flex;gap:1.75rem">
+              <div><div style="font-size:.72rem;color:var(--slate)">Total obligations</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-tot-out"></div></div>
+              <div><div style="font-size:.72rem;color:var(--slate)">Share of income</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-foir-out"></div></div>
+            </div>
+            <div id="loan-verdict" style="font-size:.82rem;display:flex;align-items:flex-start;gap:.5rem;background:var(--mist);color:var(--ink);border-radius:10px;padding:.6rem .9rem">
+              <span id="loan-verdict-icon"></span><span id="loan-verdict-text"></span>
+            </div>
+            <button type="button" id="loan-ask-btn" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;width:100%">Ask DataDost about my real numbers →</button>
+            <div style="font-size:.7rem;color:var(--slate);text-align:center;line-height:1.5">Educational estimate only, based on a common lender threshold — not a loan recommendation, and not a real eligibility check. The decision is always yours.</div>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>Existing EMIs and card minimums</span><span id="loan-ex-out" style="font-weight:600;color:var(--ink)"></span></div>
-            <input type="range" id="loan-ex" min="0" max="50000" step="500" value="5000" style="width:100%">
+        </div>
+
+        <!-- COMBINED NEWS + REFERRAL PANEL — right column -->
+        <div class="card" id="dash-engage-panel" style="display:none;flex-direction:column">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem">
+            <div style="display:flex;align-items:center;gap:5px;font-size:.82rem;font-weight:600;color:var(--ink)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--sf)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M4 22a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2"/><path d="M10 14h8m-8 4h8m-8-8h8"/></svg>
+              Money news that matters
+            </div>
+            <!-- Scroller — hidden when ≤ 2 news items -->
+            <div id="news-scroller" style="display:none;align-items:center;gap:4px">
+              <button id="dash-news-prev" type="button" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--mist);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit" aria-label="Previous news">‹</button>
+              <span id="dash-news-counter" style="font-size:.7rem;color:var(--slate);min-width:28px;text-align:center">1 / 3</span>
+              <button id="dash-news-next" type="button" style="width:22px;height:22px;border-radius:50%;border:1px solid var(--border);background:var(--mist);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;font-family:inherit" aria-label="Next news">›</button>
+            </div>
           </div>
-          <div>
-            <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink-s);margin-bottom:.3rem"><span>New loan EMI you're considering</span><span id="loan-new-out" style="font-weight:600;color:var(--ink)"></span></div>
-            <input type="range" id="loan-new" min="0" max="50000" step="500" value="15000" style="width:100%">
+
+          <!-- Active news card — populated by renderNewsTicker() -->
+          <div id="dash-news-card" style="background:var(--mist);border-radius:9px;padding:.8rem 1rem;flex:1">
+            <div id="dash-news-src" style="font-size:.7rem;font-weight:600;color:var(--sf);margin-bottom:3px"></div>
+            <div id="dash-news-hl" style="font-size:.82rem;font-weight:600;color:var(--ink);line-height:1.45;margin-bottom:.35rem"></div>
+            <div id="dash-news-blurb" style="font-size:.76rem;color:var(--ink-s);line-height:1.5;margin-bottom:.6rem"></div>
+            <button id="dash-news-ask" type="button" style="font-size:.75rem;padding:.3rem .85rem;border-radius:999px;background:var(--green-l);color:var(--green);border:1px solid var(--border-g,#97C459);cursor:pointer;font-family:inherit">Ask DataDost what this means for me →</button>
           </div>
-          <div style="background:var(--mist);border-radius:10px;padding:.85rem 1rem;display:flex;gap:1.75rem">
-            <div><div style="font-size:.72rem;color:var(--slate)">Total obligations</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-tot-out"></div></div>
-            <div><div style="font-size:.72rem;color:var(--slate)">Share of income</div><div style="font-size:1.1rem;font-weight:700;color:var(--ink)" id="loan-foir-out"></div></div>
+
+          <div style="font-size:.65rem;color:var(--slate);text-align:right;margin:.4rem 0 .6rem">Updated every 3 days · curated by DataDost</div>
+
+          <!-- Referral strip — separated by border from news section -->
+          <div style="border-top:1px solid var(--border);padding-top:.7rem">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.4rem">
+              <div style="display:flex;align-items:center;gap:4px;font-size:.78rem;font-weight:600;color:var(--green)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+                Refer a friend
+              </div>
+              <span style="font-size:.7rem;color:var(--slate)"><span id="dash-ref-count">0</span> joined · <span id="dash-q-remaining">20</span> questions left</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;background:var(--mist);border-radius:7px;padding:.35rem .7rem;font-size:.7rem;color:var(--slate);font-family:monospace;margin-bottom:.5rem">
+              <span id="dash-ref-link">datadost.in?ref=...</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+              <button id="dash-wa-btn" type="button" style="display:flex;align-items:center;justify-content:center;gap:4px;padding:.45rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.72rem;font-weight:600;cursor:pointer">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a8.374 8.374 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.125.557 4.126 1.535 5.857L0 24l6.335-1.652A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.94 9.94 0 0 1-5.188-1.41l-.371-.22-3.762.981.999-3.651-.244-.38A9.94 9.94 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+                Share on WhatsApp
+              </button>
+              <button id="dash-copy-btn" type="button" style="display:flex;align-items:center;justify-content:center;padding:.45rem;border-radius:100px;background:var(--mist);border:1px solid var(--border);font-family:inherit;font-size:.72rem;cursor:pointer">Copy link</button>
+            </div>
+            <div style="font-size:.68rem;color:var(--slate);margin-top:.4rem;text-align:center">You and each friend get 5 bonus questions · max 10</div>
           </div>
-          <div id="loan-verdict" style="font-size:.82rem;display:flex;align-items:flex-start;gap:.5rem;background:var(--mist);color:var(--ink);border-radius:10px;padding:.6rem .9rem">
-            <span id="loan-verdict-icon"></span><span id="loan-verdict-text"></span>
-          </div>
-          <button type="button" id="loan-ask-btn" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;width:100%">Ask DataDost about my real numbers →</button>
-          <div style="font-size:.7rem;color:var(--slate);text-align:center;line-height:1.5">Educational estimate only, based on a common lender threshold — not a loan recommendation, and not a real eligibility check. The decision is always yours.</div>
         </div>
       </div>
       <div class="dash-grid">
@@ -1546,10 +1551,8 @@ function resetSessionState() {
   if (chatInpRow) chatInpRow.style.display = "flex";
   if (uploadPaywall) uploadPaywall.style.display = "none";
   if (dz) dz.style.display = "";
-  var dashRefCard = document.getElementById("dash-ref-card");
-  var dashNewsSection = document.getElementById("dash-news-section");
-  if (dashRefCard) dashRefCard.style.display = "none";
-  if (dashNewsSection) dashNewsSection.style.display = "none";
+  var dashEngagePanel = document.getElementById("dash-engage-panel");
+  if (dashEngagePanel) dashEngagePanel.style.display = "none";
   var histBanner = document.getElementById("hist-mode-banner");
   var histBar = document.getElementById("hist-action-bar");
   if (histBanner) histBanner.style.display = "none";
@@ -5168,14 +5171,13 @@ function showUploadPaywall() {
   }
 }
 
-// Fetches and renders the news ticker on the Dashboard
+// Fetches and renders the news ticker on the Dashboard combined engagement panel.
+// Uses proper event listeners — never inline onclick on dynamically built elements.
+// Scroller (‹ 1/3 ›) is hidden when there are ≤ 2 news items.
 async function renderNewsTicker() {
-  var section = document.getElementById("dash-news-section");
-  var cards = document.getElementById("dash-news-cards");
-  if (!section || !cards || !sb) return;
+  var panel = document.getElementById("dash-engage-panel");
+  if (!panel || !sb) return;
   try {
-    // Wait for the auth session to be confirmed — querying before this causes 403
-    // because the Supabase client hasn't set the Authorization header yet
     var sessionResult = await sb.auth.getSession();
     if (!sessionResult.data || !sessionResult.data.session) return;
 
@@ -5183,24 +5185,49 @@ async function renderNewsTicker() {
       .select("id,headline,source,blurb,ask_prompt")
       .eq("active", true)
       .order("published_at", { ascending: false })
-      .limit(2);
+      .limit(10);
+
     if (result.error || !result.data || result.data.length === 0) {
       console.warn("[DataDost] News ticker:", result.error ? result.error.message : "no rows");
       return;
     }
-    section.style.display = "block";
-    cards.innerHTML = "";
-    result.data.forEach(function(item) {
-      var card = document.createElement("div");
-      card.style.cssText = "background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem";
-      card.innerHTML =
-        "<div style=\"display:inline-flex;align-items:center;gap:4px;background:var(--sf-l);color:var(--sf);border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:600;margin-bottom:5px\">" + escHtml(item.source) + "</div>" +
-        "<div style=\"font-size:.82rem;font-weight:600;color:var(--ink);margin:0 0 3px;line-height:1.4\">" + escHtml(item.headline) + "</div>" +
-        "<div style=\"font-size:.74rem;color:var(--slate);margin:0 0 8px;line-height:1.5\">" + escHtml(item.blurb) + "</div>" +
-        "<button type=\"button\" style=\"display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:var(--green-l);color:var(--green);border:1px solid var(--border-g,#97C459);font-size:.72rem;font-weight:500;cursor:pointer;font-family:inherit\" " +
-        "onclick=\"openNewsInChat(" + JSON.stringify(item.ask_prompt) + ")\">Ask DataDost what this means for me</button>";
-      cards.appendChild(card);
-    });
+
+    var items = result.data;
+    var cur = 0;
+
+    panel.style.display = "flex";
+
+    function showItem(i) {
+      cur = ((i % items.length) + items.length) % items.length;
+      var srcEl  = document.getElementById("dash-news-src");
+      var hlEl   = document.getElementById("dash-news-hl");
+      var blEl   = document.getElementById("dash-news-blurb");
+      var ctrEl  = document.getElementById("dash-news-counter");
+      if (srcEl)  srcEl.textContent  = items[cur].source;
+      if (hlEl)   hlEl.textContent   = items[cur].headline;
+      if (blEl)   blEl.textContent   = items[cur].blurb;
+      if (ctrEl)  ctrEl.textContent  = (cur + 1) + " / " + items.length;
+    }
+
+    showItem(0);
+
+    // Only show scroller when more than 2 items exist
+    var scroller = document.getElementById("news-scroller");
+    if (scroller) scroller.style.display = items.length > 2 ? "flex" : "none";
+
+    // Attach scroller events — proper addEventListener, no inline onclick
+    var prevBtn = document.getElementById("dash-news-prev");
+    var nextBtn = document.getElementById("dash-news-next");
+    if (prevBtn) prevBtn.onclick = function() { showItem(cur - 1); };
+    if (nextBtn) nextBtn.onclick = function() { showItem(cur + 1); };
+
+    // "Ask DataDost" button — proper event listener, pre-seeds General Chat
+    var askBtn = document.getElementById("dash-news-ask");
+    if (askBtn) {
+      askBtn.onclick = function() {
+        openNewsInChat(items[cur].ask_prompt);
+      };
+    }
   } catch (err) {
     console.error("[DataDost] News ticker load error:", err);
   }
@@ -5217,30 +5244,39 @@ function openNewsInChat(prompt) {
   }, 300);
 }
 
-// Renders the referral mini-card on the Dashboard with live counts
+// Populates the compact referral strip inside the combined engagement panel.
+// Uses proper addEventListener — never inline onclick on dynamic elements.
 function renderDashRefCard() {
-  var card = document.getElementById("dash-ref-card");
-  if (!card || !userPlan.ref_code) return;
-  card.style.display = "block";
+  var panel = document.getElementById("dash-engage-panel");
+  if (!panel || !userPlan.ref_code) return;
 
-  // Update counts
+  var refLinkEl  = document.getElementById("dash-ref-link");
   var refCountEl = document.getElementById("dash-ref-count");
-  var bonusCountEl = document.getElementById("dash-bonus-count");
-  var qRemainEl = document.getElementById("dash-q-remaining");
-  var refLinkEl = document.getElementById("dash-ref-link");
+  var qRemainEl  = document.getElementById("dash-q-remaining");
+  var waBtn      = document.getElementById("dash-wa-btn");
+  var copyBtn    = document.getElementById("dash-copy-btn");
 
-  if (refLinkEl) refLinkEl.textContent = "datadost.in?ref=" + userPlan.ref_code;
-  if (bonusCountEl) bonusCountEl.textContent = "+" + (userPlan.bonus_questions_earned || 0);
-  if (qRemainEl) qRemainEl.textContent = questionsRemaining();
+  if (refLinkEl)  refLinkEl.textContent  = "datadost.in?ref=" + userPlan.ref_code;
+  if (qRemainEl)  qRemainEl.textContent  = questionsRemaining();
 
-  // Load actual referral count from DB
+  // Attach WhatsApp and Copy buttons via proper event listeners — not onclick attributes.
+  // This is the fix for the silent-button bug: inline onclick on dynamically rendered
+  // HTML doesn't reliably reach global functions in all browsers and timing conditions.
+  if (waBtn)   waBtn.onclick   = function() { shareOnWhatsApp(); };
+  if (copyBtn) copyBtn.onclick = function() { copyRefLink(); };
+
+  // Load actual completed referral count from DB
   if (sb) {
     sb.auth.getSession().then(function(sr) {
       var user = sr.data && sr.data.session ? sr.data.session.user : null;
-      if (!user) return;
-      sb.from("referrals").select("id", { count: "exact" }).eq("referrer_id", user.id).eq("status", "completed").then(function(r) {
-        if (!r.error && refCountEl) refCountEl.textContent = (r.count || 0);
-      });
+      if (!user || !refCountEl) return;
+      sb.from("referrals")
+        .select("id", { count: "exact" })
+        .eq("referrer_id", user.id)
+        .eq("status", "completed")
+        .then(function(r) {
+          if (!r.error) refCountEl.textContent = (r.count || 0);
+        });
     });
   }
 }
