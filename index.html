@@ -391,9 +391,9 @@
             <div style="font-size:.75rem;color:var(--slate);margin-bottom:8px;line-height:1.5">2 referrals who upload = 10 bonus questions on your existing documents.</div>
             <div style="display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--slate);font-family:monospace;margin-bottom:7px">
               <span id="upload-paywall-ref-link">datadost.in?ref=...</span>
-              <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
+              <button type="button" id="upload-paywall-copy-btn" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
             </div>
-            <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
+            <button type="button" id="upload-paywall-wa-btn" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
           </div>
           <button type="button" onclick="goTo('s-chat')" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.6rem;border-radius:100px;background:none;border:1px solid var(--border);font-family:inherit;font-size:.78rem;cursor:pointer;color:var(--slate);margin-top:8px">Continue with my existing documents</button>
         </div>
@@ -537,7 +537,7 @@
         <button type="button" onclick="document.getElementById('plan-warn-banner').style.display='none';bannerDismissed=true;" style="margin-left:auto;background:none;border:none;cursor:pointer;padding:0;color:var(--green)">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
-        <button type="button" onclick="shareOnWhatsApp()" style="margin-left:4px;background:none;border:none;cursor:pointer;padding:0;color:var(--green);font-size:.75rem;font-weight:600;text-decoration:underline;font-family:inherit">Share now</button>
+        <button type="button" id="banner-share-btn" style="margin-left:4px;background:none;border:none;cursor:pointer;padding:0;color:var(--green);font-size:.75rem;font-weight:600;text-decoration:underline;font-family:inherit">Share now</button>
       </div>
       <div class="chat-msgs" id="chat-msgs"></div>
       <div class="qbtns" id="qbtns"></div>
@@ -566,9 +566,9 @@
             <div style="display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:.72rem;color:var(--slate);font-family:monospace;margin-bottom:8px">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
               <span id="paywall-ref-link">datadost.in?ref=...</span>
-              <button type="button" onclick="copyRefLink()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
+              <button type="button" id="paywall-copy-btn" style="margin-left:auto;background:none;border:none;cursor:pointer;color:var(--sf);font-size:.72rem;font-family:inherit;font-weight:600;padding:0">Copy</button>
             </div>
-            <button type="button" onclick="shareOnWhatsApp()" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
+            <button type="button" id="paywall-wa-btn" style="display:flex;align-items:center;justify-content:center;gap:5px;width:100%;padding:.55rem;border-radius:100px;background:var(--green-l);border:1px solid var(--border-g,#97C459);color:var(--green);font-family:inherit;font-size:.78rem;font-weight:600;cursor:pointer">Share on WhatsApp</button>
           </div>
         </div>
       </div>
@@ -1665,6 +1665,25 @@ document.getElementById("g-login").addEventListener("click", doGoogle);
 document.getElementById("g-signup").addEventListener("click", doGoogle);
 document.getElementById("l-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doLogin(); });
 document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doSignup(); });
+
+// ── WIRE REFERRAL BUTTONS ──
+// All copy/share buttons across the upload paywall, Q15 banner, and Q20 chat paywall
+// are wired here with proper event listeners — not inline onclick — so they work
+// reliably on Safari/iOS where inline onclick with clipboard API can be blocked.
+(function() {
+  function wireIfPresent(id, fn) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener("click", fn);
+  }
+  // Upload paywall referral buttons
+  wireIfPresent("upload-paywall-copy-btn", function() { copyRefLink(); });
+  wireIfPresent("upload-paywall-wa-btn",   function() { shareOnWhatsApp(); });
+  // Q15 warning banner share button
+  wireIfPresent("banner-share-btn", function() { shareOnWhatsApp(); });
+  // Q20 chat paywall copy and WhatsApp buttons
+  wireIfPresent("paywall-copy-btn", function() { copyRefLink(); });
+  wireIfPresent("paywall-wa-btn",   function() { shareOnWhatsApp(); });
+})();
 
 // ── WIRE DASH NAV ──
 document.getElementById("nav-dash").addEventListener("click", function() { goTo("s-dash"); });
