@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260630d">
+<link rel="stylesheet" href="style.css?v=20260704a">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -1813,11 +1813,25 @@ function updateLoanCalc() {
     iconEl.textContent = "⚠";
     textEl.textContent = "Above what most lenders accept. Real approval odds would likely be low here.";
   }
+  // Update the --pct CSS variable on each slider so the orange filled-track
+  // renders correctly on WebKit/Chrome (which lacks a native ::-webkit-slider-fill).
+  // pct = (value - min) / (max - min) * 100 as a percentage string.
+  [
+    { id: "loan-inc", min: 15000, max: 150000 },
+    { id: "loan-ex",  min: 0,     max: 50000  },
+    { id: "loan-new", min: 0,     max: 50000  }
+  ].forEach(function(s) {
+    var el = document.getElementById(s.id);
+    if (!el) return;
+    var pct = ((parseInt(el.value, 10) - s.min) / (s.max - s.min) * 100).toFixed(1) + "%";
+    el.style.setProperty("--pct", pct);
+  });
 }
 ["loan-inc", "loan-ex", "loan-new"].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) { el.addEventListener("input", updateLoanCalc); }
 });
+updateLoanCalc(); // set initial --pct values so orange fill renders on page load
 updateLoanCalc();
 var loanAskBtn = document.getElementById("loan-ask-btn");
 if (loanAskBtn) {

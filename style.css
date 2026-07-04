@@ -324,3 +324,40 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 @keyframes ddNudgeBob{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 /* Feedback button: collapse to icon-only on mobile, same breakpoint as History capsules */
 @media(max-width:660px){.fb-label{display:none}}
+/* Loan calculator range sliders — branded DataDost orange, cross-browser.
+   input[type=range] resets are needed because every browser has its own
+   default thumb/track appearance that must be explicitly cleared first. */
+input[type=range]#loan-inc,
+input[type=range]#loan-ex,
+input[type=range]#loan-new{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:4px;
+  border-radius:2px;outline:none;border:none;
+  background:linear-gradient(to right,var(--sf) 0%,var(--sf) var(--pct,50%),var(--border) var(--pct,50%),var(--border) 100%);
+  cursor:pointer;
+}
+input[type=range]#loan-inc::-webkit-slider-thumb,
+input[type=range]#loan-ex::-webkit-slider-thumb,
+input[type=range]#loan-new::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:20px;height:20px;border-radius:50%;
+  background:var(--sf);border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer;
+}
+input[type=range]#loan-inc::-moz-range-thumb,
+input[type=range]#loan-ex::-moz-range-thumb,
+input[type=range]#loan-new::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--sf);border:2px solid #fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);cursor:pointer;
+}
+input[type=range]#loan-inc::-moz-range-track,
+input[type=range]#loan-ex::-moz-range-track,
+input[type=range]#loan-new::-moz-range-track{
+  height:4px;border-radius:2px;background:var(--border);
+}
+input[type=range]#loan-inc::-moz-range-progress,
+input[type=range]#loan-ex::-moz-range-progress,
+input[type=range]#loan-new::-moz-range-progress{
+  height:4px;border-radius:2px;background:var(--sf);
+}
