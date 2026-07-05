@@ -5343,13 +5343,32 @@ async function renderNewsTicker() {
 
 // Pre-fills General Chat with a news-driven question and navigates to Chat
 function openNewsInChat(prompt) {
-  activeDoc = "general";
-  selectDoc("general", true);
-  goTo("s-chat");
+  // If already on the Chat screen in General Chat, just pre-fill the input — do NOT
+  // call goTo/renderChat which would wipe the current conversation and show the welcome
+  // message again. This was causing a confirmed bug: clicking "Ask DataDost" on any news
+  // card while already in General Chat reset the entire chat view, making the model reply
+  // with the welcome message instead of actually answering the question.
+  var alreadyInGeneralChat = activeDoc === "general" && document.getElementById("s-chat").classList.contains("active");
+  if (!alreadyInGeneralChat) {
+    activeDoc = "general";
+    selectDoc("general", true);
+    goTo("s-chat");
+  }
+  // CRITICAL: always explicitly set uploadedDocContext and clear stale file data when
+  // opening General Chat from the news ticker. The condition was previously checking
+  // "if empty" — but the bug is that uploadedDocContext was NOT empty, it held the
+  // previous sample or real document context (confirmed via Image 4: the SEBI question
+  // got "In the full DataDost, I'd analyse your actual document data" — the sample
+  // canned fallback — because the sample bank/CC context was still set). Always override
+  // to General Chat context here, and clear fileBase64/fileMediaType so no stale file
+  // is accidentally attached to the news question API call.
+  uploadedDocContext = "No specific document uploaded. The user wants general financial conversation, advice, or education. Respond naturally as a friendly financial coach for Indian middle-class users, drawing on general best practices (50-30-20 budgeting rule, SIP basics, emergency funds, EMI management, etc).";
+  fileBase64 = "";
+  fileMediaType = "";
   setTimeout(function() {
     var inp = document.getElementById("chat-inp");
     if (inp) { inp.value = prompt; inp.focus(); }
-  }, 300);
+  }, alreadyInGeneralChat ? 0 : 300);
 }
 
 // Populates the compact referral strip inside the combined engagement panel.
