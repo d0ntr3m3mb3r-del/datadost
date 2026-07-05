@@ -1275,6 +1275,10 @@ async function getAuthHeader() {
     return {};
   }
 }
+// Expose on window so the feedback <script> block (separate scope) can reach it
+// on all browsers including Safari/WebKit, which does not always promote async
+// functions defined inside a DOMContentLoaded listener to the global window object.
+window.getAuthHeader = getAuthHeader;
 async function initSupabase() {
   try {
     var resp = await fetch("/api/config");
@@ -5511,17 +5515,44 @@ function toast(msg) {
   t.classList.add("show");
   setTimeout(function() { t.classList.remove("show"); }, 2800);
 }
+window.toast = toast; // expose for the separate feedback <script> block
 
 
 // API key managed securely on server via Vercel environment variable
 
-// ── FEEDBACK BUTTON ──
-// Wired here inside DOMContentLoaded so getAuthHeader() is guaranteed in scope.
-// The feedback panel HTML lives below in the body — the DOM nodes are present by
-// the time this listener fires, so getElementById calls below are safe.
-// Previously this block lived in a separate <script> tag after </script>, which
-// put it outside DOMContentLoaded and outside getAuthHeader's function scope —
-// causing "Can't find variable: getAuthHeader" on Safari/WebKit.
+// ── INIT ──
+renderDash();
+initSupabase().then(function() { renderChat(); });
+
+
+}); // end DOMContentLoaded
+</script>
+<!-- ── PERSISTENT BETA FEEDBACK BUTTON ──────────────────────────────────────────
+     Fixed bottom-right, z-index 450 (below the confirm overlay at 500 and the
+     onboarding tooltip at 600, but above all screen content). Collapses to icon-
+     only on mobile (≤660px) via the .fb-label class, matching the breakpoint
+     already used for the History capsule buttons. Sends to support@datadost.in
+     via the /api/feedback serverless function using Resend, never mailto — keeps
+     the user inside the app and auto-attaches screen and device metadata without
+     asking the user to type it. -->
+<div id="fb-wrap" style="position:fixed;bottom:1.25rem;right:1.25rem;z-index:450;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
+  <div id="fb-panel" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1.1rem;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.14)">
+    <p style="font-weight:700;font-size:.88rem;color:var(--ink);margin:0 0 .25rem">Share your feedback</p>
+    <p style="font-size:.75rem;color:var(--slate);margin:0 0 .7rem">What's working, what's not — DD reads every message.</p>
+    <textarea id="fb-text" rows="4" placeholder="Tell us what's on your mind..." style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;padding:.6rem .75rem;font-family:inherit;font-size:.82rem;resize:none;outline:none;line-height:1.5"></textarea>
+    <div id="fb-status" style="display:none;font-size:.76rem;margin:.4rem 0 0;padding:.4rem .6rem;border-radius:8px"></div>
+    <div style="display:flex;gap:.5rem;margin-top:.6rem">
+      <button type="button" id="fb-send" style="flex:1;padding:.55rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer">Send</button>
+      <button type="button" id="fb-close" style="padding:.55rem .9rem;border-radius:999px;border:1px solid var(--border);background:none;font-family:inherit;font-size:.82rem;cursor:pointer">Cancel</button>
+    </div>
+  </div>
+  <button type="button" id="fb-toggle" style="display:flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,104,50,.35)">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="fb-label">Beta Feedback</span>
+  </button>
+</div>
+
+<script>
 (function() {
   var toggle  = document.getElementById("fb-toggle");
   var panel   = document.getElementById("fb-panel");
@@ -5571,16 +5602,15 @@ function toast(msg) {
       if (s.classList.contains("active") && screenNames[s.id]) currentScreen = screenNames[s.id];
     });
 
-    // Auth header carries the Supabase session token — server extracts the verified
-    // email from it directly, so the user never needs to type it and it can't be
-    // spoofed in the request body. Using await/try-catch (not .then chains) so every
-    // failure path — auth missing, network error, server 4xx/5xx — always resets the
-    // button and shows a clear in-panel error instead of sticking on "Sending...".
+    // window.getAuthHeader is the same function defined in the main script block,
+    // exposed on window so this separate <script> scope can reach it on all browsers
+    // including Safari/WebKit. Rewritten as await/try-catch so every failure path
+    // always resets the button — previously the .then() chain had no catch on
+    // getAuthHeader() itself, leaving the button permanently stuck on "Sending...".
     try {
-      var authHeader = await getAuthHeader();
+      var authHeader = await window.getAuthHeader();
 
-      // Guard: if no auth token is present the server will 401 anyway — catch it
-      // early with a clear message rather than a confusing "Send failed (401)".
+      // No auth token — server will 401; surface a clear message immediately.
       if (!authHeader || !authHeader["Authorization"]) {
         throw new Error("Please log in again to send feedback.");
       }
@@ -5603,8 +5633,8 @@ function toast(msg) {
       if (!resp.ok) throw new Error(data.error || "Send failed (" + resp.status + ")");
 
       fbReset();
-      if (typeof toast === "function") {
-        toast("Thank You — We value your feedback 🙏");
+      if (typeof window.toast === "function") {
+        window.toast("Thank You — We value your feedback 🙏");
       } else {
         alert("Thank You — We value your feedback!");
       }
@@ -5612,42 +5642,10 @@ function toast(msg) {
       console.error("[DataDost] Feedback send error:", err.message || err);
       sendBtn.disabled = false;
       sendBtn.textContent = "Send";
-      fbStatus((err.message || "Couldn't send — please try again."), true);
+      fbStatus(err.message || "Couldn't send — please try again.", true);
     }
   });
 })();
-
-// ── INIT ──
-renderDash();
-initSupabase().then(function() { renderChat(); });
-
-
-}); // end DOMContentLoaded
 </script>
-<!-- ── PERSISTENT BETA FEEDBACK BUTTON ──────────────────────────────────────────
-     Fixed bottom-right, z-index 450 (below the confirm overlay at 500 and the
-     onboarding tooltip at 600, but above all screen content). Collapses to icon-
-     only on mobile (≤660px) via the .fb-label class, matching the breakpoint
-     already used for the History capsule buttons. Sends to support@datadost.in
-     via the /api/feedback serverless function, never mailto — keeps the user
-     inside the app and auto-attaches screen and device metadata without asking
-     the user to type it. JS for this panel is wired above inside DOMContentLoaded
-     so getAuthHeader() is in scope on all browsers including Safari/WebKit. -->
-<div id="fb-wrap" style="position:fixed;bottom:1.25rem;right:1.25rem;z-index:450;display:flex;flex-direction:column;align-items:flex-end;gap:.5rem">
-  <div id="fb-panel" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:16px;padding:1.1rem;width:280px;box-shadow:0 8px 32px rgba(0,0,0,.14)">
-    <p style="font-weight:700;font-size:.88rem;color:var(--ink);margin:0 0 .25rem">Share your feedback</p>
-    <p style="font-size:.75rem;color:var(--slate);margin:0 0 .7rem">What's working, what's not — DD reads every message.</p>
-    <textarea id="fb-text" rows="4" placeholder="Tell us what's on your mind..." style="width:100%;box-sizing:border-box;border:1px solid var(--border);border-radius:10px;padding:.6rem .75rem;font-family:inherit;font-size:.82rem;resize:none;outline:none;line-height:1.5"></textarea>
-    <div id="fb-status" style="display:none;font-size:.76rem;margin:.4rem 0 0;padding:.4rem .6rem;border-radius:8px"></div>
-    <div style="display:flex;gap:.5rem;margin-top:.6rem">
-      <button type="button" id="fb-send" style="flex:1;padding:.55rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer">Send</button>
-      <button type="button" id="fb-close" style="padding:.55rem .9rem;border-radius:999px;border:1px solid var(--border);background:none;font-family:inherit;font-size:.82rem;cursor:pointer">Cancel</button>
-    </div>
-  </div>
-  <button type="button" id="fb-toggle" style="display:flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,104,50,.35)">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-    <span class="fb-label">Beta Feedback</span>
-  </button>
-</div>
 </body>
 </html>
