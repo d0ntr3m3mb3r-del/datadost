@@ -5600,8 +5600,20 @@ initSupabase().then(function() { renderChat(); });
     // Auth header carries the Supabase session token — the server extracts the
     // verified email from it directly, so the user never needs to type their email
     // and it can't be spoofed in the request body.
-    getAuthHeader().then(function(authHeader) {
-      return fetch("/api/feedback", {
+    // Rewritten as a clean try/catch await block — the previous .then() chain had
+    // no catch on getAuthHeader() itself, meaning a rejected promise left the button
+    // permanently stuck on "Sending..." with no visible error. Now every failure path
+    // explicitly resets the button and shows an in-panel message.
+    try {
+      var authHeader = await getAuthHeader();
+
+      // Guard: if no auth token is present the server will 401 anyway — catch it
+      // early with a clear message rather than a confusing "Send failed (401)".
+      if (!authHeader || !authHeader["Authorization"]) {
+        throw new Error("Please log in again to send feedback.");
+      }
+
+      var resp = await fetch("/api/feedback", {
         method: "POST",
         headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
         body: JSON.stringify({
@@ -5610,32 +5622,26 @@ initSupabase().then(function() { renderChat(); });
           userAgent: navigator.userAgent
         })
       });
-    }).then(function(resp) {
+
       // Always parse as text first — if the server returns HTML (e.g. a 404 page),
       // calling .json() directly throws and swallows the real error silently.
-      return resp.text().then(function(text) {
-        var data = {};
-        try { data = JSON.parse(text); } catch(e) { data = { error: "Server error (" + resp.status + ")" }; }
-        if (!resp.ok) throw new Error(data.error || "Send failed (" + resp.status + ")");
-        return data;
-      });
-    }).then(function() {
+      var text = await resp.text();
+      var data = {};
+      try { data = JSON.parse(text); } catch(e) { data = { error: "Server error (" + resp.status + ")" }; }
+      if (!resp.ok) throw new Error(data.error || "Send failed (" + resp.status + ")");
+
       fbReset();
-      // Use global toast if available, fall back to visible alert so success
-      // is never silent regardless of environment or timing.
       if (typeof toast === "function") {
         toast("Thank You — We value your feedback 🙏");
       } else {
         alert("Thank You — We value your feedback!");
       }
-    }).catch(function(err) {
+    } catch (err) {
       console.error("[DataDost] Feedback send error:", err.message || err);
       sendBtn.disabled = false;
       sendBtn.textContent = "Send";
-      // Show in-panel error AND a temporary alert so the failure is never invisible
-      // during diagnosis — will be dialled back once root cause is confirmed.
-      fbStatus("Couldn't send (" + (err.message || "unknown") + ") — please try again.", true);
-    });
+      fbStatus((err.message || "Couldn't send — please try again."), true);
+    }
   });
 })();
 </script>
