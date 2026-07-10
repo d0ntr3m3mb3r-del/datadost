@@ -1790,6 +1790,15 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
       return;
     }
     document.getElementById("forgot-email-e").style.display = "none";
+
+    // Guard: sb is initialised asynchronously after page load.
+    // If the user clicks Send before initSupabase has completed, sb is still null
+    // and calling sb.auth.resetPasswordForEmail throws TypeError silently.
+    if (!sb) {
+      showForgotStatus("Still connecting — please wait a moment and try again.", true);
+      return;
+    }
+
     forgotSendBtn.disabled = true;
     forgotSendBtn.textContent = "Sending...";
     forgotStatus.style.display = "none";
@@ -1806,7 +1815,20 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
       console.error("[DataDost] Password reset error:", err.message || err);
       forgotSendBtn.disabled = false;
       forgotSendBtn.textContent = "Send reset link";
-      showForgotStatus("Couldn't send the reset email — please try again.", true);
+      // Surface the real error so the user knows what happened.
+      // Supabase rate-limits reset emails — show a specific, helpful message for that case.
+      var msg = err.message || "";
+      var userMsg;
+      if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many") || msg.toLowerCase().includes("email rate")) {
+        userMsg = "Too many reset requests — please wait an hour before trying again, or check your inbox for a link already sent.";
+      } else if (msg.toLowerCase().includes("invalid email") || msg.toLowerCase().includes("unable to validate")) {
+        userMsg = "That email address doesn't look right — please check and try again.";
+      } else if (msg) {
+        userMsg = msg;
+      } else {
+        userMsg = "Couldn't send the reset email — please try again.";
+      }
+      showForgotStatus(userMsg, true);
     }
   });
   forgotEmail.addEventListener("keydown", function(e) { if (e.key === "Enter") forgotSendBtn.click(); });
@@ -1842,6 +1864,10 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
     if (newPwd !== confirmPwd) {
       showResetStatus("Passwords don't match — please check and try again.", true);
       resetConfirmPwd.focus();
+      return;
+    }
+    if (!sb) {
+      showResetStatus("Still connecting — please wait a moment and try again.", true);
       return;
     }
 
