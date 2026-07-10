@@ -189,16 +189,13 @@
       </button>
       <div class="auth-note">No account? <a id="sw-signup">Sign up free →</a></div>
     </div>
-    <!-- ── FORGOT PASSWORD PANEL ─────────────────────────────────────────────
-         Shown in-place when the user taps "Forgot password?" — replaces the
-         login form with a single email input. Supabase sends the reset email;
-         the link in that email redirects back to datadost.in where the user
-         sets a new password via the updateUser flow already in the Profile screen.
-         Hidden by default; toggled by the forgot-pass-link click handler below. -->
+    <!-- ── FORGOT PASSWORD PANEL ──
+         Shown in-place when user taps "Forgot password?" — replaces login form.
+         Hidden by default; toggled by forgot-pass-link click handler. -->
     <div class="form" id="form-forgot" style="display:none">
       <div style="margin-bottom:1.2rem">
         <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:.35rem">Reset your password</div>
-        <div style="font-size:.82rem;color:var(--slate);line-height:1.5">Enter the email address you signed up with. We'll send you a link to reset your password.</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.5">Enter the email address you signed up with. We'll send you a reset link.</div>
       </div>
       <div class="fg">
         <label class="fl">Email address</label>
@@ -728,6 +725,39 @@
   </div>
 </div>
 
+
+<!-- ═══ SCREEN: PASSWORD RESET ═══════════════════════════════════════════════
+     Shown automatically when a user arrives via a Supabase password reset link.
+     Supabase fires PASSWORD_RECOVERY on onAuthStateChange — the handler in
+     initSupabase intercepts it and calls goTo("s-reset") before doing anything else.
+     On success, logs the user out of the temporary recovery session and sends
+     them to the login screen with a success toast. -->
+<div class="screen" id="s-reset">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--bg)">
+    <div style="width:100%;max-width:420px">
+      <!-- Logo -->
+      <div style="text-align:center;margin-bottom:2rem">
+        <div style="font-size:1.9rem;font-weight:700;color:var(--ink);letter-spacing:-.5px">DataDost<span style="color:var(--sf)">.</span></div>
+      </div>
+      <!-- Card -->
+      <div class="card" style="padding:2rem">
+        <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">Set a new password</div>
+        <div style="font-size:.82rem;color:var(--slate);margin-bottom:1.4rem;line-height:1.5">Choose a new password for your DataDost account. Minimum 8 characters.</div>
+        <div style="display:flex;flex-direction:column;gap:.7rem;margin-bottom:1rem">
+          <input type="password" id="reset-new-pwd" placeholder="New password (min 8 characters)"
+                 style="border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-size:.86rem;font-family:inherit;outline:none">
+          <input type="password" id="reset-confirm-pwd" placeholder="Confirm new password"
+                 style="border:1.5px solid var(--border);border-radius:10px;padding:.7rem .85rem;font-size:.86rem;font-family:inherit;outline:none">
+        </div>
+        <div id="reset-status" style="display:none;font-size:.8rem;padding:.55rem .75rem;border-radius:10px;margin-bottom:.75rem"></div>
+        <button type="button" id="reset-submit-btn"
+                style="width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.75rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">
+          Update password
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ SCREEN: TERMS & PRIVACY ═══ -->
 <div class="screen" id="s-terms">
@@ -1306,15 +1336,37 @@ async function initSupabase() {
     var cfg = await resp.json();
     if (cfg.supabaseUrl && cfg.supabaseAnonKey) {
       sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+
+      // ── PASSWORD RECOVERY HANDLER ──────────────────────────────────────────
+      // When a user arrives via a password reset email, Supabase sets a temporary
+      // recovery session and fires PASSWORD_RECOVERY via onAuthStateChange.
+      // Without this listener the app never knows a recovery is happening and
+      // just shows the homepage silently — the user has no way to set a new password.
+      // This listener must be registered before getSession() is called so it catches
+      // the event that fires immediately on page load from the URL fragment token.
+      sb.auth.onAuthStateChange(function(event, session) {
+        if (event === "PASSWORD_RECOVERY") {
+          // Show the password reset screen immediately — do not redirect to dashboard.
+          goTo("s-reset");
+        }
+      });
+
       var sessionResult = await sb.auth.getSession();
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
-        applySessionUser(sessionResult.data.session.user);
-        await loadDashboardFromSnapshots();
-        // Initialise or restore user plan data — also captures any ?ref= code from the URL
-        // so a referred user who lands on datadost.in?ref=SAN7K2 gets the relationship
-        // recorded the first time they log in or sign up on that device/session.
-        await initUserPlan(sessionResult.data.session.user);
-        goTo("s-dash");
+        // Do NOT redirect to dashboard if this is a recovery session —
+        // the onAuthStateChange PASSWORD_RECOVERY event will handle routing.
+        if (sessionResult.data.session.user.recovery_sent_at ||
+            window.location.hash.includes("type=recovery")) {
+          goTo("s-reset");
+        } else {
+          applySessionUser(sessionResult.data.session.user);
+          await loadDashboardFromSnapshots();
+          // Initialise or restore user plan data — also captures any ?ref= code from the URL
+          // so a referred user who lands on datadost.in?ref=SAN7K2 gets the relationship
+          // recorded the first time they log in or sign up on that device/session.
+          await initUserPlan(sessionResult.data.session.user);
+          goTo("s-dash");
+        }
       }
     }
   } catch (err) {
@@ -1692,14 +1744,14 @@ document.getElementById("l-pass").addEventListener("keydown", function(e) { if(e
 document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doSignup(); });
 
 // ── WIRE FORGOT PASSWORD ──
-// Shows the forgot password panel in place of the login form.
+// Shows the inline forgot panel in place of the login form.
 // Supabase sends the reset email; the link redirects back to datadost.in
-// where the user is prompted to set a new password.
+// where onAuthStateChange fires PASSWORD_RECOVERY and goTo("s-reset") runs.
 (function() {
-  var forgotPanel  = document.getElementById("form-forgot");
-  var loginPanel   = document.getElementById("form-login");
-  var forgotEmail  = document.getElementById("forgot-email");
-  var forgotStatus = document.getElementById("forgot-status");
+  var forgotPanel   = document.getElementById("form-forgot");
+  var loginPanel    = document.getElementById("form-login");
+  var forgotEmail   = document.getElementById("forgot-email");
+  var forgotStatus  = document.getElementById("forgot-status");
   var forgotSendBtn = document.getElementById("forgot-send-btn");
 
   function showForgotStatus(msg, isError) {
@@ -1708,7 +1760,6 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
     forgotStatus.style.background = isError ? "#FCEBEB" : "#EAF3DE";
     forgotStatus.style.color = isError ? "#A32D2D" : "#0F6E56";
   }
-
   function showForgot() {
     loginPanel.style.display  = "none";
     forgotPanel.style.display = "block";
@@ -1718,7 +1769,6 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
     forgotSendBtn.textContent = "Send reset link";
     setTimeout(function() { forgotEmail.focus(); }, 50);
   }
-
   function showLogin() {
     forgotPanel.style.display = "none";
     loginPanel.style.display  = "block";
@@ -1726,6 +1776,7 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
 
   document.getElementById("forgot-pass-link").addEventListener("click", showForgot);
   document.getElementById("forgot-back-link").addEventListener("click", showLogin);
+  document.getElementById("auth-back").addEventListener("click", showLogin);
 
   forgotSendBtn.addEventListener("click", async function() {
     var email = forgotEmail.value.trim();
@@ -1738,18 +1789,13 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
     forgotSendBtn.disabled = true;
     forgotSendBtn.textContent = "Sending...";
     forgotStatus.style.display = "none";
-
     try {
-      // redirectTo sends the user back to datadost.in after they click the
-      // reset link in their email. Supabase appends the reset token as a
-      // URL fragment — the app picks it up on load via onAuthStateChange.
       var result = await sb.auth.resetPasswordForEmail(email, {
         redirectTo: "https://datadost.in"
       });
       if (result.error) throw result.error;
-      // Always show success — even if the email doesn't exist in our system,
-      // Supabase returns no error (security best practice: never confirm
-      // whether an email address is registered).
+      // Always show success — Supabase never confirms whether an email is registered
+      // (security best practice) so we mirror that here.
       showForgotStatus("Check your inbox — a reset link is on its way. It may take a minute or two.", false);
       forgotSendBtn.textContent = "Sent ✓";
     } catch (err) {
@@ -1759,14 +1805,73 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
       showForgotStatus("Couldn't send the reset email — please try again.", true);
     }
   });
+  forgotEmail.addEventListener("keydown", function(e) { if (e.key === "Enter") forgotSendBtn.click(); });
+})();
 
-  forgotEmail.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") forgotSendBtn.click();
+// ── WIRE PASSWORD RESET SCREEN ──
+// Handles the new password submission after arriving via a reset email link.
+// Supabase's PASSWORD_RECOVERY event puts the user in a temporary authenticated
+// state — sb.auth.updateUser() uses that session to set the new password.
+(function() {
+  var resetNewPwd     = document.getElementById("reset-new-pwd");
+  var resetConfirmPwd = document.getElementById("reset-confirm-pwd");
+  var resetStatus     = document.getElementById("reset-status");
+  var resetSubmitBtn  = document.getElementById("reset-submit-btn");
+
+  function showResetStatus(msg, isError) {
+    resetStatus.textContent = msg;
+    resetStatus.style.display = "block";
+    resetStatus.style.background = isError ? "#FCEBEB" : "#EAF3DE";
+    resetStatus.style.color = isError ? "#A32D2D" : "#0F6E56";
+  }
+
+  resetSubmitBtn.addEventListener("click", async function() {
+    var newPwd     = resetNewPwd.value.trim();
+    var confirmPwd = resetConfirmPwd.value.trim();
+
+    // Validate
+    if (!newPwd || newPwd.length < 8) {
+      showResetStatus("Password must be at least 8 characters.", true);
+      resetNewPwd.focus();
+      return;
+    }
+    if (newPwd !== confirmPwd) {
+      showResetStatus("Passwords don't match — please check and try again.", true);
+      resetConfirmPwd.focus();
+      return;
+    }
+
+    resetSubmitBtn.disabled = true;
+    resetSubmitBtn.textContent = "Updating...";
+    resetStatus.style.display = "none";
+
+    try {
+      var result = await sb.auth.updateUser({ password: newPwd });
+      if (result.error) throw result.error;
+
+      // Password updated — sign out the temporary recovery session cleanly
+      // and send the user to the login screen with a success message.
+      await sb.auth.signOut();
+      resetSessionState();
+      resetNewPwd.value = "";
+      resetConfirmPwd.value = "";
+      resetSubmitBtn.disabled = false;
+      resetSubmitBtn.textContent = "Update password";
+      resetStatus.style.display = "none";
+      goTo("s-auth");
+      toast("Password updated — please log in with your new password 🎉");
+    } catch (err) {
+      console.error("[DataDost] Password update error:", err.message || err);
+      resetSubmitBtn.disabled = false;
+      resetSubmitBtn.textContent = "Update password";
+      showResetStatus(err.message || "Couldn't update password — please try again.", true);
+    }
   });
 
-  // When the auth screen is navigated away from, reset the forgot panel
-  // back to login view so it doesn't show stale state on next visit.
-  document.getElementById("auth-back").addEventListener("click", showLogin);
+  // Allow Enter key on either field to submit
+  [resetNewPwd, resetConfirmPwd].forEach(function(el) {
+    el.addEventListener("keydown", function(e) { if (e.key === "Enter") resetSubmitBtn.click(); });
+  });
 })();
 
 // ── WIRE REFERRAL BUTTONS ──
@@ -5614,8 +5719,7 @@ function toast(msg) {
   t.classList.add("show");
   setTimeout(function() { t.classList.remove("show"); }, 2800);
 }
-// Expose on window so the feedback <script> block (separate scope) can reach it
-// on all browsers including Safari/WebKit.
+// Expose on window so the feedback <script> block (separate scope) can reach it.
 window.toast = toast;
 
 // API key managed securely on server via Vercel environment variable
@@ -5703,10 +5807,7 @@ initSupabase().then(function() { renderChat(); });
     });
 
     // window.getAuthHeader and window.toast are exposed from the main script block
-    // so this separate <script> scope can reach them on all browsers including
-    // Safari/WebKit. Rewritten as await/try-catch — the previous .then() chain
-    // had no catch on getAuthHeader() itself, leaving the button permanently stuck
-    // on "Sending..." on any auth error.
+    // so this separate <script> scope can reach them on all browsers including Safari.
     try {
       var authHeader = await window.getAuthHeader();
       if (!authHeader || !authHeader["Authorization"]) {
@@ -5715,14 +5816,8 @@ initSupabase().then(function() { renderChat(); });
       var resp = await fetch("/api/feedback", {
         method: "POST",
         headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
-        body: JSON.stringify({
-          message: msg,
-          screen: currentScreen,
-          userAgent: navigator.userAgent
-        })
+        body: JSON.stringify({ message: msg, screen: currentScreen, userAgent: navigator.userAgent })
       });
-      // Always parse as text first — if the server returns HTML (e.g. a 404 page),
-      // calling .json() directly throws and swallows the real error silently.
       var text = await resp.text();
       var data = {};
       try { data = JSON.parse(text); } catch(e) { data = { error: "Server error (" + resp.status + ")" }; }
