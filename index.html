@@ -180,7 +180,7 @@
     <div class="form" id="form-login">
       <div class="fg"><label class="fl">Email address</label><input type="email" class="fi" placeholder="you@example.com" id="l-email"><div class="fe" id="l-email-e">Please enter a valid email</div></div>
       <div class="fg"><label class="fl">Password</label><input type="password" class="fi" placeholder="Your password" id="l-pass"><div class="fe" id="l-pass-e">Password is required</div></div>
-      <div style="text-align:right;margin-top:-.3rem"><span style="font-size:.76rem;color:var(--sf);cursor:pointer">Forgot password?</span></div>
+      <div style="text-align:right;margin-top:-.3rem"><span id="forgot-pass-link" style="font-size:.76rem;color:var(--sf);cursor:pointer">Forgot password?</span></div>
       <button class="btn-submit" id="do-login">Log in to DataDost</button>
       <div class="divider">or</div>
       <button class="btn-google" id="g-login">
@@ -188,6 +188,28 @@
         Continue with Google
       </button>
       <div class="auth-note">No account? <a id="sw-signup">Sign up free →</a></div>
+    </div>
+    <!-- ── FORGOT PASSWORD PANEL ─────────────────────────────────────────────
+         Shown in-place when the user taps "Forgot password?" — replaces the
+         login form with a single email input. Supabase sends the reset email;
+         the link in that email redirects back to datadost.in where the user
+         sets a new password via the updateUser flow already in the Profile screen.
+         Hidden by default; toggled by the forgot-pass-link click handler below. -->
+    <div class="form" id="form-forgot" style="display:none">
+      <div style="margin-bottom:1.2rem">
+        <div style="font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:.35rem">Reset your password</div>
+        <div style="font-size:.82rem;color:var(--slate);line-height:1.5">Enter the email address you signed up with. We'll send you a link to reset your password.</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Email address</label>
+        <input type="email" class="fi" placeholder="you@example.com" id="forgot-email">
+        <div class="fe" id="forgot-email-e">Please enter a valid email</div>
+      </div>
+      <div id="forgot-status" style="display:none;font-size:.8rem;padding:.55rem .75rem;border-radius:10px;margin-bottom:.5rem"></div>
+      <button class="btn-submit" id="forgot-send-btn">Send reset link</button>
+      <div style="text-align:center;margin-top:.75rem">
+        <span id="forgot-back-link" style="font-size:.78rem;color:var(--sf);cursor:pointer">← Back to login</span>
+      </div>
     </div>
     <div class="form" id="form-signup" style="display:none">
       <div class="form-row">
@@ -1276,8 +1298,7 @@ async function getAuthHeader() {
   }
 }
 // Expose on window so the feedback <script> block (separate scope) can reach it
-// on all browsers including Safari/WebKit, which does not always promote async
-// functions defined inside a DOMContentLoaded listener to the global window object.
+// on all browsers including Safari/WebKit.
 window.getAuthHeader = getAuthHeader;
 async function initSupabase() {
   try {
@@ -1669,6 +1690,84 @@ document.getElementById("g-login").addEventListener("click", doGoogle);
 document.getElementById("g-signup").addEventListener("click", doGoogle);
 document.getElementById("l-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doLogin(); });
 document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doSignup(); });
+
+// ── WIRE FORGOT PASSWORD ──
+// Shows the forgot password panel in place of the login form.
+// Supabase sends the reset email; the link redirects back to datadost.in
+// where the user is prompted to set a new password.
+(function() {
+  var forgotPanel  = document.getElementById("form-forgot");
+  var loginPanel   = document.getElementById("form-login");
+  var forgotEmail  = document.getElementById("forgot-email");
+  var forgotStatus = document.getElementById("forgot-status");
+  var forgotSendBtn = document.getElementById("forgot-send-btn");
+
+  function showForgotStatus(msg, isError) {
+    forgotStatus.textContent = msg;
+    forgotStatus.style.display = "block";
+    forgotStatus.style.background = isError ? "#FCEBEB" : "#EAF3DE";
+    forgotStatus.style.color = isError ? "#A32D2D" : "#0F6E56";
+  }
+
+  function showForgot() {
+    loginPanel.style.display  = "none";
+    forgotPanel.style.display = "block";
+    forgotEmail.value = "";
+    forgotStatus.style.display = "none";
+    forgotSendBtn.disabled = false;
+    forgotSendBtn.textContent = "Send reset link";
+    setTimeout(function() { forgotEmail.focus(); }, 50);
+  }
+
+  function showLogin() {
+    forgotPanel.style.display = "none";
+    loginPanel.style.display  = "block";
+  }
+
+  document.getElementById("forgot-pass-link").addEventListener("click", showForgot);
+  document.getElementById("forgot-back-link").addEventListener("click", showLogin);
+
+  forgotSendBtn.addEventListener("click", async function() {
+    var email = forgotEmail.value.trim();
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      document.getElementById("forgot-email-e").style.display = "block";
+      forgotEmail.focus();
+      return;
+    }
+    document.getElementById("forgot-email-e").style.display = "none";
+    forgotSendBtn.disabled = true;
+    forgotSendBtn.textContent = "Sending...";
+    forgotStatus.style.display = "none";
+
+    try {
+      // redirectTo sends the user back to datadost.in after they click the
+      // reset link in their email. Supabase appends the reset token as a
+      // URL fragment — the app picks it up on load via onAuthStateChange.
+      var result = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: "https://datadost.in"
+      });
+      if (result.error) throw result.error;
+      // Always show success — even if the email doesn't exist in our system,
+      // Supabase returns no error (security best practice: never confirm
+      // whether an email address is registered).
+      showForgotStatus("Check your inbox — a reset link is on its way. It may take a minute or two.", false);
+      forgotSendBtn.textContent = "Sent ✓";
+    } catch (err) {
+      console.error("[DataDost] Password reset error:", err.message || err);
+      forgotSendBtn.disabled = false;
+      forgotSendBtn.textContent = "Send reset link";
+      showForgotStatus("Couldn't send the reset email — please try again.", true);
+    }
+  });
+
+  forgotEmail.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") forgotSendBtn.click();
+  });
+
+  // When the auth screen is navigated away from, reset the forgot panel
+  // back to login view so it doesn't show stale state on next visit.
+  document.getElementById("auth-back").addEventListener("click", showLogin);
+})();
 
 // ── WIRE REFERRAL BUTTONS ──
 // All copy/share buttons across the upload paywall, Q15 banner, and Q20 chat paywall
@@ -5515,8 +5614,9 @@ function toast(msg) {
   t.classList.add("show");
   setTimeout(function() { t.classList.remove("show"); }, 2800);
 }
-window.toast = toast; // expose for the separate feedback <script> block
-
+// Expose on window so the feedback <script> block (separate scope) can reach it
+// on all browsers including Safari/WebKit.
+window.toast = toast;
 
 // API key managed securely on server via Vercel environment variable
 
@@ -5602,19 +5702,16 @@ initSupabase().then(function() { renderChat(); });
       if (s.classList.contains("active") && screenNames[s.id]) currentScreen = screenNames[s.id];
     });
 
-    // window.getAuthHeader is the same function defined in the main script block,
-    // exposed on window so this separate <script> scope can reach it on all browsers
-    // including Safari/WebKit. Rewritten as await/try-catch so every failure path
-    // always resets the button — previously the .then() chain had no catch on
-    // getAuthHeader() itself, leaving the button permanently stuck on "Sending...".
+    // window.getAuthHeader and window.toast are exposed from the main script block
+    // so this separate <script> scope can reach them on all browsers including
+    // Safari/WebKit. Rewritten as await/try-catch — the previous .then() chain
+    // had no catch on getAuthHeader() itself, leaving the button permanently stuck
+    // on "Sending..." on any auth error.
     try {
       var authHeader = await window.getAuthHeader();
-
-      // No auth token — server will 401; surface a clear message immediately.
       if (!authHeader || !authHeader["Authorization"]) {
         throw new Error("Please log in again to send feedback.");
       }
-
       var resp = await fetch("/api/feedback", {
         method: "POST",
         headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
@@ -5624,14 +5721,12 @@ initSupabase().then(function() { renderChat(); });
           userAgent: navigator.userAgent
         })
       });
-
       // Always parse as text first — if the server returns HTML (e.g. a 404 page),
       // calling .json() directly throws and swallows the real error silently.
       var text = await resp.text();
       var data = {};
       try { data = JSON.parse(text); } catch(e) { data = { error: "Server error (" + resp.status + ")" }; }
       if (!resp.ok) throw new Error(data.error || "Send failed (" + resp.status + ")");
-
       fbReset();
       if (typeof window.toast === "function") {
         window.toast("Thank You — We value your feedback 🙏");
