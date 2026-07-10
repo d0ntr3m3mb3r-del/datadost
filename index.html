@@ -1155,6 +1155,10 @@ function switchTab(tab) {
   document.getElementById("form-signup").style.display = tab === "signup" ? "flex" : "none";
   document.getElementById("tab-login").className = "auth-tab" + (tab === "login" ? " act" : "");
   document.getElementById("tab-signup").className = "auth-tab" + (tab === "signup" ? " act" : "");
+  // Always hide the forgot password panel when switching tabs — switching to Login
+  // or Signup should always show a clean form, never the reset panel underneath it.
+  var forgotPanel = document.getElementById("form-forgot");
+  if (forgotPanel) forgotPanel.style.display = "none";
 }
 
 // ── USER UI ──
