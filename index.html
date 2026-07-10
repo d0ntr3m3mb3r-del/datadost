@@ -1820,7 +1820,7 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
       var msg = err.message || "";
       var userMsg;
       if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many") || msg.toLowerCase().includes("email rate")) {
-        userMsg = "Too many reset requests — please wait an hour before trying again, or check your inbox for a link already sent.";
+        userMsg = "Reset emails are temporarily limited — please wait an hour before trying again, or check your inbox for a link already sent.";
       } else if (msg.toLowerCase().includes("invalid email") || msg.toLowerCase().includes("unable to validate")) {
         userMsg = "That email address doesn't look right — please check and try again.";
       } else if (msg) {
