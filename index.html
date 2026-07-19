@@ -1342,25 +1342,47 @@ async function initSupabase() {
       sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
       // ── PASSWORD RECOVERY HANDLER ──────────────────────────────────────────
-      // When a user arrives via a password reset email, Supabase sets a temporary
-      // recovery session and fires PASSWORD_RECOVERY via onAuthStateChange.
-      // Without this listener the app never knows a recovery is happening and
-      // just shows the homepage silently — the user has no way to set a new password.
-      // This listener must be registered before getSession() is called so it catches
-      // the event that fires immediately on page load from the URL fragment token.
+      // Supabase has two reset link formats depending on dashboard/plan version:
+      //
+      // OLD (fragment-based, hash flow):
+      //   https://datadost.in#access_token=xxx&type=recovery
+      //   → onAuthStateChange fires PASSWORD_RECOVERY directly
+      //
+      // NEW (token-hash flow, default on free plan):
+      //   https://datadost.in?token=xxx&type=recovery  (query string, not hash)
+      //   → Supabase verifies server-side → redirects back → fires SIGNED_IN
+      //   → PASSWORD_RECOVERY event is NOT fired in this flow
+      //
+      // We handle both: PASSWORD_RECOVERY catches the old flow; the SIGNED_IN
+      // branch checks window.location for type=recovery to catch the new flow.
+      // The getSession() fallback below catches cases where the event already
+      // fired before the listener was registered (rare but possible on slow loads).
+      //
+      // Helper: detect recovery context from URL (both hash and query string)
+      function isRecoveryUrl() {
+        return window.location.hash.includes("type=recovery") ||
+               window.location.search.includes("type=recovery");
+      }
+
       sb.auth.onAuthStateChange(function(event, session) {
         if (event === "PASSWORD_RECOVERY") {
-          // Show the password reset screen immediately — do not redirect to dashboard.
+          // Old hash-based flow — fires directly
           goTo("s-reset");
+          return;
+        }
+        if (event === "SIGNED_IN" && isRecoveryUrl()) {
+          // New token-hash flow — Supabase fires SIGNED_IN after server-side
+          // verification; we detect the recovery context from the URL params.
+          goTo("s-reset");
+          return;
         }
       });
 
       var sessionResult = await sb.auth.getSession();
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
         // Do NOT redirect to dashboard if this is a recovery session —
-        // the onAuthStateChange PASSWORD_RECOVERY event will handle routing.
-        if (sessionResult.data.session.user.recovery_sent_at ||
-            window.location.hash.includes("type=recovery")) {
+        // check both URL formats (hash and query string) to catch all cases.
+        if (isRecoveryUrl()) {
           goTo("s-reset");
         } else {
           applySessionUser(sessionResult.data.session.user);
