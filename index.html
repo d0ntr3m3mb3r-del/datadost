@@ -259,6 +259,7 @@
         <div class="nav-av" id="av-dash">R</div>
         <span class="nav-nm" id="nm-dash">Rahul</span>
       </div>
+      <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     </div>
   </nav>
   <div style="flex:1;overflow-y:auto">
@@ -397,6 +398,7 @@
       <button class="nl" id="nav-profile2">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto">
@@ -535,6 +537,7 @@
       <button class="nl" id="nav-profile3">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
   </nav>
   <div id="mobile-sidebar-overlay"></div>
@@ -629,6 +632,7 @@
       <button class="nl" id="nav-profile-h">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
@@ -709,6 +713,7 @@
       <button class="nl act" id="nav-profile-p">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
@@ -2240,9 +2245,11 @@ if (changePersonaLink) {
 
 // ── FIRST-LOGIN GUIDED TOUR ──
 var onboardSteps = [
-  { selector: "#qa-upload", text: "👋 Start here — upload your first real document (bank statement, bill, anything) and I'll read it instantly." },
-  { selector: "#nav-chat", text: "💬 Then come here to chat — ask me anything about what I found, or just talk about your finances generally." },
-  { selector: "#currency-select", text: "💱 You can always change your currency here later if needed." },
+  { selector: "#qa-upload",        text: "📄 Start here — upload your bank statement, salary slip, or any bill. DataDost reads it instantly and deletes the file. Nothing is stored." },
+  { selector: "#loan-card",         text: "🧮 Try the loan calculator — move the sliders to check if a new EMI fits your income. Updates in real time, no upload needed." },
+  { selector: "#nav-chat",          text: "💬 Then come here to chat — ask anything about what DataDost found, or just talk about your finances in English or Hindi." },
+  { selector: "#nav-history",       text: "📋 Every document and chat session is saved here — revisit any past analysis anytime, even months later." },
+  { selector: "#currency-select",   text: "💱 Change your display currency anytime — useful if your income arrives in AED, USD, or GBP. Your numbers, your preference." },
 ];
 var onboardIdx = 0;
 
@@ -5133,7 +5140,24 @@ document.getElementById("profile-change-persona-btn").addEventListener("click", 
   document.getElementById("welcome-income-modal").style.display = "flex";
 });
 
-// Restart tour — clears the dd_tour_done flag and navigates to dashboard before launching
+// ── TOUR ? BUTTON — visible on all 5 app screens ──────────────────────────
+// All buttons share the class tour-q-btn. One handler wires all of them.
+// Clicking ? resets dd_tour_done, navigates to dashboard (where tour elements
+// live), then fires startOnboardTour() after 300ms so the screen renders first.
+(function() {
+  var style = document.createElement("style");
+  style.textContent = ".tour-q-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1}.tour-q-btn:hover{border-color:var(--sf);color:var(--sf)}";
+  document.head.appendChild(style);
+})();
+
+document.querySelectorAll(".tour-q-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    localStorage.removeItem("dd_tour_done");
+    goTo("s-dash");
+    setTimeout(startOnboardTour, 300);
+  });
+});
+
 document.getElementById("restart-tour-btn").addEventListener("click", function() {
   localStorage.removeItem("dd_tour_done");
   goTo("s-dash");
