@@ -52,9 +52,9 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .d-ai{align-self:flex-start;background:var(--mist);border-radius:3px 12px 12px 12px;padding:.7rem .85rem;font-size:.8rem;max-width:88%;line-height:1.55}
 .d-ai .hi{color:var(--green);font-weight:600}.d-ai .warn{color:#BA7517;font-weight:600}
 /* features */
-.feats{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;padding:2rem 6%;background:var(--mist);border-top:1px solid var(--border)}
-.feat{display:flex;align-items:center;gap:.55rem;font-size:.82rem;color:var(--slate)}
-.feat-i{width:30px;height:30px;border-radius:9px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:.75rem 5%}
+.feat{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--slate);background:var(--white);border:1px solid var(--border);border-radius:100px;padding:4px 12px}
+.feat-i{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
 /* pricing */
 .pricing{padding:3rem 6%;text-align:center}
 .pricing h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:.4rem}
