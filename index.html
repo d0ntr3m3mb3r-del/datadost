@@ -2280,16 +2280,28 @@ function showOnboardStep() {
   var tip = document.getElementById("onboard-tooltip");
   if (!target) { onboardIdx++; showOnboardStep(); return; }
   document.getElementById("onboard-text").textContent = step.text;
-  var rect = target.getBoundingClientRect();
-  tip.style.display = "block";
-  var top = rect.bottom + 10;
-  var left = Math.min(rect.left, window.innerWidth - 300);
-  tip.style.top = top + "px";
-  tip.style.left = Math.max(10, left) + "px";
-  target.style.outline = "3px solid #FF6B1A";
-  target.style.outlineOffset = "3px";
-  target.style.borderRadius = "8px";
-  target._onboardHighlighted = true;
+  // Scroll the target into view first — some elements (e.g. loan-card) sit below
+  // the visible viewport inside the scrollable dash body. getBoundingClientRect()
+  // after scrollIntoView gives an accurate position so the tooltip never renders
+  // off-screen. The 120ms delay lets the scroll animation complete before we measure.
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  setTimeout(function() {
+    var rect = target.getBoundingClientRect();
+    tip.style.display = "block";
+    // Place tooltip below the target; clamp left so it never overflows the right edge
+    var top  = rect.bottom + 12;
+    var left = Math.min(rect.left, window.innerWidth - 310);
+    // If target is near the bottom of the viewport, flip tooltip above instead
+    if (top + 120 > window.innerHeight) {
+      top = Math.max(rect.top - 130, 10);
+    }
+    tip.style.top  = top + "px";
+    tip.style.left = Math.max(10, left) + "px";
+    target.style.outline       = "3px solid #FF6B1A";
+    target.style.outlineOffset = "3px";
+    target.style.borderRadius  = "8px";
+    target._onboardHighlighted = true;
+  }, 120);
 }
 
 function clearOnboardHighlight() {
