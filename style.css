@@ -4,11 +4,10 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;opacity:0;transform:translateX(20px);transition:opacity .25s,transform .25s}
 .screen.active{display:flex;opacity:1;transform:translateX(0)}
 /* NAV */
-.app-nav{background:var(--white);border-bottom:1px solid var(--border);padding:.8rem 5%;display:flex;align-items:center;gap:0;flex-shrink:0;z-index:10}
-.logo{font-family:"Sora",sans-serif;font-weight:700;font-size:1.25rem;color:var(--ink);flex:1}
+.app-nav{background:var(--white);border-bottom:1px solid var(--border);padding:.8rem 5%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;z-index:10}
+.logo{font-family:"Sora",sans-serif;font-weight:700;font-size:1.25rem;color:var(--ink)}
 .logo span{color:var(--sf)}
-.nav-links{display:flex;gap:1.25rem;align-items:center;flex-shrink:0}
-.app-nav-right{display:flex;align-items:center;gap:.6rem;flex:1;justify-content:flex-end}
+.nav-links{display:flex;gap:1.25rem;align-items:center}
 .nl{font-size:.82rem;color:var(--slate);font-weight:500;cursor:pointer;padding:.3rem .6rem;border-radius:8px;transition:all .15s;border:none;background:none;font-family:inherit}
 .nl:hover,.nl.act{color:var(--sf);background:var(--sf-l)}
 .nav-pill{display:flex;align-items:center;gap:.5rem;cursor:pointer}
@@ -303,8 +302,8 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
   .app-nav{position:relative}
   .nav-links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;align-items:stretch;gap:0;background:var(--white);border:1px solid var(--border);border-top:none;box-shadow:0 12px 28px rgba(0,0,0,0.15);padding:.4rem;border-radius:0 0 12px 12px;z-index:50}
   .nav-links.mobile-open{display:flex}
-  .nl{width:100%;text-align:left;padding:.75rem .9rem;border-radius:8px;font-size:.92rem;color:var(--ink);background:none}
-  .nl.act{background:var(--sf-l);color:var(--sf)}
+  .nl{width:100%;text-align:left;padding:.75rem .9rem;border-radius:8px;font-size:.92rem}
+  .nl.act{background:var(--sf-l)}
   .nav-toggle-btn{display:flex !important;align-items:center;background:none;border:none;cursor:pointer;padding:.3rem;margin-right:.5rem}
 }
 #mobile-sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,46,0.5);z-index:399}
