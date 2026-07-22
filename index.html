@@ -738,11 +738,6 @@
         <button type="button" id="profile-update-pwd-btn" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.65rem 1.3rem;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit">Update password</button>
         <div style="font-size:.74rem;color:var(--slate);margin-top:.7rem;line-height:1.5">We'll gently remind you every 60 days to consider changing it — purely a suggestion, never required.</div>
       </div>
-
-      <!-- TOUR TRIGGER — always visible, resets the tour so users can replay it anytime -->
-      <div style="margin-top:1rem;text-align:center">
-        <button type="button" id="restart-tour-btn" style="background:none;border:1.5px solid var(--border);border-radius:100px;padding:.55rem 1.2rem;font-size:.8rem;font-weight:600;color:var(--slate);cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:.45rem">🗺️ Take a tour of DataDost</button>
-      </div>
     </div>
   </div>
 </div>
@@ -5158,11 +5153,6 @@ document.querySelectorAll(".tour-q-btn").forEach(function(btn) {
   });
 });
 
-document.getElementById("restart-tour-btn").addEventListener("click", function() {
-  localStorage.removeItem("dd_tour_done");
-  goTo("s-dash");
-  setTimeout(startOnboardTour, 300);
-});
 
 document.getElementById("profile-update-pwd-btn").addEventListener("click", async function() {
   var currentPwd = document.getElementById("profile-current-pwd").value;
