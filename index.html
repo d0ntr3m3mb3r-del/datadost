@@ -159,9 +159,9 @@
       </div>
     </div>
     <div class="land-cta">
-      <h2>Be first when DataDost launches</h2>
-      <p>Free for life for the first 500 signups.</p>
-      <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Join the waitlist →</button>
+      <h2>DataDost is live. Try it free today.</h2>
+      <p>No card needed. No bank linking. Just upload and ask.</p>
+      <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Get started free →</button>
     </div>
     <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
   </div>
@@ -265,6 +265,18 @@
     <div class="dash-body">
       <div><div class="dash-h"><span id="dash-greeting">Good morning</span>, <span id="dash-name">Rahul</span>! 👋</div><div class="dash-s">Here's your financial picture. Let's make it better today.</div><span id="change-persona-link" style="display:inline-block;margin-top:.5rem;background:var(--sf-l);color:var(--sf);font-weight:600;font-size:.78rem;padding:.4rem .85rem;border-radius:100px;cursor:pointer">👤 Check your profile / persona →</span></div>
       <div id="dash-data-banner" style="padding:.6rem 1rem;border-radius:10px;font-size:.8rem;background:var(--mist);color:var(--slate)"></div>
+
+      <!-- MOBILE WELCOME CARD — shown instead of the floating tooltip tour on screens ≤660px.
+           The tooltip tour uses getBoundingClientRect() pixel positioning which breaks on mobile
+           because the nav collapses to a hamburger and layout stacks differently. This card gives
+           first-time mobile users the same orientation without any positioning risk.
+           JS in startOnboardTour() decides which to show based on window.innerWidth. -->
+      <div id="mobile-welcome-card" style="display:none;background:var(--sf-l);border:1.5px solid var(--sf);border-radius:14px;padding:1.1rem 1.2rem;position:relative">
+        <button type="button" id="mobile-welcome-close" style="position:absolute;top:.7rem;right:.8rem;background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--sf);line-height:1;font-family:inherit">×</button>
+        <div style="font-size:.88rem;font-weight:700;color:var(--sf);margin-bottom:.5rem">👋 Welcome to DataDost!</div>
+        <div style="font-size:.8rem;color:var(--ink-s);line-height:1.6;margin-bottom:.75rem">Here's how to get started in 3 steps:<br><br>📄 <b>Upload</b> — tap Upload in the menu and add your bank statement, salary slip, or any bill.<br><br>💬 <b>Chat</b> — go to Chat and ask anything about your finances in plain English or Hindi.<br><br>📊 <b>Dashboard</b> — your spending, savings, and forecast appear here automatically.</div>
+        <button type="button" id="mobile-welcome-cta" style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.5rem 1.2rem;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Upload my first document →</button>
+      </div>
 
       <div id="dash-doc-switcher" style="display:none;flex-wrap:wrap;gap:.5rem;"></div>
       <div class="stats-row">
@@ -660,8 +672,8 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>
       </div>
       <div style="display:inline-flex;align-items:center;gap:5px;background:var(--green-l);color:var(--green);border-radius:999px;padding:3px 12px;font-size:.75rem;font-weight:600;margin-bottom:10px">You're on the list!</div>
-      <p style="font-size:.95rem;font-weight:700;color:var(--ink);margin:0 0 5px">DataDost Plus — 14 September 2026</p>
-      <p style="font-size:.8rem;color:var(--slate);margin:0 0 14px;line-height:1.6">We'll email you at <span id="wl-email" style="color:var(--sf);font-weight:600"></span> the moment it launches. Free for the first 500 subscribers.</p>
+      <p style="font-size:.95rem;font-weight:700;color:var(--ink);margin:0 0 5px">DataDost Plus — coming soon</p>
+      <p style="font-size:.8rem;color:var(--slate);margin:0 0 14px;line-height:1.6">We'll email you at <span id="wl-email" style="color:var(--sf);font-weight:600"></span> the moment it's available.</p>
       <div style="background:var(--green-l);border-radius:10px;padding:10px 13px;margin-bottom:14px;text-align:left">
         <div style="font-size:.75rem;font-weight:600;color:var(--green);margin-bottom:4px">What you get on Plus</div>
         <div style="font-size:.78rem;color:var(--ink-s);line-height:1.7">✓ Unlimited uploads &amp; questions<br>✓ Month-over-month comparisons<br>✓ DataDost Credit Pulse™<br>✓ Priority support</div>
@@ -1342,25 +1354,47 @@ async function initSupabase() {
       sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
 
       // ── PASSWORD RECOVERY HANDLER ──────────────────────────────────────────
-      // When a user arrives via a password reset email, Supabase sets a temporary
-      // recovery session and fires PASSWORD_RECOVERY via onAuthStateChange.
-      // Without this listener the app never knows a recovery is happening and
-      // just shows the homepage silently — the user has no way to set a new password.
-      // This listener must be registered before getSession() is called so it catches
-      // the event that fires immediately on page load from the URL fragment token.
+      // Supabase has two reset link formats depending on dashboard/plan version:
+      //
+      // OLD (fragment-based, hash flow):
+      //   https://datadost.in#access_token=xxx&type=recovery
+      //   → onAuthStateChange fires PASSWORD_RECOVERY directly
+      //
+      // NEW (token-hash flow, default on free plan):
+      //   https://datadost.in?token=xxx&type=recovery  (query string, not hash)
+      //   → Supabase verifies server-side → redirects back → fires SIGNED_IN
+      //   → PASSWORD_RECOVERY event is NOT fired in this flow
+      //
+      // We handle both: PASSWORD_RECOVERY catches the old flow; the SIGNED_IN
+      // branch checks window.location for type=recovery to catch the new flow.
+      // The getSession() fallback below catches cases where the event already
+      // fired before the listener was registered (rare but possible on slow loads).
+      //
+      // Helper: detect recovery context from URL (both hash and query string)
+      function isRecoveryUrl() {
+        return window.location.hash.includes("type=recovery") ||
+               window.location.search.includes("type=recovery");
+      }
+
       sb.auth.onAuthStateChange(function(event, session) {
         if (event === "PASSWORD_RECOVERY") {
-          // Show the password reset screen immediately — do not redirect to dashboard.
+          // Old hash-based flow — fires directly
           goTo("s-reset");
+          return;
+        }
+        if (event === "SIGNED_IN" && isRecoveryUrl()) {
+          // New token-hash flow — Supabase fires SIGNED_IN after server-side
+          // verification; we detect the recovery context from the URL params.
+          goTo("s-reset");
+          return;
         }
       });
 
       var sessionResult = await sb.auth.getSession();
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
         // Do NOT redirect to dashboard if this is a recovery session —
-        // the onAuthStateChange PASSWORD_RECOVERY event will handle routing.
-        if (sessionResult.data.session.user.recovery_sent_at ||
-            window.location.hash.includes("type=recovery")) {
+        // check both URL formats (hash and query string) to catch all cases.
+        if (isRecoveryUrl()) {
           goTo("s-reset");
         } else {
           applySessionUser(sessionResult.data.session.user);
@@ -2196,6 +2230,25 @@ var onboardIdx = 0;
 
 function startOnboardTour() {
   if (localStorage.getItem("dd_tour_done")) return;
+  // On mobile (≤660px) the nav collapses to a hamburger and tooltip positioning via
+  // getBoundingClientRect() breaks — elements are in different positions or not visible.
+  // Show the static welcome card instead; it gives the same orientation without any
+  // positioning risk. Desktop (>660px) runs the existing tooltip tour unchanged.
+  if (window.innerWidth <= 660) {
+    var card = document.getElementById("mobile-welcome-card");
+    if (card) card.style.display = "block";
+    localStorage.setItem("dd_tour_done", "1");
+    var closeBtn = document.getElementById("mobile-welcome-close");
+    var ctaBtn   = document.getElementById("mobile-welcome-cta");
+    if (closeBtn) closeBtn.addEventListener("click", function() {
+      card.style.display = "none";
+    });
+    if (ctaBtn) ctaBtn.addEventListener("click", function() {
+      card.style.display = "none";
+      goTo("s-upload");
+    });
+    return;
+  }
   onboardIdx = 0;
   showOnboardStep();
 }
