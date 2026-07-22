@@ -1409,6 +1409,12 @@ async function initSupabase() {
           // recorded the first time they log in or sign up on that device/session.
           await initUserPlan(sessionResult.data.session.user);
           goTo("s-dash");
+          // Persona gate for returning users — if they somehow skipped persona selection
+          // on a previous session (beta users, early accounts), show the modal now before
+          // they reach any uploads. Tour fires after persona is selected via selectPersona().
+          if (!localStorage.getItem("dd_persona")) {
+            setTimeout(function() { document.getElementById("welcome-income-modal").style.display = "flex"; }, 800);
+          }
         }
       }
     }
@@ -1989,7 +1995,14 @@ document.getElementById("nav-history-p").addEventListener("click", function() { 
 document.getElementById("dash-ask").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("dash-add").addEventListener("click", function() { goTo("s-upload"); });
-document.getElementById("qa-upload").addEventListener("click", function() { goTo("s-upload"); });
+document.getElementById("qa-upload").addEventListener("click", function() {
+  if (!currentPersona) {
+    toast("One quick step first — tell us a little about yourself 👇");
+    setTimeout(function() { document.getElementById("welcome-income-modal").style.display = "flex"; }, 400);
+    return;
+  }
+  goTo("s-upload");
+});
 document.getElementById("qa-chat").addEventListener("click", function() { goTo("s-chat"); });
 document.getElementById("qa-report").addEventListener("click", function() { toast("Monthly report coming soon!"); });
 document.getElementById("qa-goal").addEventListener("click", function() { toast("Savings goals coming in Phase 2!"); });
@@ -2711,6 +2724,14 @@ var dzEl = document.getElementById("dz");
 var fileInp = document.getElementById("file-inp");
 
 dzEl.addEventListener("click", function() {
+  // Persona gate — must be set before any upload is allowed. This ensures DataDost
+  // knows the user's income type before reading their first document, so the AI
+  // frames its analysis correctly from the very first interaction.
+  if (!currentPersona) {
+    toast("One quick step first — tell us a little about yourself so DataDost can personalise your experience 👇");
+    setTimeout(function() { document.getElementById("welcome-income-modal").style.display = "flex"; }, 400);
+    return;
+  }
   // Only show the choice if there isn't already a file selected (clicking an already-loaded
   // box should let the user just click Analyse, not re-prompt them every time).
   if (!curFile) {
