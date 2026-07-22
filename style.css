@@ -31,7 +31,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 /* ═══ LANDING ═══ */
 #s-land{background:var(--white);overflow-y:auto}
 .land-nav{padding:1rem 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}
-.hero{padding:4.5rem 6% 3rem;text-align:center;position:relative;overflow:hidden}
+.hero{padding:4.5rem 6% 1rem;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,#FFF1E9,transparent 70%);z-index:0}
 .hero::after{content:"";position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,#E1F5EE,transparent 70%);z-index:0}
 .hero>*{position:relative;z-index:1}
