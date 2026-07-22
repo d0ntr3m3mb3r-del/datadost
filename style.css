@@ -31,7 +31,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 /* ═══ LANDING ═══ */
 #s-land{background:var(--white);overflow-y:auto}
 .land-nav{padding:1rem 6%;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(255,255,255,.95);backdrop-filter:blur(8px);position:sticky;top:0;z-index:10}
-.hero{padding:4.5rem 6% 3rem;text-align:center;position:relative;overflow:hidden}
+.hero{padding:2rem 6% 1rem;text-align:center;position:relative;overflow:hidden}
 .hero::before{content:"";position:absolute;top:-80px;right:-80px;width:400px;height:400px;background:radial-gradient(circle,#FFF1E9,transparent 70%);z-index:0}
 .hero::after{content:"";position:absolute;bottom:-40px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,#E1F5EE,transparent 70%);z-index:0}
 .hero>*{position:relative;z-index:1}
@@ -52,11 +52,11 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .d-ai{align-self:flex-start;background:var(--mist);border-radius:3px 12px 12px 12px;padding:.7rem .85rem;font-size:.8rem;max-width:88%;line-height:1.55}
 .d-ai .hi{color:var(--green);font-weight:600}.d-ai .warn{color:#BA7517;font-weight:600}
 /* features */
-.feats{display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;padding:2rem 6%;background:var(--mist);border-top:1px solid var(--border)}
-.feat{display:flex;align-items:center;gap:.55rem;font-size:.82rem;color:var(--slate)}
-.feat-i{width:30px;height:30px;border-radius:9px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:.4rem 5%}
+.feat{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--slate);background:var(--white);border:1px solid var(--border);border-radius:100px;padding:4px 12px}
+.feat-i{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
 /* pricing */
-.pricing{padding:3rem 6%;text-align:center}
+.pricing{padding:1rem 6%;text-align:center}
 .pricing h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:.4rem}
 .pricing p{color:var(--slate);font-size:.88rem;margin-bottom:1.75rem}
 .plans{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
@@ -68,7 +68,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .plan-price span{font-size:.82rem;font-weight:400;color:var(--slate)}
 .plan-desc{font-size:.73rem;color:var(--slate);margin-top:.2rem}
 /* land cta */
-.land-cta{background:var(--sf);padding:2.5rem 6%;text-align:center}
+.land-cta{background:var(--sf);padding:1rem 6%;text-align:center}
 .land-cta h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}
 .land-cta p{color:rgba(255,255,255,.8);font-size:.88rem;margin-bottom:1.25rem}
 .land-foot{background:var(--ink);padding:1.2rem 6%;text-align:center}
