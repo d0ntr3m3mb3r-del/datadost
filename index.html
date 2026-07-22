@@ -62,8 +62,8 @@
   <div style="overflow-y:auto;flex:1">
     <div class="hero">
       <div class="badge"><div class="badge-dot"></div>Now in early access · Free to try</div>
-      <h1>Your money, finally<br><span>speaking your language</span></h1>
-      <p>Drop your bank statement, utility bill, or salary slip — and just ask. DataDost gives clear, honest, even a little funny financial advice.</p>
+      <h1>Finally understand<br><span>your salary slip.</span></h1>
+      <p>PF, HRA, TDS, professional tax — DataDost explains every line in plain English or Hindi. Bank statements, ITR, and bills too. Free. Instant. No bank login.</p>
       <div class="hero-btns">
         <button class="btn btn-sf" id="hero-signup">Start for free — no card needed</button>
         <button class="btn btn-out" id="hero-demo-btn">See how it works ↓</button>
@@ -76,29 +76,29 @@
         </div>
         <div class="demo-body demo-slide-wrap" style="flex:1;min-height:230px">
           <div style="animation:ddDemo1 20s ease-in-out infinite">
-            <div class="d-file">📄 SBI_Statement_May2025.pdf uploaded</div>
+            <div class="d-file">📄 HDFC_SalarySlip_June2026.pdf uploaded</div>
+            <div class="d-user">Why is my take-home ₹8,000 less than my CTC?</div>
+            <div class="d-ai">Classic CTC confusion! 😄 Here's exactly where it goes:<br><br>💼 <span class="warn">PF: ₹4,320</span> — your money, just locked till retirement<br>📋 <span class="warn">TDS: ₹2,800</span> — income tax paid upfront to govt<br>🏙️ Professional tax: ₹200 — state government levy<br><br><span class="hi">Good news: your PF is already building a corpus. Want to know if old or new tax regime saves you more?</span> 🎯</div>
+          </div>
+          <div class="demo-slide" style="animation:ddDemo2 20s ease-in-out infinite">
+            <div class="d-file">📄 SBI_Statement_May2026.pdf uploaded</div>
             <div class="d-user">Yaar, where is all my money going? 😅</div>
             <div class="d-ai">Haha, valid question! Here's the honest picture:<br><br>🍔 <span class="warn">Food delivery: ₹4,820</span> — Swiggy + Zomato, 10% of your salary!<br>📱 <span class="warn">Subscriptions: ₹1,566</span> — 4 services, do you use all of them?<br><br>Cut delivery + cancel 2 subscriptions = <span class="hi">save ₹3,400/month</span> — that's a solid SIP start! 🎯</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo2 20s ease-in-out infinite">
+          <div class="demo-slide" style="animation:ddDemo3 20s ease-in-out infinite">
             <div class="d-file">📄 HDFC_CreditCard_June2026.pdf uploaded</div>
             <div class="d-user">Am I using this card's full benefits?</div>
             <div class="d-ai">Checked your card's terms against your last 6 months — <span class="warn">you're missing free airport lounge access</span>, worth about <span class="hi">₹6,000 a year</span>, at no extra cost. Want to see how to use it?</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo3 20s ease-in-out infinite">
+          <div class="demo-slide" style="animation:ddDemo4 20s ease-in-out infinite">
             <div class="d-file">📄 ICICI_Statement_June2026.pdf uploaded</div>
             <div class="d-user">Why is nothing left by month end? 😩</div>
             <div class="d-ai">Looked at your last 3 months — <span class="warn">dining out is up 32%</span>, that's about <span class="hi">₹4,200/month</span> you could redirect to savings. Want a plan that doesn't feel like punishment?</div>
           </div>
-          <div class="demo-slide" style="animation:ddDemo4 20s ease-in-out infinite">
-            <div class="d-file">📄 SBI_Card_Rewards.pdf uploaded</div>
-            <div class="d-user">Did I miss any cashback this month?</div>
-            <div class="d-ai"><span class="warn">₹340 cashback expires in 12 days</span> on your SBI card — redeem it before it's gone. Want the fastest way to do that?</div>
-          </div>
           <div class="demo-slide" style="animation:ddDemo5 20s ease-in-out infinite">
-            <div class="d-file">📄 HDFC_SalarySlip_June2026.pdf uploaded</div>
-            <div class="d-user">Can I afford a ₹22,000 EMI for a new car?</div>
-            <div class="d-ai">You're already paying ₹8,000 in EMIs on a ₹65,000 income. Adding ₹22,000 would push you to <span class="warn">46% of your income</span> — inside what most lenders look for, but it wouldn't leave much room for a surprise expense. Want to see what changes at a smaller amount?</div>
+            <div class="d-file">📄 SBI_SalarySlip_July2026.pdf uploaded</div>
+            <div class="d-user">मेरी salary slip में PF क्यों काटा जा रहा है?</div>
+            <div class="d-ai">बिल्कुल valid question! 😄 PF कोई penalty नहीं है — यह आपका ही पैसा है, बस अभी lock है।<br><br>💼 आपकी salary से <span class="warn">₹4,320 PF</span> जा रहा है।<br>यही पैसा 10 साल में 8% return पर <span class="hi">₹7.8 लाख</span> बन जाएगा!<br><br>और अगर company match करती है — double फायदा। पूरा salary breakdown देखना है? 🎯</div>
           </div>
           <div style="font-size:.66rem;color:var(--slate);text-align:center;padding-top:.5rem">Sample numbers for illustration — your real numbers come from your own documents. Not a loan recommendation.</div>
         </div>
@@ -4220,9 +4220,9 @@ var chatMeta = {
   creditcard:{ico:"💳",title:"Credit Card Statement",sub:"Sample demo · try uploading your own!"},
 };
 var chatQs = {
-  general:["How should I start budgeting?","What's a good savings rate?","Help me plan an emergency fund","Explain SIP vs lump sum"],
+  general:["How should I start budgeting?","What's a good savings rate?","मेरी salary slip explain करो","इस महीने पैसा कहाँ गया?","Help me plan an emergency fund","Explain SIP vs lump sum"],
   bank:["Where did my money go?","Food spending?","How to save more?","Wasted subscriptions?"],
-  salary:["What's my take-home?","Effective tax rate?","How much to save?","Optimize deductions?"],
+  salary:["What's my take-home?","Old or new tax regime?","How much to save?","Optimize deductions?"],
   utility:["Why is my bill high?","How to reduce it?","Compare to last month","Tips to save power?"],
   creditcard:["How many reward points do I have?","What benefits am I missing?","Best way to redeem points?","Which card for which spend?"],
 };
@@ -5379,7 +5379,29 @@ async function callClaudeAPI(userMsg, requestDocKey) {
   // override that clearly so the model doesn't defer to its own prior "I can't see it" stance.
   var fileIsLive = !!(fileBase64 && fileMediaType);
   var freshFileNote = fileIsLive ? "\n\n[IMPORTANT — Document status: the original file IS attached to this message right now — you can see the full transaction list, all dates and amounts. Disregard any earlier context or conversation message that said the file was not available. Re-read the document directly and answer from what you actually see in it.]" : "";
-  var dynamicContext = "IMPORTANT — Income type awareness: " + (currentIncomeType === "regular" ? "This user has REGULAR income (salary, pension, or similar predictable monthly credit). You can reasonably assume a monthly income pattern, use standard benchmarks like the 50-30-20 rule or a 20% savings rate target, and calculate things like days-until-next-salary when relevant." : currentIncomeType === "variable" ? "This user has VARIABLE income (student, business owner, freelancer, gig worker, or similar — money that does NOT arrive predictably every month). Do NOT assume a monthly salary pattern exists. Before treating any inflow as income for budgeting purposes, ask whether it is one-time or genuinely recurring. Avoid applying standard percentage-based benchmarks unless the user has confirmed a real recurring pattern. Be more curious and ask more before assuming what a transaction represents." : "This user has not specified their income type yet — stay neutral, ask naturally if it becomes relevant.") + "\n\nDocument context:\n" + uploadedDocContext + freshFileNote;
+  // TAX REGIME BLOCK — injected into dynamicContext for salary documents only.
+  // Contains FY2025-26 slab rates for both old and new tax regimes so the AI can
+  // give accurate, grounded old-vs-new comparisons without relying on training data
+  // that may be stale. Adds ~300 tokens to salary chat calls only — not bank
+  // statements, not utility bills, not credit cards. The lookupType check mirrors
+  // the existing pattern used for chatQs/chatMeta resolution above.
+  var activeBtn2 = document.querySelector(".csb-doc[data-doc='" + activeDoc + "']");
+  var lookupType2 = (activeBtn2 && activeBtn2.dataset.realType) ? activeBtn2.dataset.realType : activeDoc;
+  var taxBlock = "";
+  if (lookupType2 === "salary") {
+    taxBlock = "\n\nTAX REGIME REFERENCE — FY2025-26 (inject this only when the user asks about tax regime, TDS, tax savings, or old vs new regime):\n" +
+      "NEW REGIME (default from FY2024-25 onwards):\n" +
+      "₹0–4L: 0% | ₹4–8L: 5% | ₹8–12L: 10% | ₹12–16L: 15% | ₹16–20L: 20% | ₹20–24L: 25% | Above ₹24L: 30%\n" +
+      "Standard deduction: ₹75,000. Section 87A rebate: zero tax on net taxable income up to ₹12,75,000 (i.e. gross up to ~₹13,50,000 after standard deduction).\n" +
+      "Deductions NOT available in new regime: 80C, 80D, HRA exemption, LTA, home loan interest (self-occupied).\n" +
+      "OLD REGIME:\n" +
+      "₹0–2.5L: 0% | ₹2.5–5L: 5% | ₹5–10L: 20% | Above ₹10L: 30%\n" +
+      "Standard deduction: ₹50,000. All deductions available: 80C (up to ₹1.5L), 80D (up to ₹25K self + ₹50K parents), HRA exemption, LTA, home loan interest.\n" +
+      "87A rebate: net taxable income up to ₹5L.\n" +
+      "BREAK-EVEN RULE: Old regime wins if total eligible deductions (80C + 80D + HRA + others) exceed approximately ₹3.75L for income up to ₹15L. Always calculate both and show the exact saving — never assume one is universally better.\n" +
+      "CRITICAL: Use the actual salary figures from the document (CTC, gross, net, TDS) to calculate the personalised comparison. Do not use generic examples. Format numbers in Indian style (₹X,XX,XXX). Caveat once at the end: 'For final decisions, confirm with a CA or your HR.'";
+  }
+  var dynamicContext = "IMPORTANT — Income type awareness: " + (currentIncomeType === "regular" ? "This user has REGULAR income (salary, pension, or similar predictable monthly credit). You can reasonably assume a monthly income pattern, use standard benchmarks like the 50-30-20 rule or a 20% savings rate target, and calculate things like days-until-next-salary when relevant." : currentIncomeType === "variable" ? "This user has VARIABLE income (student, business owner, freelancer, gig worker, or similar — money that does NOT arrive predictably every month). Do NOT assume a monthly salary pattern exists. Before treating any inflow as income for budgeting purposes, ask whether it is one-time or genuinely recurring. Avoid applying standard percentage-based benchmarks unless the user has confirmed a real recurring pattern. Be more curious and ask more before assuming what a transaction represents." : "This user has not specified their income type yet — stay neutral, ask naturally if it becomes relevant.") + "\n\nDocument context:\n" + uploadedDocContext + taxBlock + freshFileNote;
   try {
     // fileBase64/fileMediaType are SHARED variables — visiting Upload for a totally
     // different document legitimately resets them as part of upload's own normal
