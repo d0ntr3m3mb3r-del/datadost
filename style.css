@@ -56,7 +56,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .feat{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--slate);background:var(--white);border:1px solid var(--border);border-radius:100px;padding:4px 12px}
 .feat-i{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
 /* pricing */
-.pricing{padding:3rem 6%;text-align:center}
+.pricing{padding:1rem 6%;text-align:center}
 .pricing h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;margin-bottom:.4rem}
 .pricing p{color:var(--slate);font-size:.88rem;margin-bottom:1.75rem}
 .plans{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
@@ -68,7 +68,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .plan-price span{font-size:.82rem;font-weight:400;color:var(--slate)}
 .plan-desc{font-size:.73rem;color:var(--slate);margin-top:.2rem}
 /* land cta */
-.land-cta{background:var(--sf);padding:2.5rem 6%;text-align:center}
+.land-cta{background:var(--sf);padding:1rem 6%;text-align:center}
 .land-cta h2{font-family:"Sora",sans-serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:.6rem}
 .land-cta p{color:rgba(255,255,255,.8);font-size:.88rem;margin-bottom:1.25rem}
 .land-foot{background:var(--ink);padding:1.2rem 6%;text-align:center}
