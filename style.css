@@ -52,7 +52,7 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .d-ai{align-self:flex-start;background:var(--mist);border-radius:3px 12px 12px 12px;padding:.7rem .85rem;font-size:.8rem;max-width:88%;line-height:1.55}
 .d-ai .hi{color:var(--green);font-weight:600}.d-ai .warn{color:#BA7517;font-weight:600}
 /* features */
-.feats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:.75rem 5%}
+.feats{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:.4rem 5%}
 .feat{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--slate);background:var(--white);border:1px solid var(--border);border-radius:100px;padding:4px 12px}
 .feat-i{width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px}
 /* pricing */
