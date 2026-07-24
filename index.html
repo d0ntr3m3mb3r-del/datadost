@@ -405,6 +405,13 @@
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
+      <div id="currency-pill-up" style="position:relative">
+        <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
+          <span class="cur-pill-flag">🇮🇳</span>
+          <span class="cur-pill-code">INR</span>
+          <span class="cur-pill-chevron" style="font-size:.6rem;color:#9ca3af;transition:transform .2s">▼</span>
+        </div>
+      </div>
       <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
       <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     </div>
@@ -546,6 +553,13 @@
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
+      <div id="currency-pill-chat" style="position:relative">
+        <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
+          <span class="cur-pill-flag">🇮🇳</span>
+          <span class="cur-pill-code">INR</span>
+          <span class="cur-pill-chevron" style="font-size:.6rem;color:#9ca3af;transition:transform .2s">▼</span>
+        </div>
+      </div>
       <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
       <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     </div>
@@ -643,6 +657,13 @@
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
+      <div id="currency-pill-history" style="position:relative">
+        <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
+          <span class="cur-pill-flag">🇮🇳</span>
+          <span class="cur-pill-code">INR</span>
+          <span class="cur-pill-chevron" style="font-size:.6rem;color:#9ca3af;transition:transform .2s">▼</span>
+        </div>
+      </div>
       <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
       <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     </div>
@@ -726,6 +747,13 @@
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
+      <div id="currency-pill-profile" style="position:relative">
+        <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
+          <span class="cur-pill-flag">🇮🇳</span>
+          <span class="cur-pill-code">INR</span>
+          <span class="cur-pill-chevron" style="font-size:.6rem;color:#9ca3af;transition:transform .2s">▼</span>
+        </div>
+      </div>
       <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
       <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
     </div>
@@ -2283,6 +2311,44 @@ document.addEventListener("click", function() { _pillClose(); });
 
 // Initialise pill to stored preference
 _pillSetCurrency(currentCurrency, true);
+
+// ── SECONDARY CURRENCY PILLS (Upload / Chat / History / Profile navs) ──
+// These are display-only mirrors of the dashboard pill. Clicking any of them
+// navigates to Dashboard and opens the pill there — single source of truth.
+var _secondaryPillIds = ["currency-pill-up","currency-pill-chat","currency-pill-history","currency-pill-profile"];
+
+function _syncSecondaryPills(code) {
+  var entry = CURRENCY_FLAGS[code] || CURRENCY_FLAGS["INR"];
+  _secondaryPillIds.forEach(function(id) {
+    var wrap = document.getElementById(id);
+    if (!wrap) return;
+    var flagEl = wrap.querySelector(".cur-pill-flag");
+    var codeEl = wrap.querySelector(".cur-pill-code");
+    if (flagEl) flagEl.textContent = entry.flag;
+    if (codeEl) codeEl.textContent = code;
+  });
+}
+
+_secondaryPillIds.forEach(function(id) {
+  var wrap = document.getElementById(id);
+  if (!wrap) return;
+  wrap.querySelector(".cur-pill-btn").addEventListener("click", function(e) {
+    e.stopPropagation();
+    goTo("s-dash");
+    // Small delay so the screen transition completes before opening
+    setTimeout(function() { _pillToggle(); }, 200);
+  });
+});
+
+// Patch _pillSetCurrency to also sync secondary pills on every change
+var _origPillSet = _pillSetCurrency;
+_pillSetCurrency = function(code, silent) {
+  _origPillSet(code, silent);
+  _syncSecondaryPills(code);
+};
+
+// Initial sync on load
+_syncSecondaryPills(currentCurrency);
 
 // Auto-detect country via Cloudflare header — only runs if no stored preference
 if (!localStorage.getItem("dd_currency")) {
