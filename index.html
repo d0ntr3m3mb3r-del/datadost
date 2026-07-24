@@ -61,7 +61,6 @@
   </nav>
   <div style="overflow-y:auto;flex:1">
     <div class="hero">
-      <div class="badge"><div class="badge-dot"></div>Now in early access · India servers · DPDP-aligned</div>
       <h1>Know your money.<br><span>Grow your money.</span></h1>
       <p>Upload any financial document and just ask. DataDost shows you what to save, how much to invest, and what to do next.</p>
       <div class="hero-btns">
@@ -245,16 +244,23 @@
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <select id="currency-select" style="border:1px solid var(--border);border-radius:100px;padding:.35rem .7rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer">
-        <option value="INR">₹ INR</option>
-        <option value="USD">$ USD</option>
-        <option value="AED">د.إ AED</option>
-        <option value="GBP">£ GBP</option>
-        <option value="EUR">€ EUR</option>
-        <option value="SGD">S$ SGD</option>
-        <option value="AUD">A$ AUD</option>
-        <option value="CAD">C$ CAD</option>
-      </select>
+      <div id="currency-pill" style="position:relative">
+        <div id="currency-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none;transition:border-color .15s" title="Change display currency">
+          <span id="currency-pill-flag">🇮🇳</span>
+          <span id="currency-pill-code">INR</span>
+          <span id="currency-pill-chevron" style="font-size:.6rem;color:#9ca3af;transition:transform .2s">▼</span>
+        </div>
+        <div id="currency-pill-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:.35rem;min-width:190px;z-index:200;flex-direction:column;gap:2px;box-shadow:0 8px 24px rgba(0,0,0,.1)">
+          <div class="cur-opt" data-cur="INR" data-flag="🇮🇳" data-sym="₹"   style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇮🇳</span><span style="flex:1;font-weight:500">INR</span><span style="font-size:.73rem;color:#9ca3af">Indian Rupee</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="AED" data-flag="🇦🇪" data-sym="د.إ" style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇦🇪</span><span style="flex:1;font-weight:500">AED</span><span style="font-size:.73rem;color:#9ca3af">UAE Dirham</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="USD" data-flag="🇺🇸" data-sym="$"   style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇺🇸</span><span style="flex:1;font-weight:500">USD</span><span style="font-size:.73rem;color:#9ca3af">US Dollar</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="GBP" data-flag="🇬🇧" data-sym="£"   style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇬🇧</span><span style="flex:1;font-weight:500">GBP</span><span style="font-size:.73rem;color:#9ca3af">British Pound</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="EUR" data-flag="🇪🇺" data-sym="€"   style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇪🇺</span><span style="flex:1;font-weight:500">EUR</span><span style="font-size:.73rem;color:#9ca3af">Euro</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="SGD" data-flag="🇸🇬" data-sym="S$"  style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇸🇬</span><span style="flex:1;font-weight:500">SGD</span><span style="font-size:.73rem;color:#9ca3af">Singapore Dollar</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="AUD" data-flag="🇦🇺" data-sym="A$"  style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇦🇺</span><span style="flex:1;font-weight:500">AUD</span><span style="font-size:.73rem;color:#9ca3af">Aus Dollar</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+          <div class="cur-opt" data-cur="CAD" data-flag="🇨🇦" data-sym="C$"  style="display:flex;align-items:center;gap:.55rem;padding:.48rem .65rem;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--ink-s)"><span>🇨🇦</span><span style="flex:1;font-weight:500">CAD</span><span style="font-size:.73rem;color:#9ca3af">Canadian Dollar</span><span class="cur-tick" style="color:var(--sf);display:none">✓</span></div>
+        </div>
+      </div>
       <div class="nav-pill" id="user-pill-dash">
         <div class="nav-av" id="av-dash">R</div>
         <span class="nav-nm" id="nm-dash">Rahul</span>
@@ -398,8 +404,10 @@
       <button class="nl" id="nav-profile2">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
-    <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <div class="nav-pill" id="user-pill-up"><div class="nav-av" id="av-up">R</div><span class="nav-nm" id="nm-up">Rahul</span></div>
+      <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
+    </div>
   </nav>
   <div style="flex:1;overflow-y:auto">
     <div class="upload-body">
@@ -537,8 +545,10 @@
       <button class="nl" id="nav-profile3">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
-    <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <div class="nav-pill" id="user-pill-chat"><div class="nav-av" id="av-chat">R</div><span class="nav-nm" id="nm-chat">Rahul</span></div>
+      <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
+    </div>
   </nav>
   <div id="mobile-sidebar-overlay"></div>
   <div class="chat-wrap">
@@ -632,8 +642,10 @@
       <button class="nl" id="nav-profile-h">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
-    <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <div class="nav-pill" id="user-pill-history"><div class="nav-av" id="av-history">R</div><span class="nav-nm" id="nm-history">Rahul</span></div>
+      <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
+    </div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
     <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.25rem">
@@ -713,8 +725,10 @@
       <button class="nl act" id="nav-profile-p">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
-    <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <div class="nav-pill" id="user-pill-profile"><div class="nav-av" id="av-profile">R</div><span class="nav-nm" id="nm-profile">Rahul</span></div>
+      <button type="button" class="tour-q-btn" title="Take a tour of DataDost">?</button>
+    </div>
   </nav>
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
     <div style="max-width:560px;margin:0 auto;padding:1.5rem 1.25rem">
@@ -2171,19 +2185,117 @@ if (loanAskBtn) {
   });
 }
 
-var curSelectEl = document.getElementById("currency-select");
-if (curSelectEl) {
-  curSelectEl.value = currentCurrency;
-  curSelectEl.addEventListener("change", function() {
-    currentCurrency = this.value;
+// ── CURRENCY PILL — custom dropdown replaces native <select> ──
+// Exposes a .value getter/setter so all existing code referencing curSelectEl.value
+// continues to work without modification. IP auto-detect via /api/country runs once
+// on load; localStorage preference always wins over IP detection.
+var CURRENCY_FLAGS = {
+  INR: { flag: "🇮🇳", sym: "₹"   },
+  AED: { flag: "🇦🇪", sym: "د.إ" },
+  USD: { flag: "🇺🇸", sym: "$"   },
+  GBP: { flag: "🇬🇧", sym: "£"   },
+  EUR: { flag: "🇪🇺", sym: "€"   },
+  SGD: { flag: "🇸🇬", sym: "S$"  },
+  AUD: { flag: "🇦🇺", sym: "A$"  },
+  CAD: { flag: "🇨🇦", sym: "C$"  },
+};
+var COUNTRY_TO_CURRENCY = {
+  IN:"INR", AE:"AED", US:"USD", GB:"GBP", IE:"EUR", DE:"EUR", FR:"EUR",
+  IT:"EUR", ES:"EUR", NL:"EUR", SG:"SGD", AU:"AUD", CA:"CAD",
+};
+var _pillDisabled = false;
+var _pillOpen = false;
+
+var pillBtn       = document.getElementById("currency-pill-btn");
+var pillFlag      = document.getElementById("currency-pill-flag");
+var pillCode      = document.getElementById("currency-pill-code");
+var pillChevron   = document.getElementById("currency-pill-chevron");
+var pillDropdown  = document.getElementById("currency-pill-dropdown");
+
+function _pillSetCurrency(code, silent) {
+  var entry = CURRENCY_FLAGS[code] || CURRENCY_FLAGS["INR"];
+  if (pillFlag)  pillFlag.textContent  = entry.flag;
+  if (pillCode)  pillCode.textContent  = code;
+  // Update tick marks
+  document.querySelectorAll(".cur-opt").forEach(function(opt) {
+    var tick = opt.querySelector(".cur-tick");
+    if (tick) tick.style.display = opt.dataset.cur === code ? "" : "none";
+    opt.style.background = opt.dataset.cur === code ? "var(--sf-l)" : "";
+  });
+  if (!silent) {
+    currentCurrency = code;
     localStorage.setItem("dd_currency", currentCurrency);
-    // Only the sample/demo numbers respond to this — real uploaded data always
-    // displays in its own real currency and ignores this selector entirely.
     if (realDashboardData === null) renderDash();
     toast(realDashboardData === null
       ? "Sample preview now shown in " + currentCurrency
       : "Your real numbers stay in " + (realDashboardData.currency || "INR") + " — that's what's on your actual statement");
+  }
+}
+
+function _pillClose() {
+  _pillOpen = false;
+  if (pillDropdown) pillDropdown.style.display = "none";
+  if (pillChevron)  pillChevron.style.transform = "";
+}
+
+function _pillToggle() {
+  if (_pillDisabled) return;
+  _pillOpen = !_pillOpen;
+  if (pillDropdown) pillDropdown.style.display = _pillOpen ? "flex" : "none";
+  if (pillChevron)  pillChevron.style.transform = _pillOpen ? "rotate(180deg)" : "";
+}
+
+// Fake .value getter/setter so renderDash() curSelectEl.value assignments still work
+var curSelectEl = {
+  get value() { return currentCurrency; },
+  set value(code) { _pillSetCurrency(code, true); },
+  get disabled() { return _pillDisabled; },
+  set disabled(v) {
+    _pillDisabled = v;
+    if (pillBtn) {
+      pillBtn.style.opacity  = v ? "0.5" : "1";
+      pillBtn.style.cursor   = v ? "not-allowed" : "pointer";
+      pillBtn.title          = v ? "Currency locked to document's real currency" : "Change display currency";
+    }
+    if (v) _pillClose();
+  },
+  set title(t) { if (pillBtn) pillBtn.title = t; },
+};
+
+if (pillBtn) {
+  pillBtn.addEventListener("click", function(e) {
+    e.stopPropagation();
+    _pillToggle();
   });
+}
+
+if (pillDropdown) {
+  pillDropdown.addEventListener("click", function(e) {
+    e.stopPropagation();
+    var opt = e.target.closest(".cur-opt");
+    if (!opt) return;
+    _pillClose();
+    _pillSetCurrency(opt.dataset.cur, false);
+  });
+}
+
+document.addEventListener("click", function() { _pillClose(); });
+
+// Initialise pill to stored preference
+_pillSetCurrency(currentCurrency, true);
+
+// Auto-detect country via Cloudflare header — only runs if no stored preference
+if (!localStorage.getItem("dd_currency")) {
+  fetch("/api/country")
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var detected = COUNTRY_TO_CURRENCY[d.country] || "INR";
+      currentCurrency = detected;
+      localStorage.setItem("dd_currency", detected);
+      _pillSetCurrency(detected, true);
+      renderDash();
+    })
+    .catch(function() {}); // silent fail — default INR already set
 }
 
 var welcomeCurSelectEl = document.getElementById("welcome-currency-select");
@@ -2244,7 +2356,7 @@ var onboardSteps = [
   { selector: "#loan-card",         text: "🧮 Try the loan calculator — move the sliders to check if a new EMI fits your income. Updates in real time, no upload needed." },
   { selector: "#nav-chat",          text: "💬 Then come here to chat — ask anything about what DataDost found, or just talk about your finances in English or Hindi." },
   { selector: "#nav-history",       text: "📋 Every document and chat session is saved here — revisit any past analysis anytime, even months later." },
-  { selector: "#currency-select",   text: "💱 Change your display currency anytime — useful if your income arrives in AED, USD, or GBP. Your numbers, your preference." },
+  { selector: "#currency-pill",      text: "💱 Change your display currency anytime — useful if your income arrives in AED, USD, or GBP. Your numbers, your preference." },
 ];
 var onboardIdx = 0;
 
