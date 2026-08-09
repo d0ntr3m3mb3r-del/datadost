@@ -15,7 +15,19 @@
 import { verifyUser } from './_rateLimit.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+// This function legitimately needs to read and write OTHER users' rows — looking up a
+// referrer by their ref_code, and later crediting bonus questions onto the referrer's own
+// account — neither of which the referred user's own login token can do under Row Level
+// Security (a user's own token can only touch their own row, by design, for privacy).
+// A real, confirmed bug: every referral silently failed because these calls were using
+// the calling user's own token, so the referrer lookup always returned zero rows and the
+// referrals table never got a single entry, across every account ever tested. The fix is
+// the service_role key, which is Supabase's standard, intended mechanism for trusted
+// backend code — already gated here by verifyUser(req) at the top of every request — to
+// perform exactly this kind of narrow, pre-validated cross-user operation. This key must
+// NEVER be used in any client-side code; it only ever belongs in serverless functions like
+// this one.
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const BONUS_PER_REFERRAL = 5;
 const MAX_REFERRALS = 2;
 
@@ -30,20 +42,20 @@ function generateRefCode(email) {
   return prefix + suffix;
 }
 
-async function supabaseGet(path, token) {
+async function supabaseGet(path) {
   var resp = await fetch(SUPABASE_URL + path, {
-    headers: { Authorization: 'Bearer ' + token, apikey: SUPABASE_ANON_KEY }
+    headers: { Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY, apikey: SUPABASE_SERVICE_ROLE_KEY }
   });
   if (!resp.ok) throw new Error('Supabase GET ' + path + ' returned ' + resp.status);
   return resp.json();
 }
 
-async function supabasePost(path, body, token) {
+async function supabasePost(path, body) {
   var resp = await fetch(SUPABASE_URL + path, {
     method: 'POST',
     headers: {
-      Authorization: 'Bearer ' + token,
-      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
       'Content-Type': 'application/json',
       Prefer: 'return=representation'
     },
@@ -56,12 +68,12 @@ async function supabasePost(path, body, token) {
   return resp.json();
 }
 
-async function supabasePatch(path, body, token) {
+async function supabasePatch(path, body) {
   var resp = await fetch(SUPABASE_URL + path, {
     method: 'PATCH',
     headers: {
-      Authorization: 'Bearer ' + token,
-      apikey: SUPABASE_ANON_KEY,
+      Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
       'Content-Type': 'application/json',
       Prefer: 'return=representation'
     },
@@ -81,6 +93,14 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  // Fail loudly and immediately if the required env var isn't set, rather than letting
+  // every downstream Supabase call fail with a generic 401 that's hard to trace back to
+  // this specific missing piece of config.
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
+    console.error('[DataDost] SUPABASE_SERVICE_ROLE_KEY is not set — referral system cannot function.');
+    return res.status(500).json({ error: 'Referral system not configured on server.' });
+  }
+
   const user = await verifyUser(req);
   if (!user) return res.status(401).json({ error: 'Please log in.' });
 
@@ -91,8 +111,7 @@ export default async function handler(req, res) {
   if (action === 'init') {
     try {
       var existing = await supabaseGet(
-        '/rest/v1/user_plans?user_id=eq.' + user.id + '&select=user_id,ref_code,plan,bonus_questions_earned,bonus_questions_used,waitlisted',
-        user.token
+        '/rest/v1/user_plans?user_id=eq.' + user.id + '&select=user_id,ref_code,plan,bonus_questions_earned,bonus_questions_used,waitlisted'
       );
       if (existing && existing.length > 0) {
         return res.status(200).json({ plan: existing[0] });
@@ -109,7 +128,7 @@ export default async function handler(req, res) {
           bonus_questions_earned: 0,
           bonus_questions_used: 0,
           waitlisted: false
-        }, user.token);
+        });
       } catch (e) {
         // Collision on ref_code unique constraint — retry with a different code
         if (String(e.message).includes('unique') || String(e.message).includes('duplicate')) {
@@ -121,7 +140,7 @@ export default async function handler(req, res) {
             bonus_questions_earned: 0,
             bonus_questions_used: 0,
             waitlisted: false
-          }, user.token);
+          });
         } else throw e;
       }
 
@@ -129,8 +148,7 @@ export default async function handler(req, res) {
       if (refCode) {
         try {
           var referrerRows = await supabaseGet(
-            '/rest/v1/user_plans?ref_code=eq.' + encodeURIComponent(refCode) + '&select=user_id',
-            user.token
+            '/rest/v1/user_plans?ref_code=eq.' + encodeURIComponent(refCode) + '&select=user_id'
           );
           if (referrerRows && referrerRows.length > 0) {
             var referrerId = referrerRows[0].user_id;
@@ -141,12 +159,11 @@ export default async function handler(req, res) {
                 referred_email: email || null,
                 status: 'pending',
                 bonus_granted: false
-              }, user.token);
+              });
               // Record who referred this user on their own plan row
               await supabasePatch(
                 '/rest/v1/user_plans?user_id=eq.' + user.id,
-                { referred_by: referrerId },
-                user.token
+                { referred_by: referrerId }
               );
             }
           }
@@ -170,8 +187,7 @@ export default async function handler(req, res) {
     try {
       // Find a pending referral where this user is the referred party
       var pendingRefs = await supabaseGet(
-        '/rest/v1/referrals?referred_id=eq.' + user.id + '&status=eq.pending&bonus_granted=eq.false&select=id,referrer_id',
-        user.token
+        '/rest/v1/referrals?referred_id=eq.' + user.id + '&status=eq.pending&bonus_granted=eq.false&select=id,referrer_id'
       );
       if (!pendingRefs || pendingRefs.length === 0) {
         return res.status(200).json({ ok: true, message: 'No pending referral to complete.' });
@@ -182,8 +198,7 @@ export default async function handler(req, res) {
 
       // Check referrer hasn't already hit the max referral cap
       var referrerPlan = await supabaseGet(
-        '/rest/v1/user_plans?user_id=eq.' + referrerId + '&select=bonus_questions_earned',
-        user.token
+        '/rest/v1/user_plans?user_id=eq.' + referrerId + '&select=bonus_questions_earned'
       );
       var referrerBonus = (referrerPlan && referrerPlan[0]) ? referrerPlan[0].bonus_questions_earned : 0;
       var referrerCanReceive = referrerBonus < (MAX_REFERRALS * BONUS_PER_REFERRAL);
@@ -191,28 +206,24 @@ export default async function handler(req, res) {
       if (referrerCanReceive) {
         await supabasePatch(
           '/rest/v1/user_plans?user_id=eq.' + referrerId,
-          { bonus_questions_earned: referrerBonus + BONUS_PER_REFERRAL },
-          user.token
+          { bonus_questions_earned: referrerBonus + BONUS_PER_REFERRAL }
         );
       }
 
       // Referred user also gets bonus questions — double-sided referral
       var referredPlan = await supabaseGet(
-        '/rest/v1/user_plans?user_id=eq.' + user.id + '&select=bonus_questions_earned',
-        user.token
+        '/rest/v1/user_plans?user_id=eq.' + user.id + '&select=bonus_questions_earned'
       );
       var referredBonus = (referredPlan && referredPlan[0]) ? referredPlan[0].bonus_questions_earned : 0;
       await supabasePatch(
         '/rest/v1/user_plans?user_id=eq.' + user.id,
-        { bonus_questions_earned: referredBonus + BONUS_PER_REFERRAL },
-        user.token
+        { bonus_questions_earned: referredBonus + BONUS_PER_REFERRAL }
       );
 
       // Mark referral as completed
       await supabasePatch(
         '/rest/v1/referrals?id=eq.' + ref.id,
-        { status: 'completed', bonus_granted: true, completed_at: new Date().toISOString() },
-        user.token
+        { status: 'completed', bonus_granted: true, completed_at: new Date().toISOString() }
       );
 
       console.log('[DataDost] Referral completed:', ref.id, '— referrer', referrerId, 'gets', BONUS_PER_REFERRAL, 'bonus Qs');
