@@ -1287,11 +1287,13 @@ var bannerDismissed       = false; // tracks whether the Q15 warning banner was 
 
 async function initUserPlan(user) {
   try {
-    // Capture any referral code from the URL before anything else — falling back to the
-    // localStorage copy persistReferralCode() saved on page load, since the live URL is
-    // very often ref-less by the time this actually runs (see persistReferralCode above
-    // for why: email-confirmation signups land back here on a fresh page with no query string).
-    var urlRef = new URLSearchParams(window.location.search).get("ref") || localStorage.getItem("dd_pending_ref") || "";
+    // Primary source: the ref_code stored directly on the user's OWN account at signup
+    // time (see the signup handler) — this is the reliable one, since it travels with
+    // the account itself rather than depending on browser storage. localStorage and the
+    // live URL are kept only as fallbacks for older accounts created before this existed,
+    // or same-browser flows where metadata wasn't set for some reason.
+    var metadataRef = (user && user.user_metadata && user.user_metadata.ref_code) || "";
+    var urlRef = metadataRef || new URLSearchParams(window.location.search).get("ref") || localStorage.getItem("dd_pending_ref") || "";
     if (urlRef && window.history && window.history.replaceState) {
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -1666,10 +1668,20 @@ async function doSignup() {
   btn.textContent = "Creating account...";
   btn.disabled = true;
 
+  // Read the pending ref code (captured into localStorage by persistReferralCode on page
+  // load) and pass it straight into Supabase's own user_metadata at signup time. This is
+  // the durable fix: localStorage alone cannot survive a mobile referral flow where the
+  // original ?ref= link and the later email-confirmation link open in two genuinely
+  // separate browser contexts (e.g. WhatsApp's in-app browser vs the Gmail app's in-app
+  // browser) — those don't share storage with each other. Attaching ref_code to the user's
+  // OWN account record at signup means it travels with the account regardless of which
+  // browser/device later completes email confirmation and calls initUserPlan().
+  var pendingRefAtSignup = localStorage.getItem("dd_pending_ref") || "";
+
   var result = await sb.auth.signUp({
     email: email,
     password: pass,
-    options: { data: { first_name: fn, last_name: ln } }
+    options: { data: { first_name: fn, last_name: ln, ref_code: pendingRefAtSignup } }
   });
 
   btn.textContent = originalText;
