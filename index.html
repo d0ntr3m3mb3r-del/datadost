@@ -1142,7 +1142,33 @@
 // All JS runs after DOM is ready
 document.addEventListener("DOMContentLoaded", function() {
 
+// ── REFERRAL CODE PERSISTENCE ────────────────────────────────────────────
+// Referral links are ?ref=XXXX in the query string. initUserPlan() previously
+// only ever read this live off window.location.search at the exact moment it
+// ran — which works for instant signup, but silently loses the code whenever
+// email confirmation is required: the user leaves this page entirely, clicks a
+// Supabase-generated confirmation link in their inbox, and lands back on a
+// FRESH page load with no query string at all, several steps and one full
+// email round-trip after the original ?ref= was ever visible. A real, confirmed
+// case of this: a referred signup completed and uploaded successfully, but no
+// referral relationship existed to complete because the code never survived
+// that round trip. Fix: capture it into localStorage immediately, on every
+// single page load, unconditionally — before any signup/login happens — so it
+// survives regardless of how many navigations occur between now and initUserPlan()
+// actually running. Only overwrite a previously stored code if a new one is present,
+// so an existing pending code isn't accidentally wiped by a later ref-less page load.
+(function persistReferralCode() {
+  var urlRef = new URLSearchParams(window.location.search).get("ref");
+  if (urlRef) localStorage.setItem("dd_pending_ref", urlRef);
+})();
+
 var uName="Friend", uInit="F", activeDoc="general", docType="bank", curFile=null;
+// Holds the File object from a failed analysis attempt so "Try again" can genuinely
+// resubmit it, instead of forcing the user to re-pick the same file from their device.
+// Set right before resetUpload() clears curFile in showAnalysisFailedError(); consumed
+// and cleared by the sov-close handler's retry branch.
+var lastFailedFile = null;
+var sovIsRetryable = false;
 var fileBase64 = "";
 var fileMediaType = "";
 // Stores every successfully analysed document this session, keyed by its sidebar uniqueKey,
@@ -1261,8 +1287,11 @@ var bannerDismissed       = false; // tracks whether the Q15 warning banner was 
 
 async function initUserPlan(user) {
   try {
-    // Capture any referral code from the URL before anything else
-    var urlRef = new URLSearchParams(window.location.search).get("ref") || "";
+    // Capture any referral code from the URL before anything else — falling back to the
+    // localStorage copy persistReferralCode() saved on page load, since the live URL is
+    // very often ref-less by the time this actually runs (see persistReferralCode above
+    // for why: email-confirmation signups land back here on a fresh page with no query string).
+    var urlRef = new URLSearchParams(window.location.search).get("ref") || localStorage.getItem("dd_pending_ref") || "";
     if (urlRef && window.history && window.history.replaceState) {
       window.history.replaceState({}, "", window.location.pathname);
     }
@@ -1296,6 +1325,10 @@ async function initUserPlan(user) {
               headers: Object.assign({ "Content-Type": "application/json" }, authHeader),
               body: JSON.stringify({ action: "init", refCode: urlRef, email: user.email })
             });
+            // Consumed (or genuinely had nothing to consume) — clear it either way so it
+            // doesn't linger indefinitely and get misapplied to some later, unrelated
+            // signup on the same shared browser/device.
+            localStorage.removeItem("dd_pending_ref");
             // Re-read after creation
             var retryResult = await sb.from("user_plans")
               .select("plan,ref_code,bonus_questions_earned,bonus_questions_used,waitlisted")
@@ -3298,6 +3331,9 @@ function showLockedDocumentError() {
   document.getElementById("sov-chat").style.display = "none";
   document.getElementById("sov-close").textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try a different document";
   document.getElementById("sov").classList.add("show");
+  // This path always means "pick a different, unlocked file" — never a same-file retry.
+  sovIsRetryable = false;
+  lastFailedFile = null;
   // Reset so the user can try a different (unlocked) file right away
   resetUpload();
   document.getElementById("dz").classList.remove("read");
@@ -3344,6 +3380,9 @@ function showBillingError() {
   document.getElementById("sov-chat").style.display = "none";
   document.getElementById("sov-close").textContent = "Close";
   document.getElementById("sov").classList.add("show");
+  // Retrying changes nothing until the account is topped up — never offer a same-file retry here.
+  sovIsRetryable = false;
+  lastFailedFile = null;
   resetUpload();
   document.getElementById("dz").classList.remove("read");
 }
@@ -3383,11 +3422,19 @@ function showAnalysisFailedError(errMsg) {
     : (errMsg === "__TIMEOUT__" ? "Try uploading fewer months" : "Try again");
   document.getElementById("sov-close").textContent = closeLabel;
   document.getElementById("sov").classList.add("show");
+  // Only offer a genuine same-file retry for the plain "Try again" case — not when
+  // there's a queue to continue, and not for the timeout case (fewer months means a
+  // NEW, smaller file, so resubmitting the same oversized one would just fail again).
+  sovIsRetryable = (closeLabel === "Try again");
+  lastFailedFile = sovIsRetryable ? curFile : null;
   resetUpload();
   document.getElementById("dz").classList.remove("read");
 }
 
 function renderSuccessInsights(ins) {
+  // A successful read always clears any pending same-file retry state from a prior failure.
+  sovIsRetryable = false;
+  lastFailedFile = null;
   // Increment upload count — this is the moment the scan is confirmed complete
   sessionUploadCount++;
   console.log("[DataDost] Upload complete. Total uploads this account:", sessionUploadCount);
@@ -3962,6 +4009,21 @@ function shortCodeFor(stored, fallbackName) {
 
 
 document.getElementById("sov-close").addEventListener("click", function() {
+  // ── GENUINE RETRY: resubmit the exact file that just failed, instead of forcing
+  // the user to re-pick it from their device. Only reachable when showAnalysisFailedError
+  // set sovIsRetryable — never for locked-document, billing, or queue-continuation cases,
+  // which all correctly want a different file / different action instead.
+  if (sovIsRetryable && lastFailedFile) {
+    var retryFile = lastFailedFile;
+    sovIsRetryable = false;
+    lastFailedFile = null;
+    document.getElementById("sov").classList.remove("show");
+    handleFile(retryFile);
+    document.getElementById("consent-check").checked = true;
+    setTimeout(function() { document.getElementById("btn-analyse").click(); }, 300);
+    return;
+  }
+
   // Preserve this document in the sidebar before clearing the upload box —
   // this is what allows multiple documents to genuinely accumulate, not overwrite each other.
   if (detectedDocName) {
