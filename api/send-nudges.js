@@ -42,7 +42,7 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY;
 // The real hosted logo — confirmed live as of 12 Aug 2026 session.
 const LOGO_URL = 'https://datadost.in/assets/logo-icon.png';
 const APP_URL = 'https://datadost.in';
-const FROM_ADDRESS = 'DataDost <noreply@datadost.in>';
+const FROM_ADDRESS = 'DataDost <hello@datadost.in>';
 
 // Inactivity threshold — users active within this many days are skipped.
 const INACTIVITY_DAYS = 20;
