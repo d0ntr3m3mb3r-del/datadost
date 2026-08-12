@@ -340,26 +340,44 @@ export default async function handler(req, res) {
       console.warn('[DataDost] send-nudges: could not fetch news_ticker:', e.message);
     }
 
-    // ── 2. Fetch candidates from user_plans + auth.users ──────────────────
-    // We join user_plans with auth.users via the Supabase REST API.
-    // Strategy: fetch user_plans rows, then batch-fetch emails from auth.users.
-    // user_plans has: user_id, upload_count, last_active_at, last_nudge_sent_at,
-    //                 unsubscribed_from_nudges, plan, bonus_questions_earned, bonus_questions_used.
+    // ── 2. Fetch candidates from user_plans ───────────────────────────────
+    // upload_count is NOT a column on user_plans — it is derived at runtime by
+    // counting distinct doc_key rows in financial_snapshots (matching index.html).
+    // We fetch user_plans for plan/bonus/nudge data, then separately fetch
+    // financial_snapshots to determine whether each user has ever uploaded.
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - INACTIVITY_DAYS);
     const cutoffIso = cutoffDate.toISOString();
 
-    // Fetch ALL non-unsubscribed users (we'll segment client-side).
-    // Supabase REST doesn't support OR across different columns cleanly in one query
-    // for our two-segment logic, so fetch broadly and filter in JS.
+    // Fetch ALL non-unsubscribed users.
     const planRows = await supabaseGet(
-      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,upload_count,last_active_at,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used&order=user_id.asc&limit=1000'
+      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,last_active_at,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used&order=user_id.asc&limit=1000'
     );
 
     if (!planRows || planRows.length === 0) {
       console.log('[DataDost] send-nudges: no users found.');
       return res.status(200).json({ ok: true, sent: 0, skipped: 0 });
+    }
+
+    // ── 2b. Fetch upload counts from financial_snapshots ──────────────────
+    // Count distinct doc_key per user_id — same logic as index.html's
+    // sessionUploadCount calculation. One row per distinct document uploaded.
+    const snapRows = await supabaseGet(
+      '/rest/v1/financial_snapshots?select=user_id,doc_key'
+    );
+    // Build a map: user_id → number of distinct doc_keys (= upload count)
+    const uploadCountMap = {};
+    if (snapRows && snapRows.length > 0) {
+      for (const snap of snapRows) {
+        if (!snap.user_id || !snap.doc_key) continue;
+        if (!uploadCountMap[snap.user_id]) uploadCountMap[snap.user_id] = new Set();
+        uploadCountMap[snap.user_id].add(snap.doc_key);
+      }
+    }
+    // Convert Sets to counts
+    for (const uid of Object.keys(uploadCountMap)) {
+      uploadCountMap[uid] = uploadCountMap[uid].size;
     }
 
     // ── 3. Fetch user emails from Supabase Auth admin API ─────────────────
@@ -410,7 +428,7 @@ export default async function handler(req, res) {
       // Dedup: skip if already nudged this calendar month.
       if (alreadyNudgedThisMonth(row.last_nudge_sent_at)) continue;
 
-      const uploadCount = row.upload_count || 0;
+      const uploadCount = uploadCountMap[uid] || 0;
       const lastActive = row.last_active_at;
 
       if (uploadCount === 0) {
