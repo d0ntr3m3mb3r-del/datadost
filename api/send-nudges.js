@@ -351,8 +351,13 @@ export default async function handler(req, res) {
     const cutoffIso = cutoffDate.toISOString();
 
     // Fetch ALL non-unsubscribed users.
+    // Columns confirmed present on user_plans: user_id, plan, ref_code,
+    // bonus_questions_earned, bonus_questions_used, waitlisted, referred_by,
+    // unsubscribed_from_nudges, last_nudge_sent_at.
+    // NOTE: upload_count and last_active_at do NOT exist as columns — both are
+    // derived at runtime from financial_snapshots and messages respectively.
     const planRows = await supabaseGet(
-      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,last_active_at,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used&order=user_id.asc&limit=1000'
+      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used&order=user_id.asc&limit=1000'
     );
 
     if (!planRows || planRows.length === 0) {
@@ -361,12 +366,10 @@ export default async function handler(req, res) {
     }
 
     // ── 2b. Fetch upload counts from financial_snapshots ──────────────────
-    // Count distinct doc_key per user_id — same logic as index.html's
-    // sessionUploadCount calculation. One row per distinct document uploaded.
+    // Count distinct doc_key per user_id — mirrors index.html's sessionUploadCount.
     const snapRows = await supabaseGet(
       '/rest/v1/financial_snapshots?select=user_id,doc_key'
     );
-    // Build a map: user_id → number of distinct doc_keys (= upload count)
     const uploadCountMap = {};
     if (snapRows && snapRows.length > 0) {
       for (const snap of snapRows) {
@@ -375,9 +378,27 @@ export default async function handler(req, res) {
         uploadCountMap[snap.user_id].add(snap.doc_key);
       }
     }
-    // Convert Sets to counts
     for (const uid of Object.keys(uploadCountMap)) {
       uploadCountMap[uid] = uploadCountMap[uid].size;
+    }
+
+    // ── 2c. Fetch last activity from messages table ───────────────────────
+    // last_active_at does NOT exist on user_plans. Instead we derive it from
+    // the most recent user-role message per user_id — same source index.html
+    // uses for sessionQuestionCount. We fetch created_at for all user messages
+    // and keep only the latest timestamp per user.
+    const msgRows = await supabaseGet(
+      '/rest/v1/messages?role=eq.user&select=user_id,created_at&order=created_at.desc&limit=5000'
+    );
+    const lastActiveMap = {}; // user_id → most recent message created_at (ISO string)
+    if (msgRows && msgRows.length > 0) {
+      for (const msg of msgRows) {
+        if (!msg.user_id || !msg.created_at) continue;
+        // Since results are ordered desc, first occurrence per user = most recent
+        if (!lastActiveMap[msg.user_id]) {
+          lastActiveMap[msg.user_id] = msg.created_at;
+        }
+      }
     }
 
     // ── 3. Fetch user emails from Supabase Auth admin API ─────────────────
@@ -429,7 +450,7 @@ export default async function handler(req, res) {
       if (alreadyNudgedThisMonth(row.last_nudge_sent_at)) continue;
 
       const uploadCount = uploadCountMap[uid] || 0;
-      const lastActive = row.last_active_at;
+      const lastActive = lastActiveMap[uid] || null;
 
       if (uploadCount === 0) {
         // Segment 1: signed up, never uploaded.
