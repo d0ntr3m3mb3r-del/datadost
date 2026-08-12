@@ -4,13 +4,13 @@
     { "source": "/api/chat", "destination": "/api/chat.js" },
     { "source": "/api/feedback", "destination": "/api/feedback.js" },
     { "source": "/api/referral", "destination": "/api/referral.js" },
-    { "source": "/api/country", "destination": "/api/country.js" }
+    { "source": "/api/unsubscribe", "destination": "/api/unsubscribe.js" }
   ],
   "functions": {
     "api/chat.js": { "maxDuration": 120 },
     "api/forecast.js": { "maxDuration": 120 },
     "api/feedback.js": { "maxDuration": 10 },
     "api/referral.js": { "maxDuration": 10 },
-    "api/country.js": { "maxDuration": 5 }
+    "api/unsubscribe.js": { "maxDuration": 10 }
   }
 }
