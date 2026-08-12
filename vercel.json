@@ -4,13 +4,18 @@
     { "source": "/api/chat", "destination": "/api/chat.js" },
     { "source": "/api/feedback", "destination": "/api/feedback.js" },
     { "source": "/api/referral", "destination": "/api/referral.js" },
-    { "source": "/api/unsubscribe", "destination": "/api/unsubscribe.js" }
+    { "source": "/api/unsubscribe", "destination": "/api/unsubscribe.js" },
+    { "source": "/api/sync-ticker", "destination": "/api/sync-ticker.js" }
   ],
   "functions": {
     "api/chat.js": { "maxDuration": 120 },
     "api/forecast.js": { "maxDuration": 120 },
     "api/feedback.js": { "maxDuration": 10 },
     "api/referral.js": { "maxDuration": 10 },
-    "api/unsubscribe.js": { "maxDuration": 10 }
-  }
+    "api/unsubscribe.js": { "maxDuration": 10 },
+    "api/sync-ticker.js": { "maxDuration": 30 }
+  },
+  "crons": [
+    { "path": "/api/sync-ticker", "schedule": "0 3 * * 1" }
+  ]
 }
