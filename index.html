@@ -56,7 +56,7 @@
 <!-- returns a valid user — logged-in users go straight to s-dash, never see this. -->
 <!-- All CTAs wire to goTo('s-auth','signup') — existing auth flow untouched. -->
 <!-- dark/light toggle is scoped to this section only via data-mkt-theme attribute -->
-<div class="screen active" id="s-marketing" data-theme="dark" style="background:#0E0D0B;overflow-y:auto;min-height:100vh;scroll-padding-top:0">
+<div class="screen active" id="s-marketing" data-theme="dark" style="background:#0E0D0B;overflow-y:auto;min-height:100vh">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 #s-marketing[data-theme="light"]{background:#F5F0EB}
@@ -2332,8 +2332,11 @@ async function clearAllUserData() {
 document.getElementById("clear-all-data-btn").addEventListener("click", clearAllUserData);
 
 // ── WIRE MARKETING LANDING PAGE ──
-// Theme toggle — scoped to marketing section only, does not affect app screens
+// Scroll s-marketing div to top immediately — it has overflow-y:auto so
+// window.scrollTo(0,0) from goTo() doesn't affect its internal scroll position.
 (function() {
+  var mktDiv = document.getElementById("s-marketing");
+  if (mktDiv) { mktDiv.scrollTop = 0; }
   var mktHtml = document.getElementById("s-marketing");
   var themeBtn = document.getElementById("theme-btn");
   if (themeBtn && mktHtml) {
