@@ -67,26 +67,26 @@
   --alt:#111116;
   --alt2:#17171E;
   --text:#FFFFFF;
-  --text2:#F0F0F0;
-  --text3:#C7C7CC;
+  --text2:#F5F5F5;
+  --text3:#E0E0E6;
   --border:#2A2A35;
   --o:#E86832;
   --g:#0F6E56;
   --card:#1A1A22;
   --nav-bg:rgba(14,13,11,.95);
   --stat-bg:#131318;
-  --hero-sub:#D8D8E0;
+  --hero-sub:#E8E8F0;
   /* buttons */
   --btn-ghost-color:#FFFFFF;
   --btn-ghost-border:#6A6A7A;
   --btn-login-color:#FFFFFF;
   --btn-login-border:#6A6A7A;
   /* trust pills */
-  --pill-color:#D0D0D8;
+  --pill-color:#E8E8F0;
   --pill-check:#4ADE80;
   /* table */
-  --table-head:#9A9AAA;
-  --table-other:#C7C7CC;
+  --table-head:#C0C0CC;
+  --table-other:#E0E0E6;
 }
 
 /* ── LIGHT MODE ──────────────────────────────────────────────── */
@@ -94,27 +94,27 @@
   --bg:#F5F0EB;
   --alt:#EDE8E1;
   --alt2:#E6E0D8;
-  --text:#1A1209;
-  --text2:#2A2015;
-  --text3:#5A5040;
+  --text:#0E0A04;
+  --text2:#1A1209;
+  --text3:#3A3020;
   --border:#D4CCC0;
   --o:#C8551F;
   --g:#0A5440;
   --card:#FAF7F3;
   --nav-bg:rgba(245,240,235,.96);
   --stat-bg:#EDE8E1;
-  --hero-sub:#3A3020;
+  --hero-sub:#2A2015;
   /* buttons */
   --btn-ghost-color:#1A1209;
   --btn-ghost-border:#B0A898;
   --btn-login-color:#1A1209;
   --btn-login-border:#B0A898;
   /* trust pills */
-  --pill-color:#3A3020;
+  --pill-color:#2A2015;
   --pill-check:#0A5440;
   /* table */
-  --table-head:#5A5040;
-  --table-other:#5A5040;
+  --table-head:#3A3020;
+  --table-other:#3A3020;
 }
 
 body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);font-size:14px;transition:background .25s,color .25s}
@@ -165,7 +165,8 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
 }
 
 /* ── HERO ─────────────────────────────────────────────────────── */
-.hero{width:100%;background:var(--bg);padding:2.5rem 1.5rem 2.5rem;text-align:center;border-bottom:0.5px solid var(--border);min-height:420px;display:flex;align-items:center;justify-content:center}
+.hero{width:100%;background:var(--bg);padding:3rem 1.5rem;text-align:center;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;isolation:isolate}
+#s-marketing .hero::before,#s-marketing .hero::after{display:none}
 .hero-inner{max-width:700px;margin:0 auto;width:100%}
 .hero h1{font-family:Georgia,serif;font-size:2rem;font-weight:700;line-height:1.18;margin-bottom:.55rem;letter-spacing:-.025em;color:var(--text)}
 .hero h1 .accent{color:var(--o)}
