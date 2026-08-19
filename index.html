@@ -68,6 +68,7 @@
 #s-marketing .mkt-nav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;border-bottom:0.5px solid #2A2A35;position:sticky;top:0;background:#0E0D0B;z-index:10}
 #s-marketing .mkt-nav-r{display:flex;align-items:center;gap:1rem}
 #s-marketing .mkt-nav-r a{font-size:.72rem;color:#C7C7CC;text-decoration:none;cursor:pointer}
+@media(max-width:520px){#s-marketing .mkt-nav-r a:not(:last-child){display:none}}
 #s-marketing .mkt-btn-nav{background:#E86832;color:#fff;border:none;border-radius:999px;padding:.38rem .9rem;font-size:.72rem;font-weight:700;cursor:pointer}
 #s-marketing .mkt-hero{padding:2.25rem 1.25rem 1.75rem;text-align:center;border-bottom:0.5px solid #2A2A35}
 #s-marketing .mkt-hero h1{font-family:Georgia,serif;font-size:1.95rem;font-weight:700;line-height:1.18;margin-bottom:.7rem;letter-spacing:-.02em}
@@ -147,7 +148,11 @@
       <div class="mkt-logo-text"><span class="mkt-data">Data</span><span class="mkt-dost">Dost</span></div>
     </div>
     <div class="mkt-nav-r">
-      <a onclick="goTo('s-auth','login')">Log in</a>
+      <a id="mkt-nav-features">What we do</a>
+      <a id="mkt-nav-how">How it works</a>
+      <a id="mkt-nav-pricing">Pricing</a>
+      <a id="mkt-nav-faq">FAQ</a>
+      <a onclick="goTo('s-auth','login')" style="color:#C7C7CC">Log in</a>
       <button class="mkt-btn-nav" id="mkt-nav-cta">Get started free</button>
     </div>
   </nav>
@@ -185,7 +190,7 @@
     </div>
   </div>
   <!-- FEATURES -->
-  <div class="mkt-section">
+  <div class="mkt-section" id="mkt-features-section">
     <div class="mkt-s-label">What DataDost does</div>
     <h2>Every financial question you've been guessing at — answered.</h2>
     <div class="mkt-feat-grid">
@@ -218,7 +223,7 @@
     </div>
   </div>
   <!-- PRICING -->
-  <div class="mkt-section">
+  <div class="mkt-section" id="mkt-pricing-section">
     <div class="mkt-s-label">Pricing</div>
     <h2>Start free. Upgrade when ready.</h2>
     <div class="mkt-price-grid">
@@ -229,7 +234,7 @@
     <div class="mkt-sept-note"><b>Paid plans launching September 2026.</b> Start free today — your account carries over automatically when subscriptions open.</div>
   </div>
   <!-- FAQ -->
-  <div class="mkt-section">
+  <div class="mkt-section" id="mkt-faq-section">
     <div class="mkt-s-label">FAQ</div>
     <h2>Questions people ask before signing up.</h2>
     <div class="mkt-faq">
@@ -2077,6 +2082,19 @@ document.getElementById("mkt-cta").addEventListener("click", function() { goTo("
 document.getElementById("mkt-cta-bottom").addEventListener("click", function() { goTo("s-auth","signup"); });
 document.getElementById("mkt-how-btn").addEventListener("click", function() {
   document.getElementById("mkt-how-section").scrollIntoView({ behavior: "smooth" });
+});
+// ── WIRE NAV SCROLL LINKS ──
+document.getElementById("mkt-nav-features").addEventListener("click", function() {
+  document.getElementById("mkt-features-section").scrollIntoView({ behavior: "smooth" });
+});
+document.getElementById("mkt-nav-how").addEventListener("click", function() {
+  document.getElementById("mkt-how-section").scrollIntoView({ behavior: "smooth" });
+});
+document.getElementById("mkt-nav-pricing").addEventListener("click", function() {
+  document.getElementById("mkt-pricing-section").scrollIntoView({ behavior: "smooth" });
+});
+document.getElementById("mkt-nav-faq").addEventListener("click", function() {
+  document.getElementById("mkt-faq-section").scrollIntoView({ behavior: "smooth" });
 });
 
 // ── WIRE LANDING BUTTONS ──
