@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819p">
+<link rel="stylesheet" href="style.css?v=20260819q">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -96,9 +96,6 @@ body.dd-dark .fc-box:hover{background:#34344A!important}
 body.dd-dark .fc-pct{color:#FFFFFF!important}
 body.dd-dark .fc-sub{color:#C7C7CC!important}
 body.dd-dark .fc-wrap{background:#0E0D0B!important;border:1px solid #3A3A50!important}
-body.dd-dark .fc-item-name{color:#D8D8E8!important}
-body.dd-dark .fc-item-date{color:#C7C7CC!important}
-body.dd-dark .fc-item{border-color:#3A3A50!important}
 body.dd-dark .dt{background:#22222E!important;border:1.5px solid #3A3A50!important}
 body.dd-dark .dt:hover{background:#2C2C3A!important;border-color:#E86832!important}
 body.dd-dark .dt.sel{background:rgba(232,104,50,.12)!important;border-color:#E86832!important}
@@ -110,7 +107,6 @@ body.dd-dark #dash-news-prev,body.dd-dark #dash-news-next{background:#2C2C3A!imp
 body.dd-dark #dash-news-card{background:#2C2C3A!important;border:1px solid #3A3A50!important}
 body.dd-dark #dash-news-hl{color:#FFFFFF!important}
 body.dd-dark #dash-news-blurb{color:#D8D8E8!important}
-body.dd-dark #dash-news-ask{background:rgba(15,110,86,.2)!important;color:#4ADE80!important;border-color:rgba(15,110,86,.4)!important}
 body.dd-dark .csb-doc[data-doc="general"]{background:rgba(232,104,50,.15)!important;border-left:2.5px solid #E86832!important}
 body.dd-dark .csb-doc[data-doc="general"] .csb-doc-name{color:#E86832!important}
 body.dd-dark .csb-doc[data-doc="general"] .csb-doc-meta{color:#C7855A!important}
@@ -1811,6 +1807,18 @@ var conversationHistory = [];
 
 // ── NAVIGATE ──
 function goTo(id, tab) {
+  // Re-apply theme preference on every screen transition.
+  // This ensures dark/light set on the marketing page takes effect
+  // immediately when the user navigates to auth, dash or any other screen
+  // without needing a page refresh.
+  (function(){
+    var dark = localStorage.getItem("dd_dark") === "1";
+    document.body.classList.toggle("dd-dark", dark);
+    var icon = dark ? "&#9728;&#65039;" : "&#127769;";
+    var m = document.getElementById("app-theme-btn");
+    if(m) m.innerHTML = icon;
+    document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.innerHTML = icon; });
+  })();
   document.querySelectorAll(".screen").forEach(function(s) {
     if (s.id === id) { s.classList.add("active"); }
     else { s.classList.remove("active"); }
@@ -2468,15 +2476,10 @@ async function clearAllUserData() {
 document.getElementById("clear-all-data-btn").addEventListener("click", clearAllUserData);
 
 // ── WIRE MARKETING LANDING PAGE ──
-// ── UNIFIED THEME SYSTEM ──────────────────────────────────────────────────
-// Single localStorage("dd_dark") key drives BOTH marketing and app themes.
-// Marketing toggle → saves preference → app reads it on login (and vice versa).
-// Marketing page: data-theme attr on #s-marketing div
-// App screens:    body.dd-dark class
+// ── UNIFIED THEME — marketing + app share localStorage("dd_dark") ──
 (function() {
-  var mktDiv  = document.getElementById("s-marketing");
+  var mktDiv   = document.getElementById("s-marketing");
   var themeBtn = document.getElementById("theme-btn");
-
   function setMktTheme(dark) {
     if (!mktDiv) return;
     mktDiv.setAttribute("data-theme", dark ? "dark" : "light");
@@ -2486,12 +2489,7 @@ document.getElementById("clear-all-data-btn").addEventListener("click", clearAll
       themeBtn.title = dark ? "Switch to light mode" : "Switch to dark mode";
     }
   }
-
-  // Restore preference from localStorage on page load
-  var savedDark = localStorage.getItem("dd_dark") === "1";
-  setMktTheme(savedDark);
-
-  // Toggle click — saves to localStorage so app picks it up on login
+  setMktTheme(localStorage.getItem("dd_dark") === "1");
   if (themeBtn) {
     themeBtn.addEventListener("click", function() {
       var isDark = mktDiv.getAttribute("data-theme") !== "dark";
@@ -6822,29 +6820,20 @@ window.toast = toast;
 // ── INIT ──
 renderDash();
 initSupabase().then(function() { renderChat(); });
-// ── APP DARK MODE — reads same localStorage("dd_dark") as marketing page ──
-// If user set dark mode on marketing page before login, app opens in dark too.
 (function(){
   function applyDark(on){
-    document.body.classList.toggle("dd-dark", on);
-    var icon  = on ? "&#9728;&#65039;" : "&#127769;";
-    var ttip  = on ? "Switch to light mode" : "Switch to dark mode";
-    var m = document.getElementById("app-theme-btn");
-    if(m){ m.innerHTML = icon; m.title = ttip; }
-    document.querySelectorAll(".app-theme-mirror").forEach(function(b){
-      b.innerHTML = icon; b.title = ttip;
-    });
+    document.body.classList.toggle("dd-dark",on);
+    var icon=on?"&#9728;&#65039;":"&#127769;";
+    var ttip=on?"Switch to light mode":"Switch to dark mode";
+    var m=document.getElementById("app-theme-btn");
+    if(m){m.innerHTML=icon;m.title=ttip;}
+    document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.innerHTML=icon;b.title=ttip;});
   }
-  function tog(){
-    var d = !document.body.classList.contains("dd-dark");
-    applyDark(d);
-    localStorage.setItem("dd_dark", d ? "1" : "");
-  }
-  var m = document.getElementById("app-theme-btn");
-  if(m) m.addEventListener("click", tog);
-  document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.addEventListener("click", tog); });
-  // Restore preference — same key used by marketing toggle
-  applyDark(localStorage.getItem("dd_dark") === "1");
+  function tog(){var d=!document.body.classList.contains("dd-dark");applyDark(d);localStorage.setItem("dd_dark",d?"1":"");}
+  var m=document.getElementById("app-theme-btn");
+  if(m) m.addEventListener("click",tog);
+  document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.addEventListener("click",tog);});
+  applyDark(localStorage.getItem("dd_dark")==="1");
 })();
 
 
