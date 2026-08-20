@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819h">
+<link rel="stylesheet" href="style.css?v=20260819i">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -49,55 +49,159 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style id="dd-dark-mode">
-/* DataDost App Dark Mode — body.dd-dark */
-/* Core */
-body.dd-dark{background:#0E0D0B!important}
+/* ═══════════════════════════════════════════════════
+   DataDost App Dark Mode  —  body.dd-dark
+   Covers every screen: Dashboard, Upload, Chat,
+   History, Profile  +  all interactive elements
+═══════════════════════════════════════════════════ */
+
+/* BASE — page background & text */
+body.dd-dark{background:#0E0D0B!important;color:#F0F0F0!important}
+body.dd-dark *{color:inherit}
+
+/* NAV */
 body.dd-dark .app-nav{background:#131318!important;border-color:#2A2A35!important}
 body.dd-dark .logo{color:#FFFFFF!important}
+body.dd-dark .logo span{color:#E86832!important}
 body.dd-dark .nl{color:#C7C7CC!important;background:transparent!important}
 body.dd-dark .nl:hover,body.dd-dark .nl.act{color:#E86832!important;background:rgba(232,104,50,.12)!important}
-body.dd-dark .tour-q-btn{background:#1A1A22!important;color:#C7C7CC!important;border-color:#2A2A35!important}
 body.dd-dark .nav-nm{color:#FFFFFF!important}
-body.dd-dark .nav-pill{border-color:#2A2A35!important}
-/* Cards & general surfaces */
-body.dd-dark .card{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
-body.dd-dark .card *{color:#C7C7CC}
-body.dd-dark .card h2,body.dd-dark .card h3,body.dd-dark .card strong{color:#FFFFFF!important}
-/* Dashboard */
+body.dd-dark .tour-q-btn{background:#1A1A22!important;color:#C7C7CC!important;border-color:#2A2A35!important}
+body.dd-dark #currency-pill-btn{background:#1A1A22!important;border-color:#2A2A35!important;color:#C7C7CC!important}
+body.dd-dark #currency-pill-dropdown{background:#1A1A22!important;border-color:#2A2A35!important}
+body.dd-dark .cur-opt{color:#C7C7CC!important}
+body.dd-dark .cur-opt:hover{background:#2A2A35!important}
+body.dd-dark [class*="cur-pill-btn"]{background:#1A1A22!important;border-color:#2A2A35!important;color:#C7C7CC!important}
+
+/* CARDS & SURFACES */
+body.dd-dark .card{background:#1A1A22!important;border-color:#2A2A35!important}
+body.dd-dark .card h2,body.dd-dark .card h3,body.dd-dark .card strong,body.dd-dark .card b{color:#FFFFFF!important}
+body.dd-dark .card p,body.dd-dark .card span,body.dd-dark .card div{color:#C7C7CC}
+
+/* DASHBOARD */
 body.dd-dark .dash-body{background:#0E0D0B!important}
 body.dd-dark .dash-h{color:#FFFFFF!important}
 body.dd-dark .dash-h span{color:#E86832!important}
 body.dd-dark .dash-s{color:#C7C7CC!important}
 body.dd-dark #dash-data-banner{background:#1A1A22!important;color:#C7C7CC!important;border-color:#2A2A35!important}
-/* Upload screen */
+/* Stat cards on dashboard */
+body.dd-dark [style*="background:var(--white)"]{background:#1A1A22!important}
+body.dd-dark [style*="background: var(--white)"]{background:#1A1A22!important}
+body.dd-dark [style*="background:var(--mist)"]{background:#131318!important}
+body.dd-dark [style*="background: var(--mist)"]{background:#131318!important}
+body.dd-dark [style*="color:var(--ink)"]{color:#F0F0F0!important}
+body.dd-dark [style*="color: var(--ink)"]{color:#F0F0F0!important}
+body.dd-dark [style*="color:var(--ink-s)"]{color:#C7C7CC!important}
+body.dd-dark [style*="color:var(--slate)"]{color:#8A8A9A!important}
+body.dd-dark [style*="border:1px solid var(--border)"]{border-color:#2A2A35!important}
+body.dd-dark [style*="border-bottom:1px solid var(--border)"]{border-color:#2A2A35!important}
+
+/* LOAN CALCULATOR SLIDERS */
+body.dd-dark input[type=range]#loan-inc,
+body.dd-dark input[type=range]#loan-ex,
+body.dd-dark input[type=range]#loan-new{
+  background:linear-gradient(to right,#E86832 0%,#E86832 var(--pct,50%),#2A2A35 var(--pct,50%),#2A2A35 100%)!important;
+}
+body.dd-dark input[type=range]#loan-inc::-webkit-slider-thumb,
+body.dd-dark input[type=range]#loan-ex::-webkit-slider-thumb,
+body.dd-dark input[type=range]#loan-new::-webkit-slider-thumb{
+  border-color:#0E0D0B!important;
+}
+/* Loan slider value labels */
+body.dd-dark [id^="loan-"][id$="-val"],
+body.dd-dark [id="loan-inc-val"],
+body.dd-dark [id="loan-ex-val"],
+body.dd-dark [id="loan-new-val"]{color:#F0F0F0!important;font-weight:600}
+/* Loan result card */
+body.dd-dark [id="loan-result-card"],
+body.dd-dark [id="loan-verdict"]{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
+body.dd-dark [id="loan-result-card"] *,
+body.dd-dark [id="loan-verdict"] *{color:#C7C7CC}
+body.dd-dark [id="loan-total"],
+body.dd-dark [id="loan-share"]{color:#FFFFFF!important;font-weight:700}
+
+/* SPENDING BARS — progress bar tracks */
+body.dd-dark [style*="background:var(--mist);border-radius:100px;height:"]{background:#2A2A35!important}
+body.dd-dark [style*="background: var(--mist);border-radius:100px"]{background:#2A2A35!important}
+
+/* INSIGHT CARDS (orange background) */
+body.dd-dark .ins-card{background:#2A1508!important;border-color:#5A2E0A!important}
+body.dd-dark .ins-card *{color:#F0D0B8!important}
+body.dd-dark .ins-card strong,body.dd-dark .ins-card b{color:#F5C090!important}
+
+/* QUICK ACTION BUTTONS */
+body.dd-dark .qa-btn{background:#1A1A22!important;border-color:#2A2A35!important}
+body.dd-dark .qa-btn:hover{background:#252530!important;border-color:#E86832!important}
+body.dd-dark .qa-label{color:#F0F0F0!important}
+body.dd-dark .qa-desc{color:#8A8A9A!important}
+
+/* UPLOAD SCREEN */
 body.dd-dark .upload-body{background:#0E0D0B!important}
 body.dd-dark .upload-title{color:#FFFFFF!important}
 body.dd-dark .upload-sub{color:#C7C7CC!important}
-body.dd-dark .upload-zone,body.dd-dark [class*="upload-zone"]{background:#1A1A22!important;border-color:#2A2A35!important}
-/* Chat screen */
+body.dd-dark [id="upload-zone"],body.dd-dark .upload-zone{background:#1A1A22!important;border-color:#2A2A35!important}
+body.dd-dark [class*="doc-type"]{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
+
+/* CHAT SCREEN */
 body.dd-dark .chat-wrap{background:#0E0D0B!important}
-body.dd-dark .chat-sidebar,body.dd-dark [class*="chat-side"]{background:#131318!important;border-color:#2A2A35!important}
+body.dd-dark .csb{background:#131318!important;border-color:#2A2A35!important}
+body.dd-dark .csb-head{border-color:#2A2A35!important}
+body.dd-dark .csb-title{color:#FFFFFF!important}
+body.dd-dark .csb-sec{color:#8A8A9A!important}
+body.dd-dark .csb-acct{color:#C7C7CC!important}
+body.dd-dark .csb-doc{color:#C7C7CC!important}
+body.dd-dark .csb-doc:hover{background:#1A1A22!important}
+body.dd-dark .csb-doc.act{background:rgba(232,104,50,.12)!important}
+body.dd-dark .csb-doc-name{color:#F0F0F0!important}
+body.dd-dark .csb-doc-meta{color:#8A8A9A!important}
 body.dd-dark .chat-hdr{background:#131318!important;border-color:#2A2A35!important}
 body.dd-dark .chat-hdr-title{color:#FFFFFF!important}
-body.dd-dark .chat-hdr-sub{color:#C7C7CC!important}
+body.dd-dark .chat-hdr-sub{color:#8A8A9A!important}
 body.dd-dark .chat-msgs{background:#0E0D0B!important}
+body.dd-dark .msg-divider span{background:#1A1A22!important;color:#8A8A9A!important}
 body.dd-dark .chat-inp-row{background:#131318!important;border-color:#2A2A35!important}
 body.dd-dark .chat-inp{background:#1A1A22!important;color:#F0F0F0!important;border-color:#2A2A35!important}
 body.dd-dark .chat-inp::placeholder{color:#5A5A6A!important}
 body.dd-dark .chat-up-btn{background:#1A1A22!important;border-color:#2A2A35!important}
-body.dd-dark .msg-divider span{background:#1A1A22!important;color:#8A8A9A!important}
-/* History & Profile screens */
-body.dd-dark .hist-cap{background:#1A1A22!important;border-color:#2A2A35!important;color:#C7C7CC!important}
-body.dd-dark .hist-cap-clear{background:#1A1A22!important}
-body.dd-dark h2,body.dd-dark h3{color:#FFFFFF}
-/* Inputs everywhere */
-body.dd-dark input:not([type="file"]),body.dd-dark textarea,body.dd-dark select{background:#1A1A22!important;color:#F0F0F0!important;border-color:#2A2A35!important}
+
+/* HISTORY SCREEN */
+body.dd-dark [id="s-history"]{background:#0E0D0B!important}
+body.dd-dark .hist-cap{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
+body.dd-dark .hist-cap-download{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
+body.dd-dark .hist-cap-clear{background:#1A1A22!important;border-color:#2A2A35!important;color:#F0F0F0!important}
+body.dd-dark .hist-cap-delete{background:#2A1515!important;border-color:#5A2020!important;color:#F08080!important}
+body.dd-dark .doc-item{border-color:#2A2A35!important}
+
+/* PROFILE SCREEN */
+body.dd-dark [id="s-profile"]{background:#0E0D0B!important}
+body.dd-dark [id="s-profile"] h2{color:#FFFFFF!important}
+body.dd-dark [id="s-profile"] p,body.dd-dark [id="s-profile"] span{color:#C7C7CC}
+
+/* INPUTS & FORMS — all screens */
+body.dd-dark input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
+body.dd-dark textarea,body.dd-dark select{
+  background:#1A1A22!important;color:#F0F0F0!important;border-color:#2A2A35!important;
+}
 body.dd-dark input::placeholder,body.dd-dark textarea::placeholder{color:#5A5A6A!important}
-/* Currency pill in dark */
-body.dd-dark #currency-pill-btn,body.dd-dark [class*="cur-pill-btn"]{background:#1A1A22!important;border-color:#2A2A35!important;color:#C7C7CC!important}
-body.dd-dark #currency-pill-dropdown{background:#1A1A22!important;border-color:#2A2A35!important}
-body.dd-dark .cur-opt{color:#C7C7CC!important}
-body.dd-dark .cur-opt:hover{background:#2A2A35!important}
+
+/* BANNERS & NOTICES */
+body.dd-dark [style*="background:#FFF1E9"],
+body.dd-dark [style*="background: #FFF1E9"]{background:#2A1508!important;border-color:#5A2E0A!important}
+body.dd-dark [style*="background:#FAEEDA"],
+body.dd-dark [style*="background: #FAEEDA"]{background:#2A2010!important}
+body.dd-dark [style*="background:#E1F5EE"],
+body.dd-dark [style*="background: #E1F5EE"]{background:#0A2015!important}
+body.dd-dark [style*="background:#FCEBEB"],
+body.dd-dark [style*="background: #FCEBEB"]{background:#2A1010!important}
+
+/* FULL PAGE SCREEN BACKGROUNDS */
+body.dd-dark #s-dash,body.dd-dark #s-upload,
+body.dd-dark #s-chat,body.dd-dark #s-history,
+body.dd-dark #s-profile{background:#0E0D0B!important}
+
+/* HEADINGS everywhere in dark */
+body.dd-dark h1,body.dd-dark h2,body.dd-dark h3,body.dd-dark h4{color:#FFFFFF}
+body.dd-dark p{color:#C7C7CC}
 </style>
 </head>
 <body>
@@ -776,8 +880,8 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
       <button class="nl" id="nav-profile">Profile</button>
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-    <div style="display:flex;align-items:center;gap:.6rem;min-width:fit-content">
-      <button type="button" id="app-theme-btn" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .2s" title="Toggle dark/light mode">☀️</button>
+    <div style="display:flex;align-items:center;gap:.6rem">
+      <button type="button" id="app-theme-btn" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
       <div id="currency-pill" style="position:relative">
         <div id="currency-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none;transition:border-color .15s" title="Change display currency">
           <span id="currency-pill-flag">🇮🇳</span>
@@ -939,7 +1043,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light mode">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
       <div id="currency-pill-up" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1088,7 +1192,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light mode">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
       <div id="currency-pill-chat" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1193,7 +1297,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light mode">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
       <div id="currency-pill-history" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1284,7 +1388,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light mode">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
       <div id="currency-pill-profile" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -2390,8 +2494,6 @@ document.getElementById("clear-all-data-btn").addEventListener("click", clearAll
 
 // ── WIRE MARKETING LANDING PAGE ──
 (function() {
-  var mktDiv = document.getElementById("s-marketing");
-  if (mktDiv) { mktDiv.scrollTop = 0; }
   var mktDiv = document.getElementById("s-marketing");
   if (mktDiv) { mktDiv.scrollTop = 0; }
   var mktHtml = document.getElementById("s-marketing");
@@ -6726,27 +6828,19 @@ window.toast = toast;
 // ── INIT ──
 renderDash();
 initSupabase().then(function() { renderChat(); });
-// ── APP DARK MODE TOGGLE ──
 (function(){
   function applyDark(on){
-    document.body.classList.toggle("dd-dark", on);
-    var icon = on ? "\uD83C\uDF19" : "\u2600\uFE0F";
-    var main = document.getElementById("app-theme-btn");
-    if(main) main.innerHTML = icon;
-    document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.innerHTML = icon; });
+    document.body.classList.toggle("dd-dark",on);
+    var icon=on?"\uD83C\uDF19":"\u2600\uFE0F";
+    var m=document.getElementById("app-theme-btn");
+    if(m) m.innerHTML=icon;
+    document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.innerHTML=icon;});
   }
-  function toggle(){
-    var d = !document.body.classList.contains("dd-dark");
-    applyDark(d);
-    localStorage.setItem("dd_dark", d ? "1" : "");
-  }
-  var main = document.getElementById("app-theme-btn");
-  if(main) main.addEventListener("click", toggle);
-  document.querySelectorAll(".app-theme-mirror").forEach(function(b){
-    b.addEventListener("click", toggle);
-  });
-  // Restore preference
-  applyDark(localStorage.getItem("dd_dark") === "1");
+  function tog(){var d=!document.body.classList.contains("dd-dark");applyDark(d);localStorage.setItem("dd_dark",d?"1":"");}
+  var m=document.getElementById("app-theme-btn");
+  if(m) m.addEventListener("click",tog);
+  document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.addEventListener("click",tog);});
+  applyDark(localStorage.getItem("dd_dark")==="1");
 })();
 
 
