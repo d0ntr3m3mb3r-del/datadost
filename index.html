@@ -88,6 +88,8 @@ body.dd-dark .logo span{color:#E86832!important}
 body.dd-dark .nl{color:#9898AA!important;background:transparent!important}
 body.dd-dark .nl:hover,body.dd-dark .nl.act{color:#E86832!important;background:rgba(232,104,50,.12)!important}
 body.dd-dark .nav-nm{color:#FFFFFF!important}
+body.dd-dark .nav-toggle-btn svg{stroke:#FFFFFF!important}
+body.dd-dark .nav-toggle-btn{border-color:#3A3A50!important}
 body.dd-dark .tour-q-btn{background:#22222E!important;color:#D8D8E8!important;border:1.5px solid #3A3A50!important}
 body.dd-dark #currency-pill-btn{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 body.dd-dark #currency-pill-dropdown{background:#22222E!important;border-color:#3A3A50!important}
@@ -360,7 +362,10 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   --table-other:#3A3020;
 }
 
-body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);font-size:14px;transition:background .25s,color .25s}
+/* Font scoped to marketing page only — NOT applied to body globally to avoid
+   overriding style.css DM Sans font on app screens after navigation */
+#s-marketing,#s-marketing *{font-family:Arial,Helvetica,sans-serif}
+#s-marketing{background:var(--bg);color:var(--text);font-size:14px;transition:background .25s,color .25s}
 
 /* ── NAV ─────────────────────────────────────────────────────── */
 #s-marketing .nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border)}
@@ -566,7 +571,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
 
   /* nav-links: collapsed by default, opens as dropdown on mobile */
   #mkt-nav-links{
-    display:none;
+    display:none!important;
     position:absolute;
     top:100%;left:0;right:0;
     flex-direction:column;
@@ -579,7 +584,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     padding:.5rem;
     z-index:200;
   }
-  #mkt-nav-links.mkt-open{display:flex}
+  #mkt-nav-links.mkt-open{display:flex!important}
   #mkt-nav-links a{
     padding:.75rem .9rem;
     font-size:.9rem;
