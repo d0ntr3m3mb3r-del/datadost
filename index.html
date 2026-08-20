@@ -5830,18 +5830,19 @@ async function renderHistoryList() {
     var preview = conv.lastMessage.replace(/<[^>]*>/g, "").slice(0, 90);
     // In selection mode the row becomes a plain div (a checkbox can't legally nest inside
     // a <button>), with the checkbox itself driving selection instead of navigation.
+    var isDark = document.body.classList.contains("dd-dark");
     var card = document.createElement(historyMode ? "div" : "button");
     if (!historyMode) card.type = "button";
-    card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit";
+    card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:" + (isDark ? "#22222E" : "var(--white)") + ";border:1.5px solid " + (isDark ? "#3A3A50" : "var(--border)") + ";border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit;margin-bottom:.45rem;box-shadow:" + (isDark ? "0 1px 4px rgba(0,0,0,.3)" : "none") + ";transition:background .15s";
     card.innerHTML =
       (historyMode ? "<input type=\"checkbox\" data-dockey=\"" + conv.docKey + "\" style=\"width:18px;height:18px;flex-shrink:0;margin-top:.2rem\" " + (historySelected[conv.docKey] ? "checked" : "") + "/>" : "") +
-      "<div style=\"width:38px;height:38px;border-radius:10px;background:var(--sf-l);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0\">" + display.icon + "</div>" +
+      "<div style=\"width:38px;height:38px;border-radius:10px;background:" + (isDark ? "#2C2C3A" : "var(--sf-l)") + ";display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0\">" + display.icon + "</div>" +
       "<div style=\"flex:1;min-width:0\">" +
         "<div style=\"display:flex;justify-content:space-between;align-items:baseline;gap:.5rem\">" +
-          "<div style=\"font-size:.88rem;font-weight:600;color:var(--ink)\">" + display.name + "</div>" +
-          "<div style=\"font-size:.72rem;color:var(--slate);flex-shrink:0;white-space:nowrap\">" + formatRelativeTime(conv.lastActive) + "</div>" +
+          "<div style=\"font-size:.88rem;font-weight:600;color:" + (isDark ? "#FFFFFF" : "var(--ink)") + "\">" + display.name + "</div>" +
+          "<div style=\"font-size:.72rem;color:" + (isDark ? "#C7C7CC" : "var(--slate)") + ";flex-shrink:0;white-space:nowrap\">" + formatRelativeTime(conv.lastActive) + "</div>" +
         "</div>" +
-        "<div style=\"font-size:.78rem;color:var(--slate);margin-top:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (conv.lastRole === "user" ? "You: " : "") + preview + "</div>" +
+        "<div style=\"font-size:.78rem;color:" + (isDark ? "#C7C7CC" : "var(--slate)") + ";margin-top:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">" + (conv.lastRole === "user" ? "You: " : "") + preview + "</div>" +
       "</div>";
     if (historyMode) {
       card.addEventListener("click", function() {
