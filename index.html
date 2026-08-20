@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819m">
+<link rel="stylesheet" href="style.css?v=20260819n">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -2414,7 +2414,7 @@ async function doLogout() {
   if (sb) { await sb.auth.signOut(); }
   resetSessionState();
   uName = "Friend"; uInit = "F";
-  goTo("s-land");
+  goTo("s-marketing");
   toast("Logged out — see you soon! 👋");
 }
 
@@ -2520,7 +2520,7 @@ document.getElementById("plan-fam").addEventListener("click", function() {
 document.getElementById("cta-btn").addEventListener("click", function() { goTo("s-auth","signup"); });
 
 // ── WIRE AUTH ──
-document.getElementById("auth-back").addEventListener("click", function() { goTo("s-land"); });
+document.getElementById("auth-back").addEventListener("click", function() { goTo("s-marketing"); });
 document.getElementById("tab-login").addEventListener("click", function() { switchTab("login"); });
 document.getElementById("tab-signup").addEventListener("click", function() { switchTab("signup"); });
 document.getElementById("sw-signup").addEventListener("click", function() { switchTab("signup"); });
@@ -6800,7 +6800,6 @@ initSupabase().then(function() { renderChat(); });
 (function(){
   function applyDark(on){
     document.body.classList.toggle("dd-dark", on);
-    // Sun = in dark mode (click to go light), Moon = in light mode (click to go dark)
     var icon = on ? "&#9728;&#65039;" : "&#127769;";
     var ttip = on ? "Switch to light mode" : "Switch to dark mode";
     var m = document.getElementById("app-theme-btn");
@@ -6817,9 +6816,7 @@ initSupabase().then(function() { renderChat(); });
   var m = document.getElementById("app-theme-btn");
   if(m) m.addEventListener("click", tog);
   document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.addEventListener("click", tog); });
-  // Only switch to dark if user has explicitly chosen it previously
   if(localStorage.getItem("dd_dark") === "1"){ applyDark(true); }
-  // else: body stays without dd-dark class = light mode (default)
 })();
 
 
