@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819k">
+<link rel="stylesheet" href="style.css?v=20260819l">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -49,16 +49,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style id="dd-dark-mode">
-/* ═══════════════════════════════════════════════
-   DataDost Dark Mode  —  body.dd-dark
+/* DataDost Dark Mode  —  body.dd-dark
    bg:#0E0D0B  card:#22222E  input:#2C2C3A
    border:1.5px #3A3A50  shadow:0 2px 8px rgba(0,0,0,.35)
-   text:#FFFFFF  body:#D8D8E8  muted:#9898AA
-═══════════════════════════════════════════════ */
+   text:#FFFFFF  body:#D8D8E8  muted:#9898AA */
 
 body.dd-dark{background:#0E0D0B!important;color:#D8D8E8!important}
 
-/* ── NAV ── */
+/* NAV */
 body.dd-dark .app-nav{background:#18181F!important;border-color:#3A3A50!important}
 body.dd-dark .logo{color:#FFFFFF!important}
 body.dd-dark .logo span{color:#E86832!important}
@@ -71,30 +69,19 @@ body.dd-dark #currency-pill-dropdown{background:#22222E!important;border-color:#
 body.dd-dark .cur-opt{color:#D8D8E8!important}
 body.dd-dark .cur-opt:hover{background:#2C2C3A!important}
 
-/* ── GENERIC CARDS ── */
-body.dd-dark .card{
-  background:#22222E!important;border:1.5px solid #3A3A50!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.35)!important;color:#D8D8E8!important;
-}
-body.dd-dark .card h2,body.dd-dark .card h3,
-body.dd-dark .card strong,body.dd-dark .card b{color:#FFFFFF!important}
+/* GENERIC CARDS */
+body.dd-dark .card{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 2px 8px rgba(0,0,0,.35)!important;color:#D8D8E8!important}
+body.dd-dark .card h2,body.dd-dark .card h3,body.dd-dark .card strong,body.dd-dark .card b{color:#FFFFFF!important}
 
-/* ── STAT CARDS — white boxes on dashboard ── */
-body.dd-dark .stat-card{
-  background:#22222E!important;border:1.5px solid #3A3A50!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.35)!important;
-}
+/* STAT CARDS */
+body.dd-dark .stat-card{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 2px 8px rgba(0,0,0,.35)!important}
 body.dd-dark .stat-val{color:#FFFFFF!important}
 body.dd-dark .stat-lbl{color:#D8D8E8!important}
 body.dd-dark .stat-trend{color:#9898AA!important}
 
-/* ── COMING-UP FORECAST BOXES (fc-box) — beige sub-cards ── */
-body.dd-dark .fc-box{
-  background:#2C2C3A!important;border:1.5px solid #3A3A50!important;
-  box-shadow:0 1px 4px rgba(0,0,0,.3)!important;
-}
+/* COMING-UP FC-BOX */
+body.dd-dark .fc-box{background:#2C2C3A!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .fc-box:hover{background:#34344A!important}
-body.dd-dark .fc-box-top{color:#FFFFFF!important}
 body.dd-dark .fc-pct{color:#FFFFFF!important}
 body.dd-dark .fc-sub{color:#9898AA!important}
 body.dd-dark .fc-wrap{background:#0E0D0B!important;border:1px solid #3A3A50!important}
@@ -102,20 +89,17 @@ body.dd-dark .fc-item-name{color:#D8D8E8!important}
 body.dd-dark .fc-item-date{color:#9898AA!important}
 body.dd-dark .fc-item{border-color:#3A3A50!important}
 
-/* ── DOCUMENT TYPE BUTTONS (.dt) — white boxes on upload ── */
-body.dd-dark .dt{
-  background:#22222E!important;border:1.5px solid #3A3A50!important;
-  box-shadow:0 1px 4px rgba(0,0,0,.3)!important;
-}
+/* DOC TYPE BUTTONS */
+body.dd-dark .dt{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .dt:hover{background:#2C2C3A!important;border-color:#E86832!important}
 body.dd-dark .dt.sel{background:rgba(232,104,50,.12)!important;border-color:#E86832!important}
 body.dd-dark .dt-nm{color:#FFFFFF!important}
 body.dd-dark .dt-hint{color:#9898AA!important}
 
-/* ── CHAT SIDEBAR ACTIVE ITEM — peach/orange pill ── */
+/* ── GENERAL CHAT SIDEBAR ITEM (was peach #FFF1E9) ── */
 body.dd-dark .csb-doc.act{
   background:rgba(232,104,50,.15)!important;
-  border-left:2px solid #E86832!important;
+  border-left:2.5px solid #E86832!important;
 }
 body.dd-dark .csb-doc.act .csb-doc-name{color:#E86832!important}
 body.dd-dark .csb-doc.act .csb-doc-meta{color:#C7855A!important}
@@ -124,25 +108,51 @@ body.dd-dark .csb-doc:hover{background:#22222E!important}
 body.dd-dark .csb-doc-name{color:#FFFFFF!important}
 body.dd-dark .csb-doc-meta{color:#9898AA!important}
 
-/* ── CHAT MESSAGE BUBBLES — white bubble on dark ── */
-body.dd-dark .bubble.ai{
+/* ── UPLOAD DROP ZONE (.dz) — was white card ── */
+body.dd-dark .dz{
+  background:#22222E!important;
+  border-color:#3A3A50!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.3)!important;
+}
+body.dd-dark .dz:hover{background:#2C2C3A!important;border-color:#E86832!important}
+body.dd-dark .dz.drag{background:#2C2C3A!important;border-color:#E86832!important}
+body.dd-dark .dz-icon{
+  background:rgba(232,104,50,.15)!important;
+  border-color:rgba(232,104,50,.3)!important;
+}
+body.dd-dark .dz-icon svg{stroke:#E86832!important}
+body.dd-dark .dz-title{color:#FFFFFF!important}
+body.dd-dark .dz-sub{color:#D8D8E8!important}
+body.dd-dark .dz-fmt{
+  background:#2C2C3A!important;
+  border-color:#3A3A50!important;
+  color:#D8D8E8!important;
+}
+body.dd-dark .dz-browse{color:#E86832!important}
+
+/* ── TRUST BAR — was white card ── */
+body.dd-dark .trust-bar{
   background:#22222E!important;
   border:1.5px solid #3A3A50!important;
-  color:#D8D8E8!important;
-  box-shadow:0 1px 4px rgba(0,0,0,.3)!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.25)!important;
 }
+body.dd-dark .ti{color:#D8D8E8!important}
+body.dd-dark .ti-ic{
+  background:rgba(15,110,86,.2)!important;
+  border-color:rgba(15,110,86,.35)!important;
+}
+body.dd-dark .ti-ic svg{stroke:#0F6E56!important}
+
+/* CHAT BUBBLE */
+body.dd-dark .bubble.ai{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .bubble.ai .hi{color:#4ADE80!important}
 body.dd-dark .bubble.ai .warn{color:#FBAD4A!important}
 
-/* ── SUGGESTION PILLS ── */
-body.dd-dark .sug-pill,body.dd-dark [class*="sug-pill"]{
-  background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important;
-}
+/* SUGGESTION PILLS */
+body.dd-dark .sug-pill{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 
-/* ── REMAINING SCREEN SURFACES ── */
-body.dd-dark #s-dash,body.dd-dark #s-upload,
-body.dd-dark #s-chat,body.dd-dark #s-history,
-body.dd-dark #s-profile{background:#0E0D0B!important}
+/* SCREENS */
+body.dd-dark #s-dash,body.dd-dark #s-upload,body.dd-dark #s-chat,body.dd-dark #s-history,body.dd-dark #s-profile{background:#0E0D0B!important}
 body.dd-dark .dash-body{background:#0E0D0B!important}
 body.dd-dark .upload-body{background:#0E0D0B!important}
 body.dd-dark .dash-h{color:#FFFFFF!important}
@@ -150,7 +160,7 @@ body.dd-dark .dash-h span{color:#E86832!important}
 body.dd-dark .dash-s{color:#D8D8E8!important}
 body.dd-dark #dash-data-banner{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 
-/* ── INLINE STYLE OVERRIDES ── */
+/* INLINE STYLE OVERRIDES */
 body.dd-dark [style*="background:var(--white)"]{background:#22222E!important}
 body.dd-dark [style*="background: var(--white)"]{background:#22222E!important}
 body.dd-dark [style*="background:var(--mist)"]{background:#18181F!important}
@@ -161,34 +171,27 @@ body.dd-dark [style*="color:var(--ink-s)"]{color:#D8D8E8!important}
 body.dd-dark [style*="color:var(--slate)"]{color:#9898AA!important}
 body.dd-dark [style*="border:1px solid var(--border)"]{border-color:#3A3A50!important}
 body.dd-dark [style*="border-bottom:1px solid var(--border)"]{border-color:#3A3A50!important}
-body.dd-dark [style*="border-radius"]{box-shadow:none}
 
-/* ── LOAN SLIDERS ── */
-body.dd-dark input[type=range]#loan-inc,
-body.dd-dark input[type=range]#loan-ex,
-body.dd-dark input[type=range]#loan-new{
-  background:linear-gradient(to right,#E86832 0%,#E86832 var(--pct,50%),#2C2C3A var(--pct,50%),#2C2C3A 100%)!important;
-}
-body.dd-dark input[type=range]#loan-inc::-webkit-slider-thumb,
-body.dd-dark input[type=range]#loan-ex::-webkit-slider-thumb,
-body.dd-dark input[type=range]#loan-new::-webkit-slider-thumb{border-color:#0E0D0B!important;box-shadow:0 0 0 1.5px #E86832!important}
+/* LOAN SLIDERS */
+body.dd-dark input[type=range]#loan-inc,body.dd-dark input[type=range]#loan-ex,body.dd-dark input[type=range]#loan-new{background:linear-gradient(to right,#E86832 0%,#E86832 var(--pct,50%),#2C2C3A var(--pct,50%),#2C2C3A 100%)!important}
+body.dd-dark input[type=range]#loan-inc::-webkit-slider-thumb,body.dd-dark input[type=range]#loan-ex::-webkit-slider-thumb,body.dd-dark input[type=range]#loan-new::-webkit-slider-thumb{border-color:#0E0D0B!important;box-shadow:0 0 0 1.5px #E86832!important}
 body.dd-dark [id$="-val"]{color:#FFFFFF!important;font-weight:700!important}
 body.dd-dark #loan-result-card,body.dd-dark #loan-verdict{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 
-/* ── SPENDING BARS ── */
+/* SPENDING BARS */
 body.dd-dark [style*="background:var(--mist);border-radius:100px;height:"]{background:#2C2C3A!important;border:1px solid #3A3A50!important}
 
-/* ── INSIGHT CARDS ── */
+/* INSIGHT CARDS */
 body.dd-dark .ins-card{background:rgba(232,104,50,.12)!important;border:1px solid rgba(232,104,50,.3)!important}
 body.dd-dark .ins-card *{color:#F5D5B8!important}
 body.dd-dark .ins-card strong,body.dd-dark .ins-card b{color:#FFB87A!important}
 
-/* ── QUICK ACTION BUTTONS ── */
+/* QUICK ACTIONS */
 body.dd-dark .qa-btn{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .qa-label{color:#FFFFFF!important}
 body.dd-dark .qa-desc{color:#9898AA!important}
 
-/* ── CHAT WRAP ── */
+/* CHAT */
 body.dd-dark .chat-wrap{background:#0E0D0B!important}
 body.dd-dark .csb{background:#18181F!important;border-right:1.5px solid #3A3A50!important}
 body.dd-dark .csb-head{border-color:#3A3A50!important}
@@ -205,30 +208,26 @@ body.dd-dark .chat-inp{background:#2C2C3A!important;color:#FFFFFF!important;bord
 body.dd-dark .chat-inp::placeholder{color:#9898AA!important}
 body.dd-dark .chat-up-btn{background:#22222E!important;border:1.5px solid #3A3A50!important}
 
-/* ── HISTORY ── */
+/* HISTORY */
 body.dd-dark .hist-cap{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important;box-shadow:0 1px 4px rgba(0,0,0,.25)!important}
 body.dd-dark .hist-cap-download{background:#22222E!important;border-color:#3A3A50!important;color:#D8D8E8!important}
 body.dd-dark .hist-cap-clear{background:#22222E!important;border-color:#3A3A50!important;color:#D8D8E8!important}
 body.dd-dark .hist-cap-delete{background:rgba(180,40,40,.2)!important;border-color:rgba(220,80,80,.4)!important;color:#F09090!important}
 body.dd-dark .doc-item{background:#22222E!important;border:1.5px solid #3A3A50!important;border-radius:10px!important;padding:.65rem .85rem!important;margin-bottom:.45rem!important;box-shadow:0 1px 4px rgba(0,0,0,.25)!important}
 
-/* ── PROFILE ── */
-body.dd-dark [id="s-profile"] h2,
-body.dd-dark [id="s-profile"] h3{color:#FFFFFF!important}
+/* PROFILE */
+body.dd-dark [id="s-profile"] h2,body.dd-dark [id="s-profile"] h3{color:#FFFFFF!important}
 body.dd-dark [id="s-profile"] p{color:#D8D8E8!important}
 
-/* ── ALL INPUTS ── */
-body.dd-dark input:not([type="range"]):not([type="checkbox"]):not([type="file"]),
-body.dd-dark textarea,body.dd-dark select{
-  background:#2C2C3A!important;color:#FFFFFF!important;border:1.5px solid #3A3A50!important;
-}
+/* INPUTS */
+body.dd-dark input:not([type="range"]):not([type="checkbox"]):not([type="file"]),body.dd-dark textarea,body.dd-dark select{background:#2C2C3A!important;color:#FFFFFF!important;border:1.5px solid #3A3A50!important}
 body.dd-dark input::placeholder,body.dd-dark textarea::placeholder{color:#9898AA!important}
 
-/* ── HEADINGS ── */
+/* HEADINGS */
 body.dd-dark h1,body.dd-dark h2,body.dd-dark h3,body.dd-dark h4{color:#FFFFFF!important}
 body.dd-dark p{color:#D8D8E8}
 
-/* ── BANNERS ── */
+/* BANNERS */
 body.dd-dark [style*="background:#FFF1E9"]{background:#2A1508!important;border-color:#5A2E0A!important}
 body.dd-dark [style*="background:#E1F5EE"]{background:#0A2015!important}
 body.dd-dark [style*="background:#FCEBEB"]{background:#2A1010!important}
