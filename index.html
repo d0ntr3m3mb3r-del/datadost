@@ -88,6 +88,8 @@ body.dd-dark .logo span{color:#E86832!important}
 body.dd-dark .nl{color:#9898AA!important;background:transparent!important}
 body.dd-dark .nl:hover,body.dd-dark .nl.act{color:#E86832!important;background:rgba(232,104,50,.12)!important}
 body.dd-dark .nav-nm{color:#FFFFFF!important}
+body.dd-dark .nav-toggle-btn svg{stroke:#FFFFFF!important}
+body.dd-dark .nav-toggle-btn{border-color:#3A3A50!important}
 body.dd-dark .tour-q-btn{background:#22222E!important;color:#D8D8E8!important;border:1.5px solid #3A3A50!important}
 body.dd-dark #currency-pill-btn{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 body.dd-dark #currency-pill-dropdown{background:#22222E!important;border-color:#3A3A50!important}
@@ -360,20 +362,23 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   --table-other:#3A3020;
 }
 
-body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--text);font-size:14px;transition:background .25s,color .25s}
+/* Font scoped to marketing page only — NOT applied to body globally to avoid
+   overriding style.css DM Sans font on app screens after navigation */
+#s-marketing,#s-marketing *{font-family:Arial,Helvetica,sans-serif}
+#s-marketing{background:var(--bg);color:var(--text);font-size:14px;transition:background .25s,color .25s}
 
 /* ── NAV ─────────────────────────────────────────────────────── */
-.nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border)}
-.nav-inner{max-width:1100px;margin:0 auto;padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.logo-wrap{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
-.logo-icon{width:28px;height:28px;border-radius:6px;object-fit:contain}
-.logo-text{font-family:Georgia,serif;font-weight:700;font-size:1rem}
-.logo-text .data{color:var(--text)}
-.logo-text .dost{color:var(--o)}
-.nav-links{display:flex;align-items:center;gap:1.25rem}
-.nav-links a{font-size:.75rem;color:var(--text3);text-decoration:none;cursor:pointer;font-weight:500;white-space:nowrap}
-.nav-links a:hover{color:var(--o)}
-.nav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+#s-marketing .nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(12px);border-bottom:0.5px solid var(--border)}
+#s-marketing .nav-inner{max-width:1100px;margin:0 auto;padding:.6rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+#s-marketing .logo-wrap{display:flex;align-items:center;gap:.45rem;flex-shrink:0}
+#s-marketing .logo-icon{width:28px;height:28px;border-radius:6px;object-fit:contain}
+#s-marketing .logo-text{font-family:Georgia,serif;font-weight:700;font-size:1rem}
+#s-marketing .logo-text .data{color:var(--text)}
+#s-marketing .logo-text .dost{color:var(--o)}
+#s-marketing .nav-links{display:flex;align-items:center;gap:1.25rem}
+#s-marketing .nav-links a{font-size:.75rem;color:var(--text3);text-decoration:none;cursor:pointer;font-weight:500;white-space:nowrap}
+#s-marketing .nav-links a:hover{color:var(--o)}
+#s-marketing .nav-right{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
 
 /* NAV BUTTONS — explicit colours for both modes */
 .btn-login{
@@ -549,6 +554,115 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
 .footer-col a:hover{color:var(--o)}
 .footer-bottom{border-top:0.5px solid var(--border);padding-top:1rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.4rem}
 .footer-bottom p{font-size:.68rem;color:var(--text3)}
+
+/* ── HAMBURGER (marketing nav only) ─────────────────────────── */
+/* Hidden on desktop, shown on mobile */
+.mkt-ham{display:none;background:none;border:1.5px solid var(--border);border-radius:8px;padding:.3rem .45rem;cursor:pointer;align-items:center;justify-content:center;color:var(--text);flex-shrink:0}
+.mkt-ham svg{display:block}
+/* Mobile-only login link inside dropdown — hidden on desktop */
+.mkt-mob-login{display:none}
+
+/* ── MOBILE RESPONSIVE (≤768px) ──────────────────────────────── */
+@media(max-width:768px){
+
+  /* NAV: collapse links into hamburger dropdown */
+  .mkt-ham{display:flex}
+  .btn-login{display:none} /* hidden on mobile — Log in is inside the dropdown instead */
+
+  /* nav-links: collapsed by default, opens as dropdown on mobile */
+  #mkt-nav-links{
+    display:none!important;
+    position:absolute;
+    top:100%;left:0;right:0;
+    flex-direction:column;
+    align-items:stretch;
+    gap:0;
+    background:var(--nav-bg);
+    backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--border);
+    box-shadow:0 8px 24px rgba(0,0,0,0.12);
+    padding:.5rem;
+    z-index:200;
+  }
+  #mkt-nav-links.mkt-open{display:flex!important}
+  #mkt-nav-links a{
+    padding:.75rem .9rem;
+    font-size:.9rem;
+    color:var(--text3);
+    text-decoration:none;
+    cursor:pointer;
+    border-radius:8px;
+    font-weight:500;
+  }
+  #mkt-nav-links a:hover{background:var(--alt);color:var(--o)}
+  /* Show the mobile-only Log in link in the dropdown */
+  .mkt-mob-login{display:block}
+
+  /* Make marketing .nav position:relative so dropdown anchors to it */
+  #s-marketing .nav{position:sticky;top:0;z-index:100}
+  #s-marketing .nav-inner{position:relative}
+
+  /* HERO: tighter padding, smaller headline */
+  #s-marketing .hero{padding:2rem 1.25rem}
+  #s-marketing .hero h1{font-size:1.55rem}
+  #s-marketing .hero-sub{font-size:.82rem}
+
+  /* HERO BUTTONS: stack on very narrow screens */
+  #s-marketing .hero-btns{flex-direction:column;align-items:stretch;gap:.55rem}
+  #s-marketing .hero-btns .btn-primary,
+  #s-marketing .hero-btns .btn-ghost{width:100%;text-align:center;padding:.78rem 1rem}
+
+  /* TRUST PILLS: 2-per-row */
+  #s-marketing .trust-pills{gap:.5rem}
+
+  /* STATS BAR: single column */
+  .stats-inner{grid-template-columns:1fr}
+  .stat-cell{border-right:none;border-bottom:0.5px solid var(--border)}
+  .stat-cell:last-child{border-bottom:none}
+  .stat-n{font-size:1.65rem}
+
+  /* BANDS: tighter padding */
+  .band{padding:1.75rem 1.25rem}
+
+  /* TWO-COL → single column */
+  .two-col{grid-template-columns:1fr;gap:1.25rem}
+
+  /* FEATURE GRID: single column */
+  .feat-grid-3{grid-template-columns:1fr;gap:.75rem}
+
+  /* STEPS GRID: single column */
+  .steps-grid{grid-template-columns:1fr;gap:.75rem}
+
+  /* COMPARE TABLE: allow horizontal scroll rather than crushing columns */
+  .band-inner{overflow-x:auto}
+  .compare-table{min-width:480px}
+
+  /* TESTIMONIALS: single column */
+  .testi-grid{grid-template-columns:1fr;gap:.75rem}
+
+  /* PRICING: single column */
+  .price-grid{grid-template-columns:1fr;gap:.75rem}
+
+  /* FAQ: single column */
+  .faq-grid{grid-template-columns:1fr}
+  .faq-item{border-right:none}
+  .faq-item:nth-last-child(-n+2){border-bottom:0.5px solid var(--border)}
+  .faq-item:last-child{border-bottom:none}
+
+  /* FOOTER: single column */
+  .footer-top{grid-template-columns:1fr 1fr;gap:1.25rem}
+  .footer-bottom{flex-direction:column;gap:.3rem}
+
+  /* BAND H2: smaller on mobile */
+  .band h2{font-size:1.3rem}
+}
+
+/* Extra-narrow (≤420px): further tighten */
+@media(max-width:420px){
+  #s-marketing .hero h1{font-size:1.35rem}
+  .footer-top{grid-template-columns:1fr}
+  .btn-nav-primary{font-size:.7rem;padding:.4rem .75rem}
+}
 </style>
 <!-- NAV -->
 <nav class="nav">
@@ -557,16 +671,22 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
       <img src="https://datadost.in/assets/logo-icon.png" alt="DataDost" class="logo-icon">
       <div class="logo-text"><span class="data">Data</span><span class="dost">Dost</span></div>
     </div>
-    <div class="nav-links">
+    <div class="nav-links" id="mkt-nav-links">
       <a id="n-features">What we do</a>
       <a id="n-how">How it works</a>
       <a id="n-pricing">Pricing</a>
       <a id="n-faq">FAQ</a>
+      <!-- Mobile-only: Log in link inside the dropdown so it's reachable when nav-right collapses -->
+      <a id="mkt-login-mob" class="mkt-mob-login">Log in</a>
     </div>
     <div class="nav-right">
       <button class="theme-toggle" id="theme-btn" title="Switch to dark mode">&#127769;</button>
       <button class="btn-login" id="mkt-login">Log in</button>
       <button class="btn-nav-primary" id="mkt-nav-cta">Get started free</button>
+      <!-- Hamburger: hidden on desktop, visible on mobile -->
+      <button class="mkt-ham" id="mkt-ham-btn" aria-label="Menu" aria-expanded="false">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
     </div>
   </div>
 </nav>
@@ -1923,14 +2043,25 @@ var conversationHistory = [];
 
 // ── NAVIGATE ──
 function goTo(id, tab) {
-  // Re-apply theme on every screen transition — picks up marketing toggle immediately
+  // Re-apply theme on every screen transition.
+  // Marketing page (s-marketing) manages its own theme via data-theme attr on its div
+  // and CSS vars — it does NOT use body.dd-dark. App screens use body.dd-dark.
+  // When navigating TO s-marketing, remove body.dd-dark and reapply marketing theme
+  // so dark-mode overrides from the app don't bleed into the marketing page's colours.
   (function(){
     var dark = localStorage.getItem("dd_dark") === "1";
-    document.body.classList.toggle("dd-dark", dark);
-    var icon = dark ? "&#9728;&#65039;" : "&#127769;";
-    var m = document.getElementById("app-theme-btn");
-    if(m) m.innerHTML = icon;
-    document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.innerHTML = icon; });
+    if (id === "s-marketing") {
+      // Marketing page owns its own theme — strip body.dd-dark so app dark CSS
+      // doesn't override marketing's CSS-var-based light/dark system
+      document.body.classList.remove("dd-dark");
+      if (typeof window.setMktTheme === "function") window.setMktTheme(dark);
+    } else {
+      document.body.classList.toggle("dd-dark", dark);
+      var icon = dark ? "&#9728;&#65039;" : "&#127769;";
+      var m = document.getElementById("app-theme-btn");
+      if(m) m.innerHTML = icon;
+      document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.innerHTML = icon; });
+    }
   })();
   document.querySelectorAll(".screen").forEach(function(s) {
     if (s.id === id) { s.classList.add("active"); }
@@ -2602,6 +2733,8 @@ document.getElementById("clear-all-data-btn").addEventListener("click", clearAll
       themeBtn.title = dark ? "Switch to light mode" : "Switch to dark mode";
     }
   }
+  // Expose globally so goTo() can call it when navigating back to s-marketing
+  window.setMktTheme = setMktTheme;
   setMktTheme(localStorage.getItem("dd_dark") === "1");
   if (themeBtn) {
     themeBtn.addEventListener("click", function() {
@@ -2631,8 +2764,40 @@ document.getElementById("clear-all-data-btn").addEventListener("click", clearAll
     if (btn) btn.addEventListener("click", function() {
       var target = document.getElementById(scrollMap[btnId]);
       if (target) target.scrollIntoView({ behavior: "smooth" });
+      // Close mobile nav if open when a scroll-link is tapped
+      var nl = document.getElementById("mkt-nav-links");
+      var ham = document.getElementById("mkt-ham-btn");
+      if (nl) nl.classList.remove("mkt-open");
+      if (ham) ham.setAttribute("aria-expanded", "false");
     });
   });
+
+  // ── HAMBURGER TOGGLE (marketing nav, mobile only) ──
+  var hamBtn = document.getElementById("mkt-ham-btn");
+  var navLinks = document.getElementById("mkt-nav-links");
+  if (hamBtn && navLinks) {
+    hamBtn.addEventListener("click", function(e) {
+      e.stopPropagation();
+      var isOpen = navLinks.classList.toggle("mkt-open");
+      hamBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    });
+    // Close on tap outside
+    document.addEventListener("click", function(e) {
+      if (!e.target.closest("#mkt-nav-links") && !e.target.closest("#mkt-ham-btn")) {
+        navLinks.classList.remove("mkt-open");
+        hamBtn.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+  // Mobile Log in link (inside dropdown)
+  var mobLogin = document.getElementById("mkt-login-mob");
+  if (mobLogin) {
+    mobLogin.addEventListener("click", function() {
+      if (navLinks) navLinks.classList.remove("mkt-open");
+      if (hamBtn) hamBtn.setAttribute("aria-expanded", "false");
+      goTo("s-auth", "login");
+    });
+  }
 })();
 
 // ── WIRE LANDING BUTTONS ──
