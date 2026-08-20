@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819l">
+<link rel="stylesheet" href="style.css?v=20260819m">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -49,14 +49,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <style id="dd-dark-mode">
-/* DataDost Dark Mode  —  body.dd-dark
-   bg:#0E0D0B  card:#22222E  input:#2C2C3A
-   border:1.5px #3A3A50  shadow:0 2px 8px rgba(0,0,0,.35)
-   text:#FFFFFF  body:#D8D8E8  muted:#9898AA */
-
 body.dd-dark{background:#0E0D0B!important;color:#D8D8E8!important}
-
-/* NAV */
 body.dd-dark .app-nav{background:#18181F!important;border-color:#3A3A50!important}
 body.dd-dark .logo{color:#FFFFFF!important}
 body.dd-dark .logo span{color:#E86832!important}
@@ -68,125 +61,60 @@ body.dd-dark #currency-pill-btn{background:#22222E!important;border:1.5px solid 
 body.dd-dark #currency-pill-dropdown{background:#22222E!important;border-color:#3A3A50!important}
 body.dd-dark .cur-opt{color:#D8D8E8!important}
 body.dd-dark .cur-opt:hover{background:#2C2C3A!important}
-
-/* GENERIC CARDS */
 body.dd-dark .card{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 2px 8px rgba(0,0,0,.35)!important;color:#D8D8E8!important}
 body.dd-dark .card h2,body.dd-dark .card h3,body.dd-dark .card strong,body.dd-dark .card b{color:#FFFFFF!important}
-
-/* STAT CARDS */
 body.dd-dark .stat-card{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 2px 8px rgba(0,0,0,.35)!important}
 body.dd-dark .stat-val{color:#FFFFFF!important}
 body.dd-dark .stat-lbl{color:#D8D8E8!important}
-body.dd-dark .stat-trend{color:#9898AA!important}
-
-/* COMING-UP FC-BOX */
+body.dd-dark .stat-trend{color:#C7C7CC!important}
 body.dd-dark .fc-box{background:#2C2C3A!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .fc-box:hover{background:#34344A!important}
 body.dd-dark .fc-pct{color:#FFFFFF!important}
-body.dd-dark .fc-sub{color:#9898AA!important}
+body.dd-dark .fc-sub{color:#C7C7CC!important}
 body.dd-dark .fc-wrap{background:#0E0D0B!important;border:1px solid #3A3A50!important}
 body.dd-dark .fc-item-name{color:#D8D8E8!important}
-body.dd-dark .fc-item-date{color:#9898AA!important}
+body.dd-dark .fc-item-date{color:#C7C7CC!important}
 body.dd-dark .fc-item{border-color:#3A3A50!important}
-
-/* DOC TYPE BUTTONS */
 body.dd-dark .dt{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .dt:hover{background:#2C2C3A!important;border-color:#E86832!important}
 body.dd-dark .dt.sel{background:rgba(232,104,50,.12)!important;border-color:#E86832!important}
 body.dd-dark .dt-nm{color:#FFFFFF!important}
-body.dd-dark .dt-hint{color:#9898AA!important}
-
-/* ── NEWS TICKER ── */
-/* Nav prev/next buttons */
-body.dd-dark #dash-news-prev,
-body.dd-dark #dash-news-next{
-  background:#2C2C3A!important;
-  border-color:#3A3A50!important;
-  color:#FFFFFF!important;
-}
-body.dd-dark #dash-news-prev:hover,
-body.dd-dark #dash-news-next:hover{border-color:#E86832!important}
-/* Counter "1 / 3" */
+body.dd-dark .dt-hint{color:#C7C7CC!important}
+body.dd-dark .spend-lbl{color:#FFFFFF!important}
+body.dd-dark .spend-amt{color:#FFFFFF!important}
+body.dd-dark #dash-news-prev,body.dd-dark #dash-news-next{background:#2C2C3A!important;border-color:#3A3A50!important;color:#FFFFFF!important}
+body.dd-dark #dash-news-prev:hover,body.dd-dark #dash-news-next:hover{border-color:#E86832!important}
 body.dd-dark #dash-news-counter{color:#D8D8E8!important}
-/* News card background */
 body.dd-dark #dash-news-card{background:#2C2C3A!important;border:1px solid #3A3A50!important}
-/* News headline */
 body.dd-dark #dash-news-hl{color:#FFFFFF!important}
-/* News blurb */
 body.dd-dark #dash-news-blurb{color:#D8D8E8!important}
-/* "Ask DataDost" button */
 body.dd-dark #dash-news-ask{background:rgba(15,110,86,.2)!important;color:#4ADE80!important;border-color:rgba(15,110,86,.4)!important}
-/* "Updated every 3 days" + "You and each friend..." light text */
-body.dd-dark [style*="color:var(--slate)"]{color:#C7C7CC!important}
-/* Educational estimate note */
-body.dd-dark [style*="color:var(--slate);text-align:center"]{color:#C7C7CC!important}
-/* "Updated every 3 days" */
-body.dd-dark [style*="color:var(--slate);text-align:right"]{color:#C7C7CC!important}
-
-/* ── GENERAL CHAT SIDEBAR ITEM (was peach #FFF1E9) ── */
-/* Inline style background:var(--sf-l) requires attribute selector for specificity */
-body.dd-dark .csb-doc[data-doc="general"]{
-  background:rgba(232,104,50,.15)!important;
-  border-left:2.5px solid #E86832!important;
-  color:#D8D8E8!important;
-}
+body.dd-dark .csb-doc[data-doc="general"]{background:rgba(232,104,50,.15)!important;border-left:2.5px solid #E86832!important;color:#D8D8E8!important}
 body.dd-dark .csb-doc[data-doc="general"] .csb-doc-name{color:#E86832!important}
 body.dd-dark .csb-doc[data-doc="general"] .csb-doc-meta{color:#C7855A!important}
-body.dd-dark .csb-doc.act{
-  background:rgba(232,104,50,.15)!important;
-  border-left:2.5px solid #E86832!important;
-}
+body.dd-dark .csb-doc.act{background:rgba(232,104,50,.15)!important;border-left:2.5px solid #E86832!important}
 body.dd-dark .csb-doc.act .csb-doc-name{color:#E86832!important}
 body.dd-dark .csb-doc.act .csb-doc-meta{color:#C7855A!important}
 body.dd-dark .csb-doc{color:#D8D8E8!important}
 body.dd-dark .csb-doc:hover{background:#22222E!important}
 body.dd-dark .csb-doc-name{color:#FFFFFF!important}
-body.dd-dark .csb-doc-meta{color:#9898AA!important}
-
-/* ── UPLOAD DROP ZONE (.dz) — was white card ── */
-body.dd-dark .dz{
-  background:#22222E!important;
-  border-color:#3A3A50!important;
-  box-shadow:0 2px 8px rgba(0,0,0,.3)!important;
-}
-body.dd-dark .dz:hover{background:#2C2C3A!important;border-color:#E86832!important}
-body.dd-dark .dz.drag{background:#2C2C3A!important;border-color:#E86832!important}
-body.dd-dark .dz-icon{
-  background:rgba(232,104,50,.15)!important;
-  border-color:rgba(232,104,50,.3)!important;
-}
+body.dd-dark .csb-doc-meta{color:#C7C7CC!important}
+body.dd-dark .dz{background:#22222E!important;border-color:#3A3A50!important;box-shadow:0 2px 8px rgba(0,0,0,.3)!important}
+body.dd-dark .dz:hover,body.dd-dark .dz.drag{background:#2C2C3A!important;border-color:#E86832!important}
+body.dd-dark .dz-icon{background:rgba(232,104,50,.15)!important;border-color:rgba(232,104,50,.3)!important}
 body.dd-dark .dz-icon svg{stroke:#E86832!important}
 body.dd-dark .dz-title{color:#FFFFFF!important}
 body.dd-dark .dz-sub{color:#D8D8E8!important}
-body.dd-dark .dz-fmt{
-  background:#2C2C3A!important;
-  border-color:#3A3A50!important;
-  color:#D8D8E8!important;
-}
+body.dd-dark .dz-fmt{background:#2C2C3A!important;border-color:#3A3A50!important;color:#D8D8E8!important}
 body.dd-dark .dz-browse{color:#E86832!important}
-
-/* ── TRUST BAR — was white card ── */
-body.dd-dark .trust-bar{
-  background:#22222E!important;
-  border:1.5px solid #3A3A50!important;
-  box-shadow:0 1px 4px rgba(0,0,0,.25)!important;
-}
+body.dd-dark .trust-bar{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.25)!important}
 body.dd-dark .ti{color:#D8D8E8!important}
-body.dd-dark .ti-ic{
-  background:rgba(15,110,86,.2)!important;
-  border-color:rgba(15,110,86,.35)!important;
-}
+body.dd-dark .ti-ic{background:rgba(15,110,86,.2)!important;border-color:rgba(15,110,86,.35)!important}
 body.dd-dark .ti-ic svg{stroke:#0F6E56!important}
-
-/* CHAT BUBBLE */
 body.dd-dark .bubble.ai{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .bubble.ai .hi{color:#4ADE80!important}
 body.dd-dark .bubble.ai .warn{color:#FBAD4A!important}
-
-/* SUGGESTION PILLS */
 body.dd-dark .sug-pill{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
-
-/* SCREENS */
 body.dd-dark #s-dash,body.dd-dark #s-upload,body.dd-dark #s-chat,body.dd-dark #s-history,body.dd-dark #s-profile{background:#0E0D0B!important}
 body.dd-dark .dash-body{background:#0E0D0B!important}
 body.dd-dark .upload-body{background:#0E0D0B!important}
@@ -194,75 +122,50 @@ body.dd-dark .dash-h{color:#FFFFFF!important}
 body.dd-dark .dash-h span{color:#E86832!important}
 body.dd-dark .dash-s{color:#D8D8E8!important}
 body.dd-dark #dash-data-banner{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
-
-/* INLINE STYLE OVERRIDES */
-body.dd-dark [style*="background:var(--white)"]{background:#22222E!important}
-body.dd-dark [style*="background: var(--white)"]{background:#22222E!important}
-body.dd-dark [style*="background:var(--mist)"]{background:#18181F!important}
-body.dd-dark [style*="background: var(--mist)"]{background:#18181F!important}
 body.dd-dark [style*="color:var(--ink)"]{color:#FFFFFF!important}
-body.dd-dark [style*="color: var(--ink)"]{color:#FFFFFF!important}
 body.dd-dark [style*="color:var(--ink-s)"]{color:#D8D8E8!important}
-body.dd-dark [style*="color:var(--slate)"]{color:#9898AA!important}
+body.dd-dark [style*="color:var(--slate)"]{color:#C7C7CC!important}
+body.dd-dark [style*="background:var(--white)"]{background:#22222E!important}
+body.dd-dark [style*="background:var(--mist)"]{background:#18181F!important}
 body.dd-dark [style*="border:1px solid var(--border)"]{border-color:#3A3A50!important}
 body.dd-dark [style*="border-bottom:1px solid var(--border)"]{border-color:#3A3A50!important}
-
-/* LOAN SLIDERS */
 body.dd-dark input[type=range]#loan-inc,body.dd-dark input[type=range]#loan-ex,body.dd-dark input[type=range]#loan-new{background:linear-gradient(to right,#E86832 0%,#E86832 var(--pct,50%),#2C2C3A var(--pct,50%),#2C2C3A 100%)!important}
 body.dd-dark input[type=range]#loan-inc::-webkit-slider-thumb,body.dd-dark input[type=range]#loan-ex::-webkit-slider-thumb,body.dd-dark input[type=range]#loan-new::-webkit-slider-thumb{border-color:#0E0D0B!important;box-shadow:0 0 0 1.5px #E86832!important}
 body.dd-dark [id$="-val"]{color:#FFFFFF!important;font-weight:700!important}
 body.dd-dark #loan-result-card,body.dd-dark #loan-verdict{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
-
-/* SPENDING BARS */
 body.dd-dark [style*="background:var(--mist);border-radius:100px;height:"]{background:#2C2C3A!important;border:1px solid #3A3A50!important}
-
-/* INSIGHT CARDS */
 body.dd-dark .ins-card{background:rgba(232,104,50,.12)!important;border:1px solid rgba(232,104,50,.3)!important}
 body.dd-dark .ins-card *{color:#F5D5B8!important}
 body.dd-dark .ins-card strong,body.dd-dark .ins-card b{color:#FFB87A!important}
-
-/* QUICK ACTIONS */
 body.dd-dark .qa-btn{background:#22222E!important;border:1.5px solid #3A3A50!important;box-shadow:0 1px 4px rgba(0,0,0,.3)!important}
 body.dd-dark .qa-label{color:#FFFFFF!important}
-body.dd-dark .qa-desc{color:#9898AA!important}
-
-/* CHAT */
+body.dd-dark .qa-desc{color:#C7C7CC!important}
 body.dd-dark .chat-wrap{background:#0E0D0B!important}
 body.dd-dark .csb{background:#18181F!important;border-right:1.5px solid #3A3A50!important}
 body.dd-dark .csb-head{border-color:#3A3A50!important}
 body.dd-dark .csb-title{color:#FFFFFF!important}
-body.dd-dark .csb-sec{color:#9898AA!important}
+body.dd-dark .csb-sec{color:#C7C7CC!important}
 body.dd-dark .csb-acct{color:#D8D8E8!important;font-weight:600}
 body.dd-dark .chat-hdr{background:#18181F!important;border-color:#3A3A50!important}
 body.dd-dark .chat-hdr-title{color:#FFFFFF!important}
-body.dd-dark .chat-hdr-sub{color:#9898AA!important}
+body.dd-dark .chat-hdr-sub{color:#C7C7CC!important}
 body.dd-dark .chat-msgs{background:#0E0D0B!important}
-body.dd-dark .msg-divider span{background:#22222E!important;color:#9898AA!important;border:1px solid #3A3A50!important}
+body.dd-dark .msg-divider span{background:#22222E!important;color:#C7C7CC!important;border:1px solid #3A3A50!important}
 body.dd-dark .chat-inp-row{background:#18181F!important;border-top:1.5px solid #3A3A50!important}
 body.dd-dark .chat-inp{background:#2C2C3A!important;color:#FFFFFF!important;border:1.5px solid #3A3A50!important}
 body.dd-dark .chat-inp::placeholder{color:#9898AA!important}
 body.dd-dark .chat-up-btn{background:#22222E!important;border:1.5px solid #3A3A50!important}
-
-/* HISTORY */
 body.dd-dark .hist-cap{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important;box-shadow:0 1px 4px rgba(0,0,0,.25)!important}
 body.dd-dark .hist-cap-download{background:#22222E!important;border-color:#3A3A50!important;color:#D8D8E8!important}
 body.dd-dark .hist-cap-clear{background:#22222E!important;border-color:#3A3A50!important;color:#D8D8E8!important}
 body.dd-dark .hist-cap-delete{background:rgba(180,40,40,.2)!important;border-color:rgba(220,80,80,.4)!important;color:#F09090!important}
 body.dd-dark .doc-item{background:#22222E!important;border:1.5px solid #3A3A50!important;border-radius:10px!important;padding:.65rem .85rem!important;margin-bottom:.45rem!important;box-shadow:0 1px 4px rgba(0,0,0,.25)!important}
-
-/* PROFILE */
 body.dd-dark [id="s-profile"] h2,body.dd-dark [id="s-profile"] h3{color:#FFFFFF!important}
 body.dd-dark [id="s-profile"] p{color:#D8D8E8!important}
-
-/* INPUTS */
 body.dd-dark input:not([type="range"]):not([type="checkbox"]):not([type="file"]),body.dd-dark textarea,body.dd-dark select{background:#2C2C3A!important;color:#FFFFFF!important;border:1.5px solid #3A3A50!important}
 body.dd-dark input::placeholder,body.dd-dark textarea::placeholder{color:#9898AA!important}
-
-/* HEADINGS */
 body.dd-dark h1,body.dd-dark h2,body.dd-dark h3,body.dd-dark h4{color:#FFFFFF!important}
 body.dd-dark p{color:#D8D8E8}
-
-/* BANNERS */
 body.dd-dark [style*="background:#FFF1E9"]{background:#2A1508!important;border-color:#5A2E0A!important}
 body.dd-dark [style*="background:#E1F5EE"]{background:#0A2015!important}
 body.dd-dark [style*="background:#FCEBEB"]{background:#2A1010!important}
@@ -946,7 +849,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" id="app-theme-btn" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
+      <button type="button" id="app-theme-btn" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Switch to dark mode">&#127769;</button>
       <div id="currency-pill" style="position:relative">
         <div id="currency-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none;transition:border-color .15s" title="Change display currency">
           <span id="currency-pill-flag">🇮🇳</span>
@@ -1108,7 +1011,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle2" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Switch to dark mode">&#127769;</button>
       <div id="currency-pill-up" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1257,7 +1160,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle3" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Switch to dark mode">&#127769;</button>
       <div id="currency-pill-chat" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1362,7 +1265,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-h" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Switch to dark mode">&#127769;</button>
       <div id="currency-pill-history" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -1453,7 +1356,7 @@ body{background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--tex
     </div>
     <button type="button" class="nav-toggle-btn" id="nav-toggle-p" style="display:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
     <div style="display:flex;align-items:center;gap:.6rem">
-      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Toggle dark/light">☀️</button>
+      <button type="button" class="app-theme-mirror" style="width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Switch to dark mode">&#127769;</button>
       <div id="currency-pill-profile" style="position:relative">
         <div class="cur-pill-btn" style="display:flex;align-items:center;gap:.4rem;border:1px solid var(--border);border-radius:100px;padding:.32rem .75rem;font-size:.78rem;font-family:inherit;color:var(--ink-s);background:var(--white);cursor:pointer;user-select:none" title="Change display currency">
           <span class="cur-pill-flag">🇮🇳</span>
@@ -6893,19 +6796,30 @@ window.toast = toast;
 // ── INIT ──
 renderDash();
 initSupabase().then(function() { renderChat(); });
+// Dark mode toggle. DEFAULT = LIGHT. User opts into dark.
 (function(){
   function applyDark(on){
-    document.body.classList.toggle("dd-dark",on);
-    var icon=on?"\uD83C\uDF19":"\u2600\uFE0F";
-    var m=document.getElementById("app-theme-btn");
-    if(m) m.innerHTML=icon;
-    document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.innerHTML=icon;});
+    document.body.classList.toggle("dd-dark", on);
+    // Sun = in dark mode (click to go light), Moon = in light mode (click to go dark)
+    var icon = on ? "&#9728;&#65039;" : "&#127769;";
+    var ttip = on ? "Switch to light mode" : "Switch to dark mode";
+    var m = document.getElementById("app-theme-btn");
+    if(m){ m.innerHTML = icon; m.title = ttip; }
+    document.querySelectorAll(".app-theme-mirror").forEach(function(b){
+      b.innerHTML = icon; b.title = ttip;
+    });
   }
-  function tog(){var d=!document.body.classList.contains("dd-dark");applyDark(d);localStorage.setItem("dd_dark",d?"1":"");}
-  var m=document.getElementById("app-theme-btn");
-  if(m) m.addEventListener("click",tog);
-  document.querySelectorAll(".app-theme-mirror").forEach(function(b){b.addEventListener("click",tog);});
-  applyDark(localStorage.getItem("dd_dark")==="1");
+  function tog(){
+    var d = !document.body.classList.contains("dd-dark");
+    applyDark(d);
+    localStorage.setItem("dd_dark", d ? "1" : "");
+  }
+  var m = document.getElementById("app-theme-btn");
+  if(m) m.addEventListener("click", tog);
+  document.querySelectorAll(".app-theme-mirror").forEach(function(b){ b.addEventListener("click", tog); });
+  // Only switch to dark if user has explicitly chosen it previously
+  if(localStorage.getItem("dd_dark") === "1"){ applyDark(true); }
+  // else: body stays without dd-dark class = light mode (default)
 })();
 
 
