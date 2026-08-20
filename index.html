@@ -276,7 +276,33 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <div class="screen active" id="s-marketing" data-theme="light" style="background:#F5F0EB;overflow-y:auto;min-height:100vh">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-#s-marketing[data-theme="light"]{background:#F5F0EB}
+#s-marketing[data-theme="light"]{
+  background:#F5F0EB;
+  --bg:#F5F0EB;
+  --alt:#EDE8E1;
+  --alt2:#E6E0D8;
+  --text:#0E0A04;
+  --text2:#1A1209;
+  --text3:#3A3020;
+  --border:#D4CCC0;
+  --o:#C8551F;
+  --g:#0A5440;
+  --card:#FAF7F3;
+  --nav-bg:rgba(245,240,235,.96);
+  --stat-bg:#EDE8E1;
+  --hero-sub:#2A2015;
+  /* buttons */
+  --btn-ghost-color:#1A1209;
+  --btn-ghost-border:#B0A898;
+  --btn-login-color:#1A1209;
+  --btn-login-border:#B0A898;
+  /* trust pills */
+  --pill-color:#2A2015;
+  --pill-check:#0A5440;
+  /* table */
+  --table-head:#3A3020;
+  --table-other:#3A3020;
+}
 
 /* ── DARK MODE ───────────────────────────────────────────────── */
 #s-marketing[data-theme="dark"]{
@@ -5833,7 +5859,7 @@ async function renderHistoryList() {
     var isDark = document.body.classList.contains("dd-dark");
     var card = document.createElement(historyMode ? "div" : "button");
     if (!historyMode) card.type = "button";
-    card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:" + (isDark ? "#22222E" : "var(--white)") + ";border:1.5px solid " + (isDark ? "#3A3A50" : "var(--border)") + ";border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit;margin-bottom:.45rem;box-shadow:" + (isDark ? "0 1px 4px rgba(0,0,0,.3)" : "none") + ";transition:background .15s";
+    card.style.cssText = "display:flex;align-items:flex-start;gap:.75rem;width:100%;text-align:left;background:" + (isDark ? "#22222E" : "var(--white)") + ";border:1.5px solid " + (isDark ? "#3A3A50" : "var(--border)") + ";border-radius:14px;padding:.9rem 1rem;cursor:pointer;font-family:inherit;margin-bottom:.45rem;box-shadow:" + (isDark ? "0 1px 4px rgba(0,0,0,.3)" : "none");
     card.innerHTML =
       (historyMode ? "<input type=\"checkbox\" data-dockey=\"" + conv.docKey + "\" style=\"width:18px;height:18px;flex-shrink:0;margin-top:.2rem\" " + (historySelected[conv.docKey] ? "checked" : "") + "/>" : "") +
       "<div style=\"width:38px;height:38px;border-radius:10px;background:" + (isDark ? "#2C2C3A" : "var(--sf-l)") + ";display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0\">" + display.icon + "</div>" +
