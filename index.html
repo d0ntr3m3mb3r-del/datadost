@@ -97,6 +97,14 @@ body.dd-dark .dt-nm{color:#FFFFFF!important}
 body.dd-dark .dt-hint{color:#9898AA!important}
 
 /* ── GENERAL CHAT SIDEBAR ITEM (was peach #FFF1E9) ── */
+/* Inline style background:var(--sf-l) requires attribute selector for specificity */
+body.dd-dark .csb-doc[data-doc="general"]{
+  background:rgba(232,104,50,.15)!important;
+  border-left:2.5px solid #E86832!important;
+  color:#D8D8E8!important;
+}
+body.dd-dark .csb-doc[data-doc="general"] .csb-doc-name{color:#E86832!important}
+body.dd-dark .csb-doc[data-doc="general"] .csb-doc-meta{color:#C7855A!important}
 body.dd-dark .csb-doc.act{
   background:rgba(232,104,50,.15)!important;
   border-left:2.5px solid #E86832!important;
