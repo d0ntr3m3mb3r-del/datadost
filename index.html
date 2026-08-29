@@ -2921,7 +2921,7 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
     forgotStatus.style.display = "none";
     try {
       var result = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: "https://datadost.in"
+        redirectTo: window.location.origin
       });
       if (result.error) throw result.error;
       // Always show success — Supabase never confirms whether an email is registered
