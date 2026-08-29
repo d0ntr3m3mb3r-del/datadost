@@ -80,6 +80,21 @@ body.dd-dark .d-file{background:rgba(232,104,50,.12)!important;border-color:rgba
 body.dd-dark #s-terms{background:#0E0D0B!important}
 body.dd-dark #s-terms h2,body.dd-dark #s-terms h3{color:#FFFFFF!important}
 body.dd-dark #s-terms p,body.dd-dark #s-terms li{color:#D8D8E8!important}
+body.dd-dark #s-terms h1{color:#FFFFFF!important}
+body.dd-dark #s-terms div{color:#D8D8E8!important}
+body.dd-dark #s-terms .card{background:#18181F!important;border-color:#2A2A3A!important}
+body.dd-dark #s-terms [style*="background:#E6F1FB"]{background:#0C2540!important;border-color:#1A4A7A!important}
+body.dd-dark #s-terms [style*="background:var(--green-l)"]{background:#0A2A20!important;border-color:#1A5A40!important}
+body.dd-dark #s-terms [style*="background:#FFF1E9"]{background:#2A1508!important;border-color:#5A2A10!important}
+body.dd-dark #s-terms [style*="background:var(--mist)"]{background:#18181F!important}
+body.dd-dark #s-terms [style*="color:#993C1D"]{color:#FF8C5A!important}
+body.dd-dark #s-terms [style*="color:#0C447C"]{color:#6BB8FF!important}
+body.dd-dark #s-terms [style*="color:var(--green)"]{color:#3FC9A0!important}
+body.dd-dark #s-terms [style*="color:var(--ink)"]{color:#FFFFFF!important}
+body.dd-dark #s-terms [style*="color:var(--ink-s)"]{color:#D8D8E8!important}
+body.dd-dark #s-terms [style*="color:var(--slate)"]{color:#A0A0B8!important}
+body.dd-dark #s-terms [style*="color:var(--sf)"]{color:#FF8C5A!important}
+body.dd-dark #s-terms a{color:#FF8C5A!important}
 
 /* NAV */
 body.dd-dark .app-nav{background:#18181F!important;border-color:#3A3A50!important}
@@ -91,6 +106,9 @@ body.dd-dark .nav-nm{color:#FFFFFF!important}
 body.dd-dark .nav-toggle-btn svg{stroke:#FFFFFF!important}
 body.dd-dark .nav-toggle-btn{border-color:#3A3A50!important}
 body.dd-dark .tour-q-btn{background:#22222E!important;color:#D8D8E8!important;border:1.5px solid #3A3A50!important}
+body.dd-dark #onboard-tooltip{background:#1E1D2E!important;color:#FFFFFF!important;border:1px solid #3A3A50!important}
+body.dd-dark #onboard-tooltip #onboard-text{color:#FFFFFF!important}
+body.dd-dark #onboard-tooltip button{color:#D8D8E8!important}
 body.dd-dark #currency-pill-btn{background:#22222E!important;border:1.5px solid #3A3A50!important;color:#D8D8E8!important}
 body.dd-dark #currency-pill-dropdown{background:#22222E!important;border-color:#3A3A50!important}
 body.dd-dark .cur-opt{color:#D8D8E8!important}
@@ -1671,7 +1689,9 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <div class="screen" id="s-terms">
   <nav class="app-nav">
     <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
-    <div class="nav-links">
+    <!-- Back button always visible on s-terms — uses display:flex!important to override
+         style.css .nav-links{display:none} at ≤660px mobile breakpoint -->
+    <div class="nav-links" style="display:flex!important">
       <button class="nl" onclick="goTo('s-marketing')" style="display:flex;align-items:center;gap:5px">← Back to home</button>
     </div>
     <div></div>
@@ -2321,30 +2341,40 @@ async function initSupabase() {
       // The getSession() fallback below catches cases where the event already
       // fired before the listener was registered (rare but possible on slow loads).
       //
-      // Helper: detect recovery context from URL (both hash and query string)
+      // Helper: detect recovery context from URL (both hash and query string).
+      // NOTE: We also set a sessionStorage flag during onAuthStateChange because
+      // Supabase's PKCE flow (free plan default) consumes and strips the URL params
+      // before the getSession() fallback runs — so URL-only detection misses it.
       function isRecoveryUrl() {
         return window.location.hash.includes("type=recovery") ||
-               window.location.search.includes("type=recovery");
+               window.location.search.includes("type=recovery") ||
+               sessionStorage.getItem("dd_recovery") === "1";
       }
 
       sb.auth.onAuthStateChange(function(event, session) {
         if (event === "PASSWORD_RECOVERY") {
           // Old hash-based flow — fires directly
+          sessionStorage.setItem("dd_recovery", "1");
           goTo("s-reset");
           return;
         }
-        if (event === "SIGNED_IN" && isRecoveryUrl()) {
-          // New token-hash flow — Supabase fires SIGNED_IN after server-side
-          // verification; we detect the recovery context from the URL params.
-          goTo("s-reset");
-          return;
+        if (event === "SIGNED_IN") {
+          // New token-hash/PKCE flow — Supabase fires SIGNED_IN after server-side
+          // verification. URL params may already be stripped at this point, so check
+          // both the URL AND the sessionStorage flag set on a prior event.
+          if (isRecoveryUrl()) {
+            sessionStorage.setItem("dd_recovery", "1");
+            goTo("s-reset");
+            return;
+          }
         }
       });
 
       var sessionResult = await sb.auth.getSession();
       if (sessionResult.data && sessionResult.data.session && sessionResult.data.session.user) {
-        // Do NOT redirect to dashboard if this is a recovery session —
-        // check both URL formats (hash and query string) to catch all cases.
+        // Do NOT redirect to dashboard if this is a recovery session.
+        // Use isRecoveryUrl() which now checks sessionStorage flag as well,
+        // surviving URL cleanup by the Supabase PKCE client.
         if (isRecoveryUrl()) {
           goTo("s-reset");
         } else {
@@ -2966,8 +2996,9 @@ document.getElementById("s-pass").addEventListener("keydown", function(e) { if(e
       var result = await sb.auth.updateUser({ password: newPwd });
       if (result.error) throw result.error;
 
-      // Password updated — sign out the temporary recovery session cleanly
-      // and send the user to the login screen with a success message.
+      // Password updated — sign out the temporary recovery session cleanly,
+      // clear the recovery flag, and send the user to login with a success message.
+      sessionStorage.removeItem("dd_recovery");
       await sb.auth.signOut();
       resetSessionState();
       resetNewPwd.value = "";
@@ -6361,7 +6392,7 @@ document.getElementById("profile-change-persona-btn").addEventListener("click", 
 // live), then fires startOnboardTour() after 300ms so the screen renders first.
 (function() {
   var style = document.createElement("style");
-  style.textContent = ".tour-q-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1}.tour-q-btn:hover{border-color:var(--sf);color:var(--sf)}";
+  style.textContent = ".tour-q-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1}.tour-q-btn:hover{border-color:var(--sf);color:var(--sf)}@media(max-width:660px){.tour-q-btn{display:none!important}.currency-pill-btn{display:none!important}}";
   document.head.appendChild(style);
 })();
 
