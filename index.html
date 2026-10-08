@@ -892,8 +892,10 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Legal</div>
-        <a onclick="goTo('s-terms','anchor-privacy')" style="cursor:pointer">Privacy Policy</a>
-        <a onclick="goTo('s-terms','anchor-terms')" style="cursor:pointer">Terms of Use</a>
+        <a href="/terms" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Terms of Service</a>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Privacy Policy</a>
+        <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Data Retention Policy</a>
+        <a href="/refund" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Refund Policy</a>
       </div>
       <div class="footer-col">
         <div class="footer-col-title">Contact</div>
@@ -1021,7 +1023,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <p>No card needed. No bank linking. Just upload and ask.</p>
       <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Get started free →</button>
     </div>
-    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">Data<span style="color:var(--sf)">Dost</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
+    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">Data<span style="color:var(--sf)">Dost</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="window.open('/privacy','_blank','noopener')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="window.open('/terms','_blank','noopener')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Service</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
   </div>
 </div>
 
@@ -1707,84 +1709,19 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   <div style="flex:1;overflow-y:auto;background:var(--mist)">
     <div style="max-width:720px;margin:0 auto;padding:2rem 1.5rem;display:flex;flex-direction:column;gap:2rem">
 
-      <!-- PRIVACY POLICY -->
+      <!-- PRIVACY POLICY — the full policy now lives on its own page (/privacy), served from the lawyer-approved text -->
       <div class="card" style="padding:2rem" id="anchor-privacy">
-        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">PRIVACY POLICY · DRAFT</div>
+        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">PRIVACY POLICY</div>
         <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Privacy Policy</h1>
-        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1rem">Last updated: June 2026 · Designed in alignment with India's Digital Personal Data Protection Act 2023</p>
-        <div style="background:#FFF1E9;border:1px solid var(--sf-m);border-radius:10px;padding:.85rem 1rem;margin-bottom:1.5rem;font-size:.78rem;color:#993C1D;line-height:1.6"><b>⚠️ Beta notice:</b> DataDost is currently in early beta testing. This policy describes our intended practices and design principles. Formal entity registration and full DPDP Act compliance mechanisms are in progress and will be completed before public launch.</div>
-
-        <div style="display:flex;flex-direction:column;gap:1.25rem">
-
-          <div style="background:var(--green-l);border:1px solid var(--green-m);border-radius:12px;padding:1rem 1.25rem">
-            <div style="font-weight:600;font-size:.92rem;color:var(--green);margin-bottom:.5rem">Our Four Core Commitments</div>
-            <div style="display:flex;flex-direction:column;gap:.4rem">
-              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never store your original documents. Bank statements and PDFs are read and deleted immediately after analysis.</div>
-              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never sell your data to any third party — ever. No advertisers, no banks, no government without your explicit consent.</div>
-              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> We never share your financial information without your knowledge and consent.</div>
-              <div style="font-size:.85rem;color:var(--ink-s);display:flex;gap:.5rem"><span style="color:var(--green);font-weight:700">✓</span> You can delete all your data instantly, anytime, with one click.</div>
-            </div>
-          </div>
-
-          <div style="background:#E6F1FB;border:1px solid #B5D4F4;border-radius:12px;padding:1rem 1.25rem">
-            <div style="font-weight:600;font-size:.92rem;color:#0C447C;margin-bottom:.5rem">🤝 Sharing your data is entirely your choice</div>
-            <div style="font-size:.84rem;color:#1A3A5C;line-height:1.7">Uploading a document or asking DataDost a question is always <b>voluntary, at your sole discretion, and reversible</b>. By choosing to upload a document, you are giving DataDost explicit permission to read and parse that specific document for the sole purpose of answering your question. We do not access, request, or parse any data you have not actively chosen to share with us in that moment. You may stop sharing, delete what you've shared, or close your account at any time, with no obligation to continue.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">1. What data we collect</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">We collect only what is necessary to provide the DataDost service: your name and email address (for your account), extracted financial insights from documents you upload (spending categories, totals, balances — never the raw document), and your questions and DataDost's responses within your session. We do not collect Aadhaar numbers, PAN numbers, bank account numbers, card numbers, or any government identification.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">2. How we process your documents</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">When you upload a document, it is temporarily processed by our AI system (Anthropic Claude API) to extract financial insights. The raw document file is permanently deleted from our servers within seconds of processing. Only the extracted insights (e.g., "food delivery spend: ₹4,820", "closing balance: ₹3,820") are stored in your account — never the original PDF or image.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">3. Where your data is stored</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">All user account data and extracted financial insights are stored on servers located in India (Mumbai region, AWS ap-south-1) in compliance with the Digital Personal Data Protection Act 2023. When you upload a document for analysis, it is temporarily processed by Anthropic's Claude API — this processing occurs outside Indian territory, as disclosed in Section 2 above. Anthropic is a named third-party processor under this policy and operates under data processing obligations consistent with DPDP Act 2023 requirements. Your stored data — the extracted figures and conversation history that DataDost retains on your behalf — never leaves India. All stored data is encrypted at rest using AES-256 encryption and in transit using TLS 1.3.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">4. Your rights under DPDP Act 2023</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You have the right to: access all data DataDost holds about you, correct any inaccurate data, delete your data permanently (in full or by individual item), withdraw consent at any time, and nominate someone to exercise these rights on your behalf. On the History screen, use the <b>download icon</b> to export your data, the <b>trash icon</b> to delete specific items, or <b>"Clear everything at once"</b> to remove all your data immediately — each comes with a clear warning before anything happens. (Note: this clears your data, not your login itself — to fully close your account as well, email us and we'll do that by hand for now.) For anything else, email us at privacy@datadost.in.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">5. Third-party services</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost uses the following third-party services to operate: Anthropic (AI processing — your document content is transmitted to Anthropic's API for analysis, subject to <a href="https://www.anthropic.com/legal/privacy" target="_blank" style="color:var(--sf)">Anthropic's privacy policy</a>), Supabase (database and authentication — data stored in India region), and Vercel (website hosting — static files only, no personal data). Razorpay (payment processing) is planned for a future paid tier and is not yet active — we never see your full card number when it is. We do not use Google Analytics, Facebook Pixel, or any advertising tracking tools.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">6. If something ever goes wrong — breach notification</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">In the unlikely event of a personal data breach, we will notify every affected user directly (email, not just a website notice) and report it to India's Data Protection Board, in line with DPDP Act requirements — regardless of how small the breach is, with no minimum threshold for when this applies. We treat this as a real operational commitment, not boilerplate: our incident response plan is built around the same 6-hour reporting window CERT-In requires for serious cybersecurity incidents.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">7. Grievance Officer & how we handle concerns</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">As required under the DPDP Act 2023, our designated Grievance Officer can be contacted at: <b>privacy@datadost.in</b>. Every complaint gets a reference number and an automatic acknowledgment, and we commit to resolving it within <b>30 days</b> — well inside the 90-day maximum the DPDP Rules allow. If you're ever unsatisfied with our response, you have the right to escalate directly to India's Data Protection Board.</div>
-          </div>
-
-          <div style="background:var(--mist);border-radius:12px;padding:1rem 1.25rem">
-            <div style="font-weight:600;font-size:.92rem;color:var(--ink);margin-bottom:.5rem">📎 Verify this for yourself — don't just take our word for it</div>
-            <div style="font-size:.83rem;color:var(--ink-s);line-height:1.8">
-              The laws and standards referenced on this page are public — you're welcome to read them directly:<br>
-              <a href="https://www.meity.gov.in/data-protection-framework" target="_blank" style="color:var(--sf)">MeitY — Digital Personal Data Protection Act & Rules</a><br>
-              <a href="https://www.rbi.org.in" target="_blank" style="color:var(--sf)">Reserve Bank of India — official guidelines</a><br>
-              <a href="https://www.cert-in.org.in" target="_blank" style="color:var(--sf)">CERT-In — India's cybersecurity incident response authority</a><br>
-              <a href="https://www.dpdpa.gov.in" target="_blank" style="color:var(--sf)">Data Protection Board of India</a>
-            </div>
-          </div>
-
-        </div>
+        <p style="font-size:.84rem;color:var(--ink-s);line-height:1.7;margin-bottom:1.1rem">Our full Privacy Policy, issued under India's Digital Personal Data Protection Act 2023, is available on its own page.</p>
+        <a href="/privacy" target="_blank" rel="noopener noreferrer" style="display:inline-block;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Read the Privacy Policy →</a>
       </div>
 
       <!-- FAQ -->
       <div class="card" style="padding:2rem" id="anchor-faq">
         <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">FAQ</div>
         <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">How we handle your data</h1>
-        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">The plain-language version. For the full legal detail, see the <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-privacy')" style="color:var(--sf);text-decoration:underline">Privacy Policy</a> above.</p>
+        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">The plain-language version. For the full legal detail, see the <a href="/privacy" target="_blank" rel="noopener noreferrer" style="color:var(--sf);text-decoration:underline">Privacy Policy</a>.</p>
 
         <div style="display:flex;flex-direction:column;gap:1.25rem">
 
@@ -1831,48 +1768,18 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
         </div>
       </div>
 
-      <!-- TERMS OF USE -->
+      <!-- TERMS OF SERVICE (full text lives at /terms; links below) -->
       <div class="card" style="padding:2rem" id="anchor-terms">
-        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">TERMS OF USE</div>
-        <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Terms of Use</h1>
-        <p style="font-size:.8rem;color:var(--slate);margin-bottom:1.5rem">Last updated: June 2026 · Governing law: Republic of India</p>
+        <div style="display:inline-block;background:var(--sf-l);color:var(--sf);font-size:.72rem;font-weight:700;padding:.25rem .8rem;border-radius:100px;margin-bottom:1rem;letter-spacing:.04em">TERMS OF SERVICE</div>
+        <h1 style="font-family:Sora,sans-serif;font-size:1.5rem;font-weight:700;color:var(--ink);margin-bottom:.4rem">DataDost Terms of Service</h1>
+        <p style="font-size:.84rem;color:var(--ink-s);line-height:1.7;margin-bottom:1.1rem">Our Terms of Service, Data Retention Policy and Refund Policy are available on their own pages.</p>
+        <div style="margin-bottom:1.25rem">
+          <a href="/terms" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Terms of Service →</a>
+          <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Data Retention Policy →</a>
+          <a href="/refund" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Refund Policy →</a>
+        </div>
 
         <div style="display:flex;flex-direction:column;gap:1.25rem">
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">1. About DataDost</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost is an AI-powered personal finance companion that helps users understand their financial documents through conversational interaction. DataDost is operated by DataDost Technologies (entity registration in progress). By using DataDost, you agree to these Terms of Use.</div>
-          </div>
-
-          <div style="background:#FFF1E9;border:1px solid var(--sf-m);border-radius:12px;padding:1rem 1.25rem">
-            <div style="font-weight:600;font-size:.92rem;color:var(--sf);margin-bottom:.5rem">⚠️ Important Disclaimer — Not Financial Advice</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost provides financial <b>awareness and coaching</b>, not regulated financial advice. DataDost is not a SEBI-registered Investment Adviser, RBI-regulated entity, or certified financial planner. All insights, suggestions, and analysis provided by DataDost are for informational and educational purposes only. They do not constitute professional financial, investment, tax, or legal advice. Always consult a qualified professional before making significant financial decisions. DataDost is not liable for any financial losses arising from actions taken based on its outputs.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">2. Your responsibilities</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">You must be at least 18 years old to use DataDost. You agree to upload only documents that belong to you or that you are legally authorised to share. You must not use DataDost for any unlawful purpose. You are responsible for maintaining the security of your account credentials.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">3. Subscription and payments</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost offers a free tier and paid subscription plans. Paid subscriptions are billed monthly and may be cancelled at any time. Refunds are provided for unused portions of annual plans. We reserve the right to modify pricing with 30 days notice to existing subscribers.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">4. Intellectual property</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">The DataDost name, logo, AI persona, and all product content are the intellectual property of DataDost Technologies. You may not copy, reproduce, or replicate any part of DataDost without written permission. The financial data you upload remains entirely yours.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">5. Limitation of liability</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">DataDost's liability is limited to the amount you paid for the service in the preceding 3 months. We are not liable for indirect, consequential, or incidental damages. AI-generated outputs may occasionally be inaccurate — always verify important financial information independently.</div>
-          </div>
-
-          <div>
-            <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.5rem">6. Governing law and disputes</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">These Terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of courts in Bengaluru, Karnataka, India. For any concerns, contact us at legal@datadost.in before initiating legal proceedings.</div>
-          </div>
 
           <div style="background:var(--mist);border-radius:10px;padding:1rem 1.1rem" id="anchor-contact">
             <div style="font-size:.84rem;font-weight:600;color:var(--ink);margin-bottom:.7rem;text-align:center">Get in touch</div>
