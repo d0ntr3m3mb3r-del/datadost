@@ -2326,6 +2326,16 @@ async function getAuthHeader() {
 // on all browsers including Safari/WebKit.
 window.getAuthHeader = getAuthHeader;
 async function initSupabase() {
+  // PASSWORD-RESET FIX: record "this visit came from a reset link" BEFORE anything else runs.
+  // The Supabase library removes type=recovery from the address bar while it starts up, which
+  // used to happen before the recovery check below ran — so the reset link opened the dashboard
+  // first and the "Set a new password" screen only appeared later (or after a refresh).
+  // Setting the same dd_recovery flag the handlers below already use makes the first load correct.
+  try {
+    if (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery")) {
+      sessionStorage.setItem("dd_recovery", "1");
+    }
+  } catch (e) {}
   try {
     var resp = await fetch("/api/config");
     var cfg = await resp.json();
