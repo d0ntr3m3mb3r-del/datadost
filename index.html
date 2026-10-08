@@ -912,7 +912,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 
 <div class="screen" id="s-land">
   <nav class="land-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div style="display:flex;gap:.65rem;align-items:center">
       <button class="btn-sm-out" id="land-login">Log in</button>
       <button class="btn-sm" id="land-signup">Get started free</button>
@@ -1021,7 +1021,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <p>No card needed. No bank linking. Just upload and ask.</p>
       <button style="background:#fff;color:var(--sf);border:none;border-radius:100px;padding:.75rem 1.8rem;font-size:.92rem;font-weight:700;cursor:pointer;font-family:inherit" id="cta-btn">Get started free →</button>
     </div>
-    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">DataDost<span style="color:var(--sf)">.</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
+    <div class="land-foot"><div style="font-family:Sora,sans-serif;font-size:1rem;font-weight:700;color:#fff;margin-bottom:.3rem">Data<span style="color:var(--sf)">Dost</span></div><div style="font-size:.75rem;color:rgba(255,255,255,.4);margin-bottom:.5rem">Making financial clarity accessible to every Indian family. Made with ❤️ in India. © 2026</div><div style="display:flex;gap:1.5rem;justify-content:center"><button type="button" onclick="goTo('s-terms','anchor-faq')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">FAQ</button><button type="button" onclick="goTo('s-terms','anchor-privacy')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Privacy Policy</button><button type="button" onclick="goTo('s-terms','anchor-terms')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Terms of Use</button><button type="button" onclick="goTo('s-terms','anchor-contact')" style="background:none;border:none;font-size:.75rem;color:rgba(255,255,255,.5);cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px">Contact</button></div></div>
   </div>
 </div>
 
@@ -1031,7 +1031,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   <div class="auth-card">
     <div class="auth-logo" style="display:flex;align-items:center;justify-content:center;gap:.5rem">
       <img src="https://datadost.in/assets/logo-icon.png" alt="DataDost" style="width:32px;height:32px;border-radius:7px;object-fit:contain;display:block">
-      <span>DataDost<span style="color:var(--sf)">.</span></span>
+      <span>Data<span style="color:var(--sf)">Dost</span></span>
     </div>
     <div class="auth-sub">Your personal money companion 🙏</div>
     <div class="auth-tabs">
@@ -1076,13 +1076,21 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       </div>
       <div class="fg"><label class="fl">Email address</label><input type="email" class="fi" placeholder="you@example.com" id="s-email"><div class="fe" id="s-email-e">Please enter a valid email</div></div>
       <div class="fg"><label class="fl">Password</label><input type="password" class="fi" placeholder="Min. 8 characters" id="s-pass"><div class="fe" id="s-pass-e">Must be at least 8 characters</div></div>
+      <!-- CONSENT CHECKBOX (lawyer-mandated). Wording lives ONLY in this block: to change the text after lawyer approval, edit the <span> below and bump CONSENT_VERSION in doSignup(). Links open the standalone pages in a new tab so form entries are not lost. -->
+      <div class="fg" id="signup-consent-wrap">
+        <label class="auth-note" style="display:flex;align-items:flex-start;gap:.6rem;text-align:left;cursor:pointer">
+          <input type="checkbox" id="signup-consent" style="margin-top:3px;flex-shrink:0;cursor:pointer;width:1rem;height:1rem;accent-color:var(--sf)">
+          <span id="signup-consent-text">By ticking this box, I confirm I am 18+, and I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Terms of Service</a>, and I acknowledge the <a href="/privacy" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Privacy Policy</a> and the <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Data Retention Policy</a></span>
+        </label>
+        <div class="fe" id="signup-consent-e">Please tick the box to confirm and continue</div>
+      </div>
       <button class="btn-submit" id="do-signup">Create my DataDost account</button>
       <div class="divider">or</div>
       <button class="btn-google" id="g-signup">
         <svg width="17" height="17" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Continue with Google
       </button>
-      <div class="auth-note">By signing up you agree to our <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-terms')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Terms of Use</a> &amp; <a href="javascript:void(0)" onclick="goTo('s-terms','anchor-privacy')" style="cursor:pointer;color:var(--sf);text-decoration:underline">Privacy Policy</a> · Built on DPDP Act principles</div>
+      <div class="auth-note">Built on DPDP Act principles</div>
       <div class="auth-note">Already have an account? <a id="sw-login">Log in →</a></div>
     </div>
     <div class="trust-row">
@@ -1096,7 +1104,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- DASHBOARD -->
 <div class="screen" id="s-dash">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div class="nav-links">
       <button class="nl act" id="nav-dash">Dashboard</button>
       <button class="nl" id="nav-upload">Upload</button>
@@ -1258,7 +1266,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- UPLOAD -->
 <div class="screen" id="s-upload">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div class="nav-links">
       <button class="nl" id="nav-dash2">Dashboard</button>
       <button class="nl act" id="nav-upload2">Upload</button>
@@ -1407,7 +1415,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- CHAT -->
 <div class="screen" id="s-chat">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div class="nav-links">
       <button class="nl" id="nav-dash3">Dashboard</button>
       <button class="nl" id="nav-upload3">Upload</button>
@@ -1512,7 +1520,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- ═══ PAST CONVERSATIONS (VISIBLE CHAT HISTORY) ═══ -->
 <div class="screen" id="s-history">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div class="nav-links">
       <button class="nl" id="nav-dash-h">Dashboard</button>
       <button class="nl" id="nav-upload-h">Upload</button>
@@ -1603,7 +1611,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- ═══ SCREEN: PROFILE ═══ -->
 <div class="screen" id="s-profile">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <div class="nav-links">
       <button class="nl" id="nav-dash-p">Dashboard</button>
       <button class="nl" id="nav-upload-p">Upload</button>
@@ -1663,7 +1671,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
     <div style="width:100%;max-width:420px">
       <!-- Logo -->
       <div style="text-align:center;margin-bottom:2rem">
-        <div style="font-size:1.9rem;font-weight:700;color:var(--ink);letter-spacing:-.5px">DataDost<span style="color:var(--sf)">.</span></div>
+        <div style="font-size:1.9rem;font-weight:700;color:var(--ink);letter-spacing:-.5px">Data<span style="color:var(--sf)">Dost</span></div>
       </div>
       <!-- Card -->
       <div class="card" style="padding:2rem">
@@ -1688,7 +1696,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- ═══ SCREEN: TERMS & PRIVACY ═══ -->
 <div class="screen" id="s-terms">
   <nav class="app-nav">
-    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">DataDost<span>.</span></div></div>
+    <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0"><img src="https://datadost.in/assets/logo-icon.png" alt="" style="width:26px;height:26px;border-radius:6px;object-fit:contain;flex-shrink:0"><div class="logo">Data<span>Dost</span></div></div>
     <!-- Back button always visible on s-terms — uses display:flex!important to override
          style.css .nav-links{display:none} at ≤660px mobile breakpoint -->
     <div class="nav-links" style="display:flex!important">
@@ -2318,6 +2326,16 @@ async function getAuthHeader() {
 // on all browsers including Safari/WebKit.
 window.getAuthHeader = getAuthHeader;
 async function initSupabase() {
+  // PASSWORD-RESET FIX: record "this visit came from a reset link" BEFORE anything else runs.
+  // The Supabase library removes type=recovery from the address bar while it starts up, which
+  // used to happen before the recovery check below ran — so the reset link opened the dashboard
+  // first and the "Set a new password" screen only appeared later (or after a refresh).
+  // Setting the same dd_recovery flag the handlers below already use makes the first load correct.
+  try {
+    if (window.location.hash.includes("type=recovery") || window.location.search.includes("type=recovery")) {
+      sessionStorage.setItem("dd_recovery", "1");
+    }
+  } catch (e) {}
   try {
     var resp = await fetch("/api/config");
     var cfg = await resp.json();
@@ -2568,6 +2586,9 @@ async function doLogin() {
   toast("Welcome back, " + uName + "! 👋");
 }
 
+// Version label of the sign-up consent wording. v1 = wording approved by the lawyer on 8 Oct 2026. Change this label whenever the wording changes.
+var CONSENT_VERSION = "2026-10-08-v1";
+
 async function doSignup() {
   var fn = document.getElementById("s-fname").value.trim() || "Friend";
   var ln = document.getElementById("s-lname").value.trim() || "";
@@ -2578,6 +2599,9 @@ async function doSignup() {
   document.getElementById("s-pass-e").classList.remove("show");
   if (!email || !email.includes("@")) { document.getElementById("s-email-e").classList.add("show"); ok = false; }
   if (!pass || pass.length < 8) { document.getElementById("s-pass-e").classList.add("show"); ok = false; }
+  // Consent gate (lawyer-mandated): account cannot be created unless the box is ticked.
+  document.getElementById("signup-consent-e").classList.remove("show");
+  if (!document.getElementById("signup-consent").checked) { document.getElementById("signup-consent-e").classList.add("show"); ok = false; }
   if (!ok) return;
   if (!sb) { toast("Connecting... please try again in a moment"); return; }
 
@@ -2599,7 +2623,12 @@ async function doSignup() {
   var result = await sb.auth.signUp({
     email: email,
     password: pass,
-    options: { data: { first_name: fn, last_name: ln, ref_code: pendingRefAtSignup } }
+    options: { data: { first_name: fn, last_name: ln, ref_code: pendingRefAtSignup,
+      // Consent record — copied into the user_consents table by a database trigger (see consent-setup.sql).
+      // CONSENT_VERSION identifies the exact checkbox wording the user saw; change it whenever the wording changes.
+      consent_version: CONSENT_VERSION, consent_accepted: true, consent_age_18: true,
+      consent_docs: ["terms", "privacy", "data-retention"],
+      consent_text: document.getElementById("signup-consent-text").textContent.trim() } }
   });
 
   btn.textContent = originalText;
@@ -6406,7 +6435,7 @@ document.getElementById("profile-change-persona-btn").addEventListener("click", 
 // live), then fires startOnboardTour() after 300ms so the screen renders first.
 (function() {
   var style = document.createElement("style");
-  style.textContent = ".tour-q-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1}.tour-q-btn:hover{border-color:var(--sf);color:var(--sf)}@media(max-width:660px){.tour-q-btn{display:none!important}}@media(max-width:900px) and (min-width:661px){.nav-nm{display:none!important}.tour-q-btn{display:none!important}}";
+  style.textContent = ".tour-q-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);color:var(--slate);font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:border-color .15s,color .15s;line-height:1}.tour-q-btn:hover{border-color:var(--sf);color:var(--sf)}@media(max-width:660px){.tour-q-btn{display:none!important}.currency-pill-btn{display:none!important}}@media(max-width:900px) and (min-width:661px){.nav-nm{display:none!important}.tour-q-btn{display:none!important}}";
   document.head.appendChild(style);
 })();
 
