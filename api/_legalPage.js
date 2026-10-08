@@ -37,9 +37,11 @@ const CSS = `
   :root {
     --orange: #E86832; --green: #0F6E56; --dark: #0E0D0B;
     --bg: #ffffff; --ink: #2b2a27; --muted: #6b675f; --line: #E0D5C7; --soft: #F5F0EB;
+    --logo-data: #0E0A04; --logo-dost: #C8551F;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0E0D0B; --ink: #e6e2da; --muted: #a39e93; --line: #3a372f; --soft: #1b1a17; }
+    :root { --bg: #0E0D0B; --ink: #e6e2da; --muted: #a39e93; --line: #3a372f; --soft: #1b1a17;
+            --logo-data: #FFFFFF; --logo-dost: #E86832; }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
@@ -50,9 +52,10 @@ const CSS = `
   .wrap { max-width: 760px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
   .top { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
          padding-bottom: 1rem; border-bottom: 3px solid var(--orange); margin-bottom: 1.5rem; flex-wrap: wrap; }
-  .brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--ink); font-weight: 700; font-size: 1.15rem; }
+  .brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; color: var(--ink); font-family: Georgia, serif; font-weight: 700; font-size: 1.15rem; }
   .brand img { width: 32px; height: 32px; border-radius: 7px; object-fit: contain; display: block; }
-  .brand .dot { color: var(--orange); }
+  .brand .data { color: var(--logo-data); }
+  .brand .dost { color: var(--logo-dost); }
   .back { font-size: .9rem; color: var(--orange); text-decoration: none; }
   .back:hover, .doc a:hover, .nav a:hover { text-decoration: underline; }
   nav.nav { display: flex; flex-wrap: wrap; gap: .4rem 1.1rem; font-size: .9rem; margin-bottom: 1.75rem; }
@@ -64,7 +67,7 @@ const CSS = `
   .foot { margin-top: 3rem; padding-top: 1.25rem; border-top: 1px solid var(--line); font-size: .85rem; color: var(--muted); }
   @media (max-width: 600px) { .wrap { padding: 1rem 1rem 3rem; } h1 { font-size: 1.35rem; } }
   @media print {
-    :root { --bg: #fff; --ink: #000; --muted: #444; --line: #bbb; }
+    :root { --bg: #fff; --ink: #000; --muted: #444; --line: #bbb; --logo-data: #000; --logo-dost: #C8551F; }
     body { font-size: 11.5pt; line-height: 1.5; }
     .wrap { max-width: none; padding: 0; }
     .back, nav.nav, .foot { display: none; }
@@ -91,7 +94,7 @@ export function renderLegalPage({ title, pageLabel, currentPath, paragraphs }) {
 '<body>\n' +
 '  <div class="wrap">\n' +
 '    <header class="top">\n' +
-'      <a class="brand" href="/"><img src="/assets/logo-icon.png" alt="" width="32" height="32" onerror="this.style.display=\'none\'"><span>DataDost<span class="dot">.</span></span></a>\n' +
+'      <a class="brand" href="/"><img src="/assets/logo-icon.png" alt="" width="32" height="32" onerror="this.style.display=\'none\'"><span><span class="data">Data</span><span class="dost">Dost</span></span></a>\n' +
 '      <a class="back" href="/">&larr; Back to DataDost</a>\n' +
 '    </header>\n' +
 '    <nav class="nav" aria-label="Legal documents">\n      ' + nav + '\n    </nav>\n' +
