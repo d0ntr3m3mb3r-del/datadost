@@ -40,6 +40,10 @@
     {
       "source": "/data-retention",
       "destination": "/api/legal.js?doc=data-retention"
+    },
+    {
+      "source": "/consent",
+      "destination": "/api/legal.js?doc=consent"
     }
   ],
   "functions": {

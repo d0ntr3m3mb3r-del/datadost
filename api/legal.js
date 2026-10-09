@@ -1,15 +1,16 @@
 /**
- * DataDost legal pages — the ONE serverless function that serves all four documents.
+ * DataDost legal pages — the ONE serverless function that serves all five documents.
  * Path: /api/legal.js
  *
  *   /terms           -> /api/legal.js?doc=terms            (rewrite in vercel.json)
  *   /privacy         -> /api/legal.js?doc=privacy
  *   /refund          -> /api/legal.js?doc=refund
  *   /data-retention  -> /api/legal.js?doc=data-retention
+ *   /consent         -> /api/legal.js?doc=consent
  *
  * Why one function instead of four: Vercel's free (Hobby) plan allows at most 12
- * serverless functions per deployment. DataDost already has 9, so four more would
- * make 13 and could block deployments. The wording of each document sits in the
+ * serverless functions per deployment. DataDost already has 9, so five more would
+ * make 14 and could block deployments. The wording of each document sits in the
  * underscore-prefixed files (_legal-*.js), which Vercel does NOT count as functions.
  */
 import { renderLegalPage } from './_legalPage.js';
@@ -17,12 +18,14 @@ import terms from './_legal-terms.js';
 import privacy from './_legal-privacy.js';
 import refund from './_legal-refund.js';
 import dataRetention from './_legal-data-retention.js';
+import consent from './_legal-consent.js';
 
 const DOCS = {
   terms,
   privacy,
   refund,
   'data-retention': dataRetention,
+  consent,
 };
 
 export default function handler(req, res) {
@@ -31,7 +34,7 @@ export default function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Only the four known keys are accepted; anything else is a 404 (nothing is read from disk by name).
+  // Only the five known keys are accepted; anything else is a 404 (nothing is read from disk by name).
   const key = String((req.query && req.query.doc) || '');
   const doc = Object.prototype.hasOwnProperty.call(DOCS, key) ? DOCS[key] : null;
   if (!doc) {
