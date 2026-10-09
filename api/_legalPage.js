@@ -14,6 +14,7 @@ const DOCS = [
   { path: '/terms',          label: 'Terms of Service' },
   { path: '/privacy',        label: 'Privacy Policy' },
   { path: '/data-retention', label: 'Data Retention Policy' },
+  { path: '/consent',        label: 'User Data Processing Consent' },
   { path: '/refund',         label: 'Refund Policy' },
 ];
 
