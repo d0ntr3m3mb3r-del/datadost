@@ -845,7 +845,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
         <ul class="price-feats"><li>Up to 4 members</li><li>Everything in Plus</li><li>Shared dashboard</li></ul>
       </div>
     </div>
-    <div class="sept-note"><b>Paid plans launching September 2026.</b> Start free today — your account carries over automatically.</div>
+    <div class="sept-note">Start free today — your account carries over automatically.</div>
   </div>
 </section>
 
@@ -860,7 +860,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <div class="faq-item"><div class="faq-q">What languages does DataDost support?</div><div class="faq-a">Ask in English, Hindi, Hinglish, Marathi, Gujarati, Tamil, Telugu, Bengali, Kannada, Malayalam, Punjabi — or any mix.</div></div>
       <div class="faq-item"><div class="faq-q">I'm based outside India. Does it work?</div><div class="faq-a">Yes. DataDost supports AED, USD, GBP, SGD, AUD and more. It detects your document's currency automatically — no settings needed.</div></div>
       <div class="faq-item"><div class="faq-q">Is DataDost a SEBI-registered advisor?</div><div class="faq-a">No — DataDost is a financial clarity tool, not an investment advisor. It helps you understand your own numbers so you can have better conversations with registered advisors.</div></div>
-      <div class="faq-item"><div class="faq-q">When do paid plans start?</div><div class="faq-a">Paid subscriptions open September 2026. Your free account carries over automatically — no need to sign up again.</div></div>
+      <div class="faq-item"><div class="faq-q">When do paid plans start?</div><div class="faq-a">Paid plans will open soon. Your free account carries over automatically — no need to sign up again.</div></div>
     </div>
   </div>
 </section>
@@ -895,6 +895,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
         <a href="/terms" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Terms of Service</a>
         <a href="/privacy" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Privacy Policy</a>
         <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Data Retention Policy</a>
+        <a href="/consent" target="_blank" rel="noopener noreferrer" style="cursor:pointer">User Data Processing Consent</a>
         <a href="/refund" target="_blank" rel="noopener noreferrer" style="cursor:pointer">Refund Policy</a>
       </div>
       <div class="footer-col">
@@ -1082,9 +1083,10 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <div class="fg" id="signup-consent-wrap">
         <label class="auth-note" style="display:flex;align-items:flex-start;gap:.6rem;text-align:left;cursor:pointer">
           <input type="checkbox" id="signup-consent" style="margin-top:3px;flex-shrink:0;cursor:pointer;width:1rem;height:1rem;accent-color:var(--sf)">
-          <span id="signup-consent-text">By ticking this box, I confirm I am 18+, and I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Terms of Service</a>, and I acknowledge the <a href="/privacy" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Privacy Policy</a> and the <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Data Retention Policy</a></span>
+          <span id="signup-consent-text">By ticking this box, I confirm I am 18+, and I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Terms of Service</a> and the <a href="/consent" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">User Data Processing Consent</a>, and I acknowledge the <a href="/privacy" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Privacy Policy</a> and the <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="text-decoration:underline">Data Retention Policy</a>.</span>
         </label>
         <div class="fe" id="signup-consent-e">Please tick the box to confirm and continue</div>
+        <div style="text-align:left;margin-top:.35rem"><a href="#" id="signup-under18" style="font-size:.78rem;color:var(--slate);text-decoration:underline">I am under 18</a></div>
       </div>
       <button class="btn-submit" id="do-signup">Create my DataDost account</button>
       <div class="divider">or</div>
@@ -1348,7 +1350,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
         </div>
         <label style="display:flex;align-items:flex-start;gap:.6rem;padding:.75rem .9rem;background:var(--mist);border-radius:10px;cursor:pointer;font-size:.78rem;color:var(--ink-s);line-height:1.5">
           <input type="checkbox" id="consent-check" style="margin-top:2px;flex-shrink:0;cursor:pointer">
-          <span>I choose to share this document with DataDost and consent to it being read by AI to answer my questions. I understand the file is deleted after analysis and I can withdraw this consent anytime.</span>
+          <span>I choose to share this document with DataDost and consent to its text being read by AI to answer my questions. I understand that the extracted text and any answers are kept for up to 30 days as per the Data Retention Policy, and I can withdraw this consent at any time.</span>
         </label>
         <button class="btn-analyse" id="btn-analyse">Analyse this document →</button>
         <button class="btn-change" id="btn-change">Choose a different file</button>
@@ -1695,6 +1697,24 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   </div>
 </div>
 
+<!-- ═══ SCREEN: UNDER 18 (lawyer-mandated; wording is verbatim from the lawyer, do not edit) ═══ -->
+<div class="screen" id="s-under18">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem;background:var(--bg)">
+    <div style="width:100%;max-width:420px">
+      <div style="text-align:center;margin-bottom:2rem">
+        <div style="font-size:1.9rem;font-weight:700;color:var(--ink);letter-spacing:-.5px">Data<span style="color:var(--sf)">Dost</span></div>
+      </div>
+      <div class="card" style="padding:2rem">
+        <div style="font-size:.9rem;color:var(--ink);line-height:1.6;margin-bottom:1.4rem">DataDost is for users who are 18 and over. If you are under 18, you cannot create an account or use the platform. If you are 18 or over and have reached this page by mistake, go back and tick the box on the previous page.</div>
+        <button type="button" id="under18-back"
+                style="width:100%;background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.75rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit">
+          Go back
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ SCREEN: TERMS & PRIVACY ═══ -->
 <div class="screen" id="s-terms">
   <nav class="app-nav">
@@ -1776,6 +1796,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
         <div style="margin-bottom:1.25rem">
           <a href="/terms" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Terms of Service →</a>
           <a href="/data-retention" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Data Retention Policy →</a>
+          <a href="/consent" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">User Data Processing Consent →</a>
           <a href="/refund" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:0 .9rem .5rem 0;color:var(--sf);font-size:.86rem;font-weight:600;text-decoration:underline">Refund Policy →</a>
         </div>
 
@@ -2493,8 +2514,8 @@ async function doLogin() {
   toast("Welcome back, " + uName + "! 👋");
 }
 
-// Version label of the sign-up consent wording. v1 = wording approved by the lawyer on 8 Oct 2026. Change this label whenever the wording changes.
-var CONSENT_VERSION = "2026-10-08-v1";
+// Version label of the sign-up consent wording. v1 = wording approved 8 Oct 2026; v2 = wording approved 9 Oct 2026 (adds the User Data Processing Consent). Change this label whenever the wording changes.
+var CONSENT_VERSION = "2026-10-09-v2";
 
 async function doSignup() {
   var fn = document.getElementById("s-fname").value.trim() || "Friend";
@@ -2534,7 +2555,7 @@ async function doSignup() {
       // Consent record — copied into the user_consents table by a database trigger (see consent-setup.sql).
       // CONSENT_VERSION identifies the exact checkbox wording the user saw; change it whenever the wording changes.
       consent_version: CONSENT_VERSION, consent_accepted: true, consent_age_18: true,
-      consent_docs: ["terms", "privacy", "data-retention"],
+      consent_docs: ["terms", "consent", "privacy", "data-retention"],
       consent_text: document.getElementById("signup-consent-text").textContent.trim() } }
   });
 
@@ -2809,6 +2830,9 @@ document.getElementById("sw-signup").addEventListener("click", function() { swit
 document.getElementById("sw-login").addEventListener("click", function() { switchTab("login"); });
 document.getElementById("do-login").addEventListener("click", doLogin);
 document.getElementById("do-signup").addEventListener("click", doSignup);
+// Under-18 path (lawyer-mandated): the link opens a notice screen; "Go back" returns to the sign-up form.
+document.getElementById("signup-under18").addEventListener("click", function(e) { e.preventDefault(); goTo("s-under18"); });
+document.getElementById("under18-back").addEventListener("click", function() { goTo("s-auth", "signup"); });
 document.getElementById("g-login").addEventListener("click", doGoogle);
 document.getElementById("g-signup").addEventListener("click", doGoogle);
 document.getElementById("l-pass").addEventListener("keydown", function(e) { if(e.key==="Enter") doLogin(); });
