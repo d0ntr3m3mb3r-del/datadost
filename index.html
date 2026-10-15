@@ -6,7 +6,7 @@
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260819r">
+<link rel="stylesheet" href="style.css?v=20261015a">
 <style>
 /* Added: hero demo now cycles through 5 real scenarios instead of 1 static one.
    Self-contained on purpose — doesn't touch style.css, so it can't conflict with
@@ -720,7 +720,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
     </div>
     <div class="trust-pills">
       <div class="trust-pill"><span class="tick">✓</span> No bank account linking</div>
-      <div class="trust-pill"><span class="tick">✓</span> Documents never stored</div>
+      <div class="trust-pill"><span class="tick">✓</span> PAN and Aadhaar never stored</div>
       <div class="trust-pill"><span class="tick">✓</span> Hindi &amp; regional languages</div>
       <div class="trust-pill"><span class="tick">✓</span> Free to start</div>
     </div>
@@ -766,7 +766,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <div class="feat-card"><div class="feat-icon">🏦</div><div class="feat-title">EMI affordability check</div><div class="feat-desc">Enter any loan amount. DataDost checks your FOIR against your actual income. Honest answer.</div></div>
       <div class="feat-card"><div class="feat-icon">📋</div><div class="feat-title">Tax regime comparison</div><div class="feat-desc">Old vs new regime — calculated on your exact salary, not a generic internet example.</div></div>
       <div class="feat-card"><div class="feat-icon">🌏</div><div class="feat-title">Works for the diaspora</div><div class="feat-desc">AED, USD, GBP, SGD — DataDost reads any currency and answers in the right one.</div></div>
-      <div class="feat-card"><div class="feat-icon">🔒</div><div class="feat-title">Privacy by design</div><div class="feat-desc">Documents read in memory, immediately discarded. PAN and Aadhaar never stored.</div></div>
+      <div class="feat-card"><div class="feat-icon">🔒</div><div class="feat-title">Privacy by design</div><div class="feat-desc">We never store your PAN or Aadhaar and never sell your data. Handled under India's DPDP Act.</div></div>
     </div>
   </div>
 </section>
@@ -777,7 +777,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
     <div class="band-label">How it works</div>
     <h2>Three steps. Two minutes. <em>One clear picture.</em></h2>
     <div class="steps-grid">
-      <div class="step-card"><div class="step-circle">1</div><div class="step-title">Upload your document</div><div class="step-desc">Drag in a PDF or image — bank statement, salary slip, or credit card bill. Works on mobile. Never stored on our servers.</div></div>
+      <div class="step-card"><div class="step-circle">1</div><div class="step-title">Upload your document</div><div class="step-desc">Drag in a PDF or image — bank statement, salary slip, or credit card bill. Works on mobile. You choose what to upload.</div></div>
       <div class="step-card"><div class="step-circle">2</div><div class="step-title">DataDost analyses it</div><div class="step-desc">Income, spending by category, EMIs, savings rate, FOIR — calculated by code. Under 30 seconds even for a 6-month statement.</div></div>
       <div class="step-card"><div class="step-circle">3</div><div class="step-title">Ask anything in plain English</div><div class="step-desc">"Am I spending too much on food delivery?" "Can I afford a ₹25,000 EMI?" Real answers from your real document.</div></div>
     </div>
@@ -793,7 +793,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <thead><tr><th style="width:42%">Feature</th><th>Other tools</th><th class="dd">DataDost</th></tr></thead>
       <tbody>
         <tr><td class="feature">Earns commission on products</td><td>Yes — on insurance, FDs, loans</td><td class="dd-val">Never. Zero commission. Ever.</td></tr>
-        <tr><td class="feature">Stores your documents</td><td>Often — encrypted servers</td><td class="dd-val">Never — read in memory, discarded</td></tr>
+        <tr><td class="feature">Data kept after upload</td><td>Varies</td><td class="dd-val">Up to 30 days, then cleared</td></tr>
         <tr><td class="feature">Requires bank account linking</td><td>Usually</td><td class="dd-val">Never — permanent design decision</td></tr>
         <tr><td class="feature">Works for diaspora (AED, USD, GBP)</td><td>Rarely</td><td class="dd-val">Yes — auto-detects currency</td></tr>
         <tr><td class="feature">Regional Indian languages</td><td>Limited</td><td class="dd-val">Hindi, Marathi, Gujarati, Tamil + 8 more</td></tr>
@@ -855,7 +855,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
     <div class="band-label">FAQ</div>
     <h2>Questions people ask <em>before signing up.</em></h2>
     <div class="faq-grid">
-      <div class="faq-item"><div class="faq-q">Does DataDost store my documents?</div><div class="faq-a">No. Documents are read in memory and immediately discarded. Only extracted numbers are saved. PAN and Aadhaar never stored or shown back.</div></div>
+      <div class="faq-item"><div class="faq-q">Does DataDost keep my documents?</div><div class="faq-a">The text read from your document and your answers are kept for up to 30 days, then cleared, as set out in our Data Retention Policy. PAN and Aadhaar are never stored.</div></div>
       <div class="faq-item"><div class="faq-q">Do I need to link my bank account?</div><div class="faq-a">Never. DataDost works entirely from documents you upload. No bank credentials, no account linking — ever. Permanent design decision.</div></div>
       <div class="faq-item"><div class="faq-q">What languages does DataDost support?</div><div class="faq-a">Ask in English, Hindi, Hinglish, Marathi, Gujarati, Tamil, Telugu, Bengali, Kannada, Malayalam, Punjabi — or any mix.</div></div>
       <div class="faq-item"><div class="faq-q">I'm based outside India. Does it work?</div><div class="faq-a">Yes. DataDost supports AED, USD, GBP, SGD, AUD and more. It detects your document's currency automatically — no settings needed.</div></div>
@@ -868,7 +868,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 <!-- CTA BAND -->
 <div class="cta-band">
   <h2>Your finances deserve a dost.</h2>
-  <p>Join working Indians getting clarity on their money — free, private, in plain English.<br>No bank linking. No documents stored. Just your numbers, finally explained.</p>
+  <p>Join working Indians getting clarity on their money — free, private, in plain English.<br>No bank linking. We never sell your data. Just your numbers, finally explained.</p>
   <button class="btn-white" id="mkt-cta-bottom">Get started free — no card needed</button>
 </div>
 
@@ -995,15 +995,15 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <div class="feat"><div class="feat-i">📄</div>Any financial document</div>
       <div class="feat"><div class="feat-i">💬</div>English or Hindi</div>
       <div class="feat"><div class="feat-i">📊</div>Spend, save and invest</div>
-      <div class="feat"><div class="feat-i">🔒</div>DPDP-aligned · India servers</div>
+      <div class="feat"><div class="feat-i">🔒</div>DPDP-aligned · India app servers</div>
       <div class="feat"><div class="feat-i">😄</div>Friendly · honest · funny</div>
     </div>
     <div style="max-width:680px;margin:1rem auto 0;padding:1.5rem;background:var(--mist);border-radius:16px">
       <div style="font-family:Sora,sans-serif;font-weight:700;font-size:1rem;color:var(--ink);text-align:center;margin-bottom:1rem">How we handle your data</div>
       <div style="display:flex;flex-direction:column;gap:.6rem;max-width:520px;margin:0 auto">
         <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>No bank login, ever. You choose what to upload.</div>
-        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>Your file is deleted right after reading. We keep a short summary, never the document.</div>
-        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>We never sell or share your data. No ads, ever.</div>
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>We keep the text read from your document and your answers for up to 30 days, then clear them.</div>
+        <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>We never sell your data. No ads, ever.</div>
         <div style="display:flex;align-items:flex-start;gap:.6rem;font-size:.85rem;color:var(--ink-s)"><span style="color:var(--green);flex-shrink:0;margin-top:.15rem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg></span>Delete everything yourself, anytime, in one click.</div>
       </div>
       <div style="text-align:center;margin-top:1rem">
@@ -1098,8 +1098,8 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
       <div class="auth-note">Already have an account? <a id="sw-login">Log in →</a></div>
     </div>
     <div class="trust-row">
-      <div class="tr-item">🔒 Bank-grade encryption</div>
-      <div class="tr-item">🇮🇳 India data servers</div>
+      <div class="tr-item">🔒 PAN and Aadhaar never stored</div>
+      <div class="tr-item">🇮🇳 India app servers</div>
       <div class="tr-item">✅ DPDP-aligned design</div>
     </div>
   </div>
@@ -1295,7 +1295,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
   <div style="flex:1;overflow-y:auto">
     <div class="upload-body">
       <div class="upload-left">
-        <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your file is never stored after reading.</div></div>
+        <div><div class="upload-title">Add your documents</div><div class="upload-sub">Drop any financial document — DataDost reads it instantly. Your data is kept up to 30 days, then cleared.</div></div>
 
         <!-- Upload limit paywall — shown instead of the dropzone when free user hits 2 uploads -->
         <div id="upload-paywall" style="display:none;background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
@@ -1368,8 +1368,8 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
           </div>
         </div>
         <div class="trust-bar">
-          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Encrypted on India servers</div>
-          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>File deleted after reading</div>
+          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>App servers in India</div>
+          <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>Cleared after 30 days</div>
           <div class="ti"><div class="ti-ic"><svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg></div>We never sell your data</div>
         </div>
       </div>
@@ -1409,7 +1409,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
     </div>
     <div style="display:flex;align-items:center;justify-content:center;gap:.4rem;font-size:.74rem;color:var(--green);background:var(--green-l);border-radius:100px;padding:.4rem 1rem;width:fit-content;opacity:0;animation:ddSettleIn .6s ease-out .7s forwards">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
-      File read and deleted — only a short summary was kept
+      Document read — your data is kept up to 30 days, then cleared
     </div>
   </div>
   <button style="background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.8rem 1.8rem;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s" id="sov-chat">Ask DataDost now →</button>
@@ -1747,12 +1747,12 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Do you save my bank statement or salary slip?</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">No. The moment DataDost finishes reading it — usually a few seconds — the file itself is deleted from our servers for good. We never keep the original PDF or photo.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Only for a limited time. The text read from your document and your answers are kept for up to 30 days, then cleared, as set out in our Data Retention Policy.</div>
           </div>
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Then what exactly do you save?</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">A short summary of what was in it — your spending by category, your balance, things like that — plus your chat history with DataDost. Never your raw account number, card number, Aadhaar, or PAN. We keep this so DataDost can pick up where you left off next time, instead of starting from zero.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">A short summary of what was in it — your spending by category, your balance, things like that — plus your chat history with DataDost. We never store your PAN or Aadhaar. We keep this so DataDost can pick up where you left off, for up to 30 days as set out in the Data Retention Policy.</div>
           </div>
 
           <div>
@@ -1767,7 +1767,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Can I delete everything?</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Yes, yourself, anytime — no need to email anyone first. On your History screen, the download and trash icons let you pick specific conversations or documents, or use <b>"Clear everything at once"</b> to wipe all of it — either way, you'll always see a clear warning before anything is actually deleted.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Yes, yourself, anytime — no need to email anyone first. On your History screen, the download and trash icons let you pick specific conversations or documents, or use <b>"Clear everything at once"</b> to wipe all of it — either way, you'll always see a clear warning before anything is actually deleted. Some copies may remain in backups for up to 4 weeks, as our Data Retention Policy explains.</div>
           </div>
 
           <div>
@@ -1777,7 +1777,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
 
           <div>
             <div style="font-size:.95rem;font-weight:600;color:var(--ink);margin-bottom:.4rem">Is my data safe?</div>
-            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">It's stored only in India (Mumbai), encrypted both at rest and in transit. If anything ever did go wrong, you'd hear from us directly — not just a notice buried on a website.</div>
+            <div style="font-size:.84rem;color:var(--ink-s);line-height:1.7">Our app servers and database backups are in India. To answer your questions, the text from your document is sent to our AI provider, Anthropic, which processes it outside India and keeps it for up to 30 days; it is not used to train its models. If anything ever did go wrong, you'd hear from us directly — not just a notice buried on a website.</div>
           </div>
 
           <div>
@@ -2685,8 +2685,8 @@ async function doLogout() {
 // about what it can and can't undo.
 async function clearAllUserData() {
   var confirmed = confirm(
-    "This will permanently delete ALL your DataDost data — every chat conversation and every document summary you've ever uploaded.\n\n" +
-    "This cannot be undone. Are you sure you want to continue?"
+    "This will delete ALL your DataDost data — every chat conversation and every document summary you've ever uploaded.\n\n" +
+    "Copies may remain in backups for up to 4 weeks and with our AI provider for up to 30 days. This cannot be undone. Are you sure you want to continue?"
   );
   if (!confirmed) return;
 
@@ -3423,7 +3423,7 @@ if (changePersonaLink) {
 
 // ── FIRST-LOGIN GUIDED TOUR ──
 var onboardSteps = [
-  { selector: "#nav-upload",         text: "📄 Start here — tap Upload to add your bank statement, salary slip, or any bill. DataDost reads it instantly and deletes the file. Nothing is stored." },
+  { selector: "#nav-upload",         text: "📄 Start here — tap Upload to add your bank statement, salary slip, or any bill. DataDost reads it instantly. Your data is kept up to 30 days, then cleared." },
   { selector: "#loan-card",         text: "🧮 Try the loan calculator — move the sliders to check if a new EMI fits your income. Updates in real time, no upload needed." },
   { selector: "#nav-chat",          text: "💬 Then come here to chat — ask anything about what DataDost found, or just talk about your finances in English or Hindi." },
   { selector: "#nav-history",       text: "📋 Every document and chat session is saved here — revisit any past analysis anytime, even months later." },
@@ -4373,7 +4373,7 @@ function showAnalysisFailedError(errMsg) {
   if (errMsg === "__TIMEOUT__") {
     // Large multi-month statement timeout — specific and actionable, not generic
     title = "This statement has a lot to read";
-    body = "I ran out of time going through all the months. Try uploading 2–3 months at a time instead of all 6 — you'll get richer, more accurate insights that way too. Your file was never stored.";
+    body = "I ran out of time going through all the months. Try uploading 2–3 months at a time instead of all 6 — you'll get richer, more accurate insights that way too.";
   } else if (isRateLimitError(errMsg)) {
     title = "Too many uploads, too fast";
     body = errMsg;
@@ -6177,7 +6177,7 @@ async function deleteSelectedHistoryItems() {
   var n = docKeys.length;
   var confirmed = await showConfirmModal({
     tone: "danger",
-    title: "Data will be deleted permanently",
+    title: "Data will be deleted",
     body: "This removes the chat and document summary for " + n + " item" + (n > 1 ? "s" : "") + ". If you need this again, you'll need to re-upload the statement. This cannot be undone.",
     okLabel: "Delete",
     cancelLabel: "Keep it",

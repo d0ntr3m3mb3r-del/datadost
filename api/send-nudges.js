@@ -249,7 +249,7 @@ function buildNeverUploadedEmail({ firstName, unsubLink, dashboardUrl }) {
           </td>
         </tr>
       </table>
-      <p style="margin:16px 0 0;font-size:12px;color:#5A5A6A;line-height:1.5;">No bank account linking. No sharing passwords. Your document stays on your device — only the numbers are read.</p>
+      <p style="margin:16px 0 0;font-size:12px;color:#5A5A6A;line-height:1.5;">No bank account linking. No sharing passwords. We never store your PAN or Aadhaar.</p>
     `;
   }
 
@@ -295,7 +295,7 @@ function buildWentQuietEmail({ firstName, unsubLink, dashboardUrl, questionsRema
           </td>
         </tr>
       </table>
-      <p style="margin:0;font-size:12px;color:#5A5A6A;line-height:1.5;">No bank account linking. No sharing passwords. Your documents stay private.</p>
+      <p style="margin:0;font-size:12px;color:#5A5A6A;line-height:1.5;">No bank account linking. No sharing passwords. We never store your PAN or Aadhaar.</p>
     `;
   }
 
