@@ -4161,6 +4161,7 @@ function compressImage(file, maxDimension, quality) {
 }
 
 function readFileForAPI(file) {
+  pdfAlreadyUnlocked = false; // a new file: it may need the password form again
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
   fileBase64 = "";
   fileMediaType = "";
@@ -4295,7 +4296,220 @@ function showSuccess() {
   }
 }
 
+// ── PASSWORD-PROTECTED PDFs: open them on the user's own device ─────────────────────────────
+// Many bank statements arrive locked with a PAN / date-of-birth password. Instead of only telling
+// the user to unlock the file elsewhere, we ask for the password here and open the file in the
+// browser with pdf.js (loaded only at that moment, so normal uploads are unaffected). The
+// password is used only by pdf.js on this device: it is never sent to our servers or to the AI,
+// never stored and never logged. What goes on to the normal scan is the unlocked TEXT, re-saved
+// as a plain unlocked PDF, so everything after this point (scan, chat, comparison) is unchanged.
+var PDFJS_VERSION = "3.11.174";
+var PDFJS_BASE = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/" + PDFJS_VERSION + "/";
+var pdfjsLoadPromise = null;
+var pdfAlreadyUnlocked = false; // true once THIS file was unlocked here: never offer the password form twice
+
+function loadPdfJs() {
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfjsLoadPromise) return pdfjsLoadPromise;
+  pdfjsLoadPromise = new Promise(function(resolve, reject) {
+    var s = document.createElement("script");
+    s.src = PDFJS_BASE + "pdf.min.js";
+    s.onload = function() {
+      if (!window.pdfjsLib) { pdfjsLoadPromise = null; reject(new Error("pdfjs missing")); return; }
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + "pdf.worker.min.js";
+      resolve(window.pdfjsLib);
+    };
+    s.onerror = function() { pdfjsLoadPromise = null; reject(new Error("pdfjs load failed")); };
+    document.head.appendChild(s);
+  });
+  return pdfjsLoadPromise;
+}
+
+// Reads every page's text and rebuilds the page layout as plain text: items sharing (almost) the
+// same height form one line, and each item is placed at a character column matching its position on
+// the page, so an amount in the Debit column stays visibly apart from one in the Credit column even
+// when the other cell is empty.
+async function pdfToTextLines(pdf) {
+  var out = [], LINE_COLS = 185;
+  for (var p = 1; p <= pdf.numPages; p++) {
+    var page = await pdf.getPage(p);
+    var tc = await page.getTextContent();
+    var pageW = (page.view && page.view[2] - page.view[0]) || 595;
+    var scale = LINE_COLS / pageW;
+    var rows = [];
+    tc.items.forEach(function(it) {
+      if (!it.str || !it.str.trim()) return;
+      var x = it.transform[4], y = it.transform[5], row = null;
+      for (var i = 0; i < rows.length; i++) { if (Math.abs(rows[i].y - y) <= 2.5) { row = rows[i]; break; } }
+      if (!row) { row = { y: y, items: [] }; rows.push(row); }
+      row.items.push({ x: x, w: it.width || 0, s: it.str });
+    });
+    rows.sort(function(a, b) { return b.y - a.y; });
+    out.push("=== Page " + p + " of " + pdf.numPages + " ===");
+    rows.forEach(function(r) {
+      r.items.sort(function(a, b) { return a.x - b.x; });
+      var line = "", endX = null;
+      r.items.forEach(function(it) {
+        if (endX !== null) {
+          var gap = it.x - endX;
+          if (gap > 0.5) {
+            var target = Math.round(it.x * scale);
+            var pad = Math.max(1, target - line.length);
+            line += new Array(pad + 1).join(" ");
+          }
+        } else {
+          line += new Array(Math.max(0, Math.round(it.x * scale)) + 1).join(" ");
+        }
+        line += it.s;
+        endX = it.x + it.w;
+      });
+      out.push(line.replace(/\s+$/, ""));
+    });
+    page.cleanup();
+  }
+  return out;
+}
+
+// Writes the text lines into a minimal, unencrypted, text-only PDF (Courier, A4 landscape) and
+// returns it as base64. Only characters the PDF standard font can show are kept; the rupee sign
+// becomes "Rs." and anything else outside Latin-1 becomes "?".
+function textLinesToPdfBase64(lines) {
+  var map = { "₹": "Rs.", "‘": "'", "’": "'", "“": "\"", "”": "\"", "–": "-", "—": "-", " ": " ", "•": "*" };
+  function clean(s) {
+    var o = "";
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i), c = s.charCodeAt(i);
+      if (map[ch] !== undefined) o += map[ch];
+      else if (c >= 32 && c <= 126) o += ch;
+      else if (c >= 160 && c <= 255) o += ch;
+      else o += "?";
+    }
+    return o;
+  }
+  function esc(s) { return s.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)"); }
+  var WRAP = 190, PER_PAGE = 62, wrapped = [];
+  lines.forEach(function(l) {
+    var t = clean(l);
+    if (t.length === 0) { wrapped.push(""); return; }
+    for (var i = 0; i < t.length; i += WRAP) wrapped.push(t.substr(i, WRAP));
+  });
+  var pages = [];
+  for (var i = 0; i < wrapped.length; i += PER_PAGE) pages.push(wrapped.slice(i, i + PER_PAGE));
+  if (pages.length === 0) pages.push([""]);
+  var objs = [];
+  var kids = pages.map(function(_, k) { return (4 + 2 * k) + " 0 R"; }).join(" ");
+  objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+  objs[2] = "<< /Type /Pages /Kids [ " + kids + " ] /Count " + pages.length + " >>";
+  objs[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Courier /Encoding /WinAnsiEncoding >>";
+  pages.forEach(function(pl, k) {
+    var stream = "BT /F1 7 Tf 8.5 TL 20 575 Td\n" + pl.map(function(l) { return "(" + esc(l) + ") Tj T*"; }).join("\n") + "\nET";
+    objs[4 + 2 * k] = "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 3 0 R >> >> /Contents " + (5 + 2 * k) + " 0 R >>";
+    objs[5 + 2 * k] = "<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream";
+  });
+  var pdf = "%PDF-1.4\n", offsets = [];
+  for (var n = 1; n < objs.length; n++) {
+    offsets[n] = pdf.length;
+    pdf += n + " 0 obj\n" + objs[n] + "\nendobj\n";
+  }
+  var xref = pdf.length;
+  pdf += "xref\n0 " + objs.length + "\n0000000000 65535 f \n";
+  for (var m = 1; m < objs.length; m++) pdf += ("0000000000" + offsets[m]).slice(-10) + " 00000 n \n";
+  pdf += "trailer\n<< /Size " + objs.length + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF";
+  return btoa(pdf);
+}
+
+function showPdfPasswordPrompt(lockedB64, note) {
+  document.getElementById("sov-sub").textContent = "";
+  var el = document.getElementById("sov-ins");
+  el.innerHTML =
+    "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
+    "<div style=\"font-size:2rem\">🔒</div>" +
+    "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">This statement is password-protected</div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Banks often lock statements with your PAN, date of birth or account number. Enter the password and I'll open it here.<br>" +
+    "<span style=\"font-size:.76rem\">The password is used only in your browser to open the file. It is not sent to DataDost and not stored.</span></div>" +
+    "<input type=\"password\" id=\"sov-pdf-pw\" autocomplete=\"new-password\" placeholder=\"Statement password\" style=\"font-family:inherit;font-size:.9rem;padding:.65rem .8rem;border:1px solid #D9D5CF;border-radius:10px;background:#FFFFFF;color:#1A1A2E;text-align:center;\">" +
+    "<div id=\"sov-pdf-err\" style=\"font-size:.78rem;color:#E24B4A;min-height:1.1em\"></div>" +
+    "<button type=\"button\" id=\"sov-pdf-unlock\" style=\"background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.7rem 1.6rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit\">Unlock and read</button>" +
+    "</div>";
+  document.getElementById("sov-chat").style.display = "none";
+  var closeBtn = document.getElementById("sov-close");
+  closeBtn.disabled = false;
+  closeBtn.style.opacity = "1";
+  closeBtn.style.cursor = "pointer";
+  closeBtn.textContent = uploadQueue.length > 0 ? ("Skip & continue" + queueProgressLabel()) : "Try a different document";
+  document.getElementById("sov").classList.add("show");
+  sovIsRetryable = false; // the plain close button hands the upload screen back for a different file
+  lastFailedFile = null;
+  var inp = document.getElementById("sov-pdf-pw");
+  var btn = document.getElementById("sov-pdf-unlock");
+  var errEl = document.getElementById("sov-pdf-err");
+  if (note) errEl.textContent = note;
+  function go() {
+    if (!inp.value) { inp.focus(); return; }
+    unlockPdfWithPassword(lockedB64, inp, btn, errEl);
+  }
+  btn.onclick = go;
+  inp.onkeydown = function(e) { if (e.key === "Enter") go(); };
+  setTimeout(function() { inp.focus(); }, 50);
+}
+
+async function unlockPdfWithPassword(lockedB64, inp, btn, errEl) {
+  btn.disabled = true;
+  btn.style.opacity = "0.6";
+  btn.textContent = "Opening…";
+  errEl.textContent = "";
+  function fail(msg) {
+    errEl.textContent = msg;
+    btn.disabled = false;
+    btn.style.opacity = "1";
+    btn.textContent = "Unlock and read";
+  }
+  var pdf = null;
+  try {
+    var lib = await loadPdfJs();
+    var bin = atob(lockedB64), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    try {
+      pdf = await lib.getDocument({ data: bytes, password: inp.value }).promise;
+    } catch (e) {
+      if (e && e.name === "PasswordException") {
+        inp.value = "";
+        inp.focus();
+        fail("That password didn't open the file. Please check it and try again.");
+        return;
+      }
+      throw e;
+    }
+    inp.value = ""; // the password is no longer needed anywhere
+    var lines = await pdfToTextLines(pdf);
+    var readable = lines.join("").replace(/=== Page \d+ of \d+ ===/g, "").replace(/\s/g, "");
+    if (readable.length < 20) {
+      fail("I opened it, but there is no readable text inside (it may be a scanned copy). Please download a text version of the statement from your bank and upload that.");
+      return;
+    }
+    if (lines.join("\n").length > 600000) {
+      fail("This statement is too long to read in one go. Please upload a shorter period, for example 6 months at a time.");
+      return;
+    }
+    fileBase64 = textLinesToPdfBase64(lines);
+    fileMediaType = "application/pdf";
+    pdfAlreadyUnlocked = true;
+    analyseRealDocument();
+  } catch (err) {
+    console.error("[DataDost] PDF unlock error:", err && err.name);
+    fail("I couldn't open this file here. Please unlock it in your bank's app or PDF viewer, save a copy and upload that instead.");
+  } finally {
+    if (pdf && pdf.destroy) { try { pdf.destroy(); } catch (e2) {} }
+  }
+}
+
 function showLockedDocumentError() {
+  // A locked PDF is opened right here with the user's password (see above); every other kind of
+  // lock, and a file already unlocked once, keeps the original "unlock it elsewhere" message.
+  if (fileMediaType === "application/pdf" && fileBase64 && !pdfAlreadyUnlocked) {
+    showPdfPasswordPrompt(fileBase64);
+    return;
+  }
   document.getElementById("sov-sub").textContent = "";
   var el = document.getElementById("sov-ins");
   el.innerHTML =
