@@ -74,9 +74,9 @@ html,body{height:100%;font-family:"DM Sans",sans-serif;background:var(--mist);co
 .land-foot{background:var(--ink);padding:1.2rem 6%;text-align:center}
 
 /* ═══ AUTH ═══ */
-#s-auth{background:var(--mist);align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem}
+#s-auth{background:var(--mist);align-items:flex-start;justify-content:flex-start;overflow-y:auto;padding:2rem}
 .auth-back{position:absolute;top:1rem;left:1.25rem;cursor:pointer;font-size:.83rem;color:var(--slate);display:flex;align-items:center;gap:.3rem;border:none;background:none;font-family:inherit}
-.auth-card{width:100%;max-width:410px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2rem 2.25rem;box-shadow:0 8px 36px rgba(26,26,46,.07);overflow:visible;margin:1.5rem auto}
+.auth-card{width:100%;max-width:410px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2rem 2.25rem;box-shadow:0 8px 36px rgba(26,26,46,.07);overflow:visible;margin:auto}
 .auth-logo{font-family:"Sora",sans-serif;font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:.2rem}
 .auth-sub{text-align:center;font-size:.82rem;color:var(--slate);margin-bottom:1.75rem}
 .auth-tabs{display:flex;border:1px solid var(--border);border-radius:100px;padding:3px;margin-bottom:1.5rem;background:var(--mist)}
