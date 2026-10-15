@@ -205,6 +205,7 @@ body.dd-dark .spend-amt{color:#FFFFFF!important}
 
 /* NEWS */
 body.dd-dark #dash-news-prev,body.dd-dark #dash-news-next{background:#2C2C3A!important;border-color:#3A3A50!important;color:#FFFFFF!important}
+body.dd-dark #dash-copy-btn{color:#FFFFFF!important}
 body.dd-dark #dash-news-card{background:#2C2C3A!important;border:1px solid #3A3A50!important}
 body.dd-dark #dash-news-hl{color:#FFFFFF!important}
 body.dd-dark #dash-news-blurb{color:#D8D8E8!important}
@@ -1224,7 +1225,7 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
             <button id="dash-news-ask" type="button" style="font-size:.75rem;padding:.3rem .85rem;border-radius:999px;background:var(--green-l);color:var(--green);border:1px solid var(--border-g,#97C459);cursor:pointer;font-family:inherit">Ask DataDost what this means for me →</button>
           </div>
 
-          <div style="font-size:.65rem;color:var(--slate);text-align:right;margin:.4rem 0 .6rem">Updated every 3 days · curated by DataDost</div>
+          <div style="font-size:.65rem;color:var(--slate);text-align:right;margin:.4rem 0 .6rem">Updated weekly · curated by DataDost</div>
 
           <!-- Referral strip — separated by border from news section -->
           <div style="border-top:1px solid var(--border);padding-top:.7rem">
@@ -3635,7 +3636,7 @@ function renderDash() {
             "<div style=\"font-size:.8rem;color:var(--ink-s);margin-bottom:.6rem;line-height:1.5\">Try whatever's easiest — even your own Excel budget tracker counts. No bank statement required to see how this works.</div>" +
             "<div style=\"display:flex;gap:.5rem;flex-wrap:wrap\">" +
               "<button onclick=\"goTo('s-chat')\" style=\"padding:.4rem .9rem;border-radius:100px;background:var(--sf);color:#fff;border:none;font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit\">See sample documents</button>" +
-              "<button onclick=\"goTo('s-upload')\" style=\"padding:.4rem .9rem;border-radius:100px;background:var(--white);border:1px solid var(--border);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit\">Upload my own</button>" +
+              "<button onclick=\"goTo('s-upload')\" style=\"padding:.4rem .9rem;border-radius:100px;background:var(--white);border:1px solid var(--border);color:var(--ink);font-size:.78rem;font-weight:600;cursor:pointer;font-family:inherit\">Upload my own</button>" +
             "</div>" +
           "</div>" +
         "</div>";
@@ -7143,7 +7144,7 @@ initSupabase().then(function() { renderChat(); });
     <div id="fb-status" style="display:none;font-size:.76rem;margin:.4rem 0 0;padding:.4rem .6rem;border-radius:8px"></div>
     <div style="display:flex;gap:.5rem;margin-top:.6rem">
       <button type="button" id="fb-send" style="flex:1;padding:.55rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer">Send</button>
-      <button type="button" id="fb-close" style="padding:.55rem .9rem;border-radius:999px;border:1px solid var(--border);background:none;font-family:inherit;font-size:.82rem;cursor:pointer">Cancel</button>
+      <button type="button" id="fb-close" style="padding:.55rem .9rem;border-radius:999px;border:1px solid var(--border);background:none;color:var(--ink);font-family:inherit;font-size:.82rem;cursor:pointer">Cancel</button>
     </div>
   </div>
   <button type="button" id="fb-toggle" style="display:flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:999px;background:var(--sf);color:#fff;border:none;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(232,104,50,.35)">

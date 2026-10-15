@@ -25,6 +25,9 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CRON_SECRET = process.env.CRON_SECRET;
 
+// How many news items stay live in the dashboard panel after each sync.
+const TICKER_KEEP = 5;
+
 async function supabaseGet(path) {
   const resp = await fetch(SUPABASE_URL + path, {
     headers: { Authorization: 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY, apikey: SUPABASE_SERVICE_ROLE_KEY },
@@ -96,11 +99,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, synced: 0, message: 'No qualifying new articles.' });
     }
 
-    // Only now — having confirmed we have real replacements — retire the
-    // previous batch. If there were zero candidates above, we return early
-    // before this point, so a quiet week never wipes out a currently-live batch.
-    await supabasePatch('/rest/v1/news_ticker?active=eq.true', { active: false });
-
+    // The previous batch is NOT switched off wholesale any more. A quiet week can bring in
+    // only one or two new articles, and retiring everything else left the dashboard panel
+    // showing a single item. Instead the new rows are added first, and only items beyond the
+    // newest TICKER_KEEP are retired (see below). If there were zero candidates above, we
+    // returned early, so a quiet week leaves the live items untouched.
     const newRows = candidates.map((a) => ({
       headline: a.dd_headline,
       source: a.dd_source,
@@ -110,6 +113,14 @@ export default async function handler(req, res) {
       published_at: a.published_at,
     }));
     await supabasePost('/rest/v1/news_ticker', newRows);
+
+    // Keep the newest TICKER_KEEP items live (the app shows up to 10, with a scroller when
+    // there are more than 2) and retire only the older ones.
+    const live = await supabaseGet('/rest/v1/news_ticker?active=eq.true&select=id&order=published_at.desc');
+    const retireIds = (live || []).slice(TICKER_KEEP).map((r) => r.id);
+    if (retireIds.length > 0) {
+      await supabasePatch(`/rest/v1/news_ticker?id=in.(${retireIds.join(',')})`, { active: false });
+    }
 
     // Mark these articles as permanently used — never eligible again, matching
     // "sent out once, not repeated".
