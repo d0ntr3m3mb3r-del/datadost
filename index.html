@@ -2130,7 +2130,7 @@ async function initUserPlan(user) {
     // was causing 500 errors because the Bearer token wasn't always available at the
     // exact moment initUserPlan fires on page load (auth session hydration timing).
     var planResult = await sb.from("user_plans")
-      .select("plan,ref_code,bonus_questions_earned,bonus_questions_used,waitlisted,referred_by")
+      .select("plan,ref_code,bonus_questions_earned,bonus_questions_used,waitlisted,referred_by,questions_cleared,uploads_cleared")
       .eq("user_id", user.id)
       .single();
 
@@ -2140,6 +2140,10 @@ async function initUserPlan(user) {
       userPlan.bonus_questions_earned = planResult.data.bonus_questions_earned || 0;
       userPlan.bonus_questions_used   = planResult.data.bonus_questions_used || 0;
       userPlan.waitlisted             = planResult.data.waitlisted || false;
+      // Counts removed by the 30-day clearing job — added to the live counts below so clearing
+      // old data never resets the free-plan question and upload limits.
+      userPlan.questions_cleared      = planResult.data.questions_cleared || 0;
+      userPlan.uploads_cleared        = planResult.data.uploads_cleared || 0;
     } else {
       // No plan row yet — create one via the referral API (only needed once, on first login)
       // Use a short delay to ensure the session is fully hydrated before calling
@@ -2178,10 +2182,10 @@ async function initUserPlan(user) {
     // Set upload count and question count from existing data
     var snaps = await sb.from("financial_snapshots").select("doc_key").eq("user_id", user.id);
     if (!snaps.error && snaps.data) {
-      sessionUploadCount = new Set(snaps.data.map(function(r) { return r.doc_key; })).size;
+      sessionUploadCount = new Set(snaps.data.map(function(r) { return r.doc_key; })).size + (userPlan.uploads_cleared || 0);
     }
     var msgs = await sb.from("messages").select("id", { count: "exact" }).eq("user_id", user.id).eq("role", "user");
-    if (!msgs.error) sessionQuestionCount = msgs.count || 0;
+    if (!msgs.error) sessionQuestionCount = (msgs.count || 0) + (userPlan.questions_cleared || 0);
 
     console.log("[DataDost] Plan loaded:", userPlan.plan, "| Qs used:", sessionQuestionCount, "| Uploads:", sessionUploadCount);
   } catch (err) {
