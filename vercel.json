@@ -26,6 +26,10 @@
       "destination": "/api/send-nudges.js"
     },
     {
+      "source": "/api/clear-expired",
+      "destination": "/api/clear-expired.js"
+    },
+    {
       "source": "/terms",
       "destination": "/api/legal.js?doc=terms"
     },
@@ -68,6 +72,9 @@
     "api/send-nudges.js": {
       "maxDuration": 60
     },
+    "api/clear-expired.js": {
+      "maxDuration": 60
+    },
     "api/legal.js": {
       "maxDuration": 10
     }
@@ -80,6 +87,10 @@
     {
       "path": "/api/send-nudges",
       "schedule": "30 1 1 * *"
+    },
+    {
+      "path": "/api/clear-expired",
+      "schedule": "30 2 * * *"
     }
   ]
 }
