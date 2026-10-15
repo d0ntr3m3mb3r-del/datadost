@@ -132,7 +132,14 @@ export default async function handler(req, res) {
       return { role: m.role, content: m.content };
     });
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Every call uses the fast, low-cost model by default. The stronger model is a LAST RESORT,
+    // used only when the upload screen explicitly asks for it (scanModel: 'heavy') after a scan
+    // came back unclear AND the user was already asked for a clearer copy and the next upload
+    // was still unclear. Heavy requests are capped per user per day; beyond the cap, or if the
+    // stronger model is unavailable, the scan simply uses the low-cost model instead of failing.
+    const CHAT_MODEL = 'claude-haiku-4-5-20251001';
+    const SCAN_MODEL = 'claude-sonnet-5-5';
+    const callClaude = (model) => fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -140,7 +147,7 @@ export default async function handler(req, res) {
         'x-api-key': apiKey,
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model,
         max_tokens: 2800,
         // Split into two cache breakpoints, not one. systemPrompt is now ONLY the
         // personality, coaching rules, and behaviour instructions — identical for
@@ -179,6 +186,28 @@ export default async function handler(req, res) {
       }),
     });
 
+    let useHeavy = isScanCall && req.body.scanModel === 'heavy';
+    let heavyCapped = false;
+    if (useHeavy) {
+      const heavyCheck = await checkRateLimit({
+        user,
+        endpoint: 'chat-heavy',
+        burstLimit: 3,
+        burstWindowSeconds: 60,
+        dailyLimit: 3, // at most 3 heavy re-reads per user per day
+      });
+      if (!heavyCheck.allowed) {
+        console.warn('DataDost: heavy scan cap reached for this user — using', CHAT_MODEL);
+        useHeavy = false;
+        heavyCapped = true; // tells the app to ask for a clearer copy instead of retrying
+      }
+    }
+    let response = await callClaude(useHeavy ? SCAN_MODEL : CHAT_MODEL);
+    if (useHeavy && !response.ok && (response.status === 400 || response.status === 404)) {
+      console.warn('DataDost: scan model unavailable (' + response.status + '), falling back to', CHAT_MODEL);
+      response = await callClaude(CHAT_MODEL);
+    }
+
     const data = await response.json();
 
     // Visible in Vercel's function logs — the real way to confirm whether caching is
@@ -203,6 +232,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       reply: data.content?.[0]?.text || '',
       usage: data.usage,
+      heavyCapped: heavyCapped || undefined,
     });
 
   } catch (err) {
