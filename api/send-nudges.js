@@ -357,7 +357,7 @@ export default async function handler(req, res) {
     // NOTE: upload_count and last_active_at do NOT exist as columns — both are
     // derived at runtime from financial_snapshots and messages respectively.
     const planRows = await supabaseGet(
-      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used&order=user_id.asc&limit=1000'
+      '/rest/v1/user_plans?unsubscribed_from_nudges=neq.true&select=user_id,last_nudge_sent_at,bonus_questions_earned,bonus_questions_used,uploads_cleared&order=user_id.asc&limit=1000'
     );
 
     if (!planRows || planRows.length === 0) {
@@ -449,7 +449,9 @@ export default async function handler(req, res) {
       // Dedup: skip if already nudged this calendar month.
       if (alreadyNudgedThisMonth(row.last_nudge_sent_at)) continue;
 
-      const uploadCount = uploadCountMap[uid] || 0;
+      // uploads_cleared = documents already removed by the 30-day clearing job; they still count as uploads,
+      // so a user whose old data was cleared is not mistaken for someone who never uploaded.
+      const uploadCount = (uploadCountMap[uid] || 0) + (row.uploads_cleared || 0);
       const lastActive = lastActiveMap[uid] || null;
 
       if (uploadCount === 0) {

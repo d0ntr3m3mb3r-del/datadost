@@ -69,7 +69,7 @@ const FREE_UPLOAD_LIMIT  = 2;
 export async function checkPlanLimits({ user, docKey }) {
   try {
     const planResp = await fetch(
-      `${SUPABASE_URL}/rest/v1/user_plans?user_id=eq.${user.id}&select=plan,bonus_questions_earned,bonus_questions_used`,
+      `${SUPABASE_URL}/rest/v1/user_plans?user_id=eq.${user.id}&select=plan,bonus_questions_earned,bonus_questions_used,questions_cleared`,
       { headers: { Authorization: `Bearer ${user.token}`, apikey: SUPABASE_ANON_KEY } }
     );
     if (!planResp.ok) return { allowed: true };
@@ -85,7 +85,9 @@ export async function checkPlanLimits({ user, docKey }) {
     );
     if (!qResp.ok) return { allowed: true };
     const qRows = await qResp.json();
-    const questionCount = qRows ? qRows.length : 0;
+    // questions_cleared = questions already removed by the 30-day clearing job (clear-expired.js),
+    // so clearing old chats never hands a free user their 20 questions back.
+    const questionCount = (qRows ? qRows.length : 0) + (plan.questions_cleared || 0);
     const bonusEarned  = plan.bonus_questions_earned || 0;
     const totalAllowed = FREE_QUESTION_BASE + bonusEarned;
     const remaining    = Math.max(0, totalAllowed - questionCount);
