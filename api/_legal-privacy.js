@@ -7,8 +7,11 @@
  * (PRIVACY POLICY). Do not edit the wording by hand. When the lawyer sends a new version,
  * regenerate this file from the new PDF so the page always matches the signed-off text.
  *
- * Words: 5183   Paragraphs: 84
- * SHA-256 of the text (whitespace-normalised): b10f581f319a94cd6ef2c03559558190b522bd9e9b9c1418399dfb30e90ba961
+ * Words: 5233   Paragraphs: 85
+ * SHA-256 of the text (whitespace-normalised): 50380ba354a3a08bc84245f40566b46c5f9bfece0d389e5073f806d7c774ca76
+ *
+ * AMENDED 16 Oct 2026 on the lawyer's email: one paragraph added (free-tier question/upload count). The hash above covers the text
+ * INCLUDING that paragraph, so it no longer matches the lawyer's original PDF. Regenerate from the lawyer's next PDF.
  */
 export default {
   title: "PRIVACY POLICY",
@@ -67,6 +70,7 @@ export default {
   "We retain your personal data only for as long as necessary to fulfil the purposes for which it was collected.",
   "Your name, email address, account identifier, IP address, and user agent are retained for twelve (12) months after the last time you used the Platform, and then cleared.",
   "The text extracted from your Documents and the output generated in response to your queries are retained on our own systems for thirty (30) days after the date of processing, and then cleared.",
+  "DataDost keeps a count of how many questions you have asked and how many Documents you have uploaded in order to enforce the limits of the free tier. This count contains no content, no document text, and no answers, and is retained for so long as your account remains open.",
   "Your query history and consent records are retained with identifying information removed after twelve (12) months.",
   "When you request deletion of your data, we remove the identifying fields from our systems rather than deleting the record outright. This means that your name, email address, account identifier, IP address, and user agent are permanently removed, while your query history, consent record, and aggregated usage data remain without any of those fields attached to them. This is deliberate, and it leaves us a record of Platform usage while removing what identifies you.",
   "Where you withdraw your consent, or request erasure, any Document you have uploaded and any output generated in response to your queries shall cease to be accessible at the time your request takes effect, subject to the retention periods applicable to Anthropic PBC as described in this Privacy Policy.",

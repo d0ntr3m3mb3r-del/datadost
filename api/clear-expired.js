@@ -4,17 +4,19 @@
 // identical pattern to send-nudges.js and sync-ticker.js.
 //
 // WHAT IT DOES
-//   The Data Retention Policy says the text and numbers extracted from a user's documents
-//   (financial_snapshots) and the user's query history and answers (messages) are kept for
-//   30 days and then cleared, and that the user is told at least 48 hours before erasure.
-//   This job does exactly that, per user:
-//     1. NOTICE  — if the user has rows that are 28+ days old and have not been covered by an
-//                  earlier notice, email them (at most once per NOTICE_COOLDOWN_DAYS) and stamp
-//                  user_plans.clear_notice_sent_at.
-//     2. CLEAR   — once a notice is at least 48 hours old, delete that user's rows that were
-//                  already 28+ days old when the notice went out (so they are now 30+ days old
-//                  and were covered by the notice). Rows that aged into the window after the
-//                  notice wait for the next notice.
+//   The Data Retention Policy says the user's query history and answers (messages) are kept for
+//   30 days and then cleared, and that the user is told at least 48 hours before erasure. The
+//   dashboard history rows (financial_snapshots) are KEPT while the account is open, as disclosed
+//   in the Data Retention Policy, unless CLEAR_SNAPSHOTS === 'true' (then they are cleared the
+//   same way as messages). Timing, as advised by the lawyer on 16 Oct 2026: notice at day 25,
+//   erasure at day 30. Per user:
+//     1. NOTICE  — if the user has rows that are 25+ days old which no earlier notice covers
+//                  (rows created after the last notice), email them and stamp
+//                  user_plans.clear_notice_sent_at. A notice covers every row that existed when
+//                  it was sent, so an active user is emailed roughly once every 25 days, not daily.
+//     2. CLEAR   — delete rows that are 30+ days old AND existed when the last notice was sent,
+//                  once that notice is at least 48 hours old. Nothing is ever deleted before
+//                  day 30, and never without a notice.
 //     3. QUOTA   — before the free-plan counts can reset, the number of cleared questions and
 //                  uploads is added to user_plans.questions_cleared / uploads_cleared. The app
 //                  adds those to the live counts, so clearing never hands back free questions
@@ -42,8 +44,10 @@ const FROM_ADDRESS = 'DataDost <hello@datadost.in>';
 
 const RETENTION_DAYS = 30;       // policy: cleared 30 days after processing
 const NOTICE_LEAD_DAYS = 2;      // policy: at least 48 hours' notice before erasure
-const NOTICE_WINDOW_DAYS = RETENTION_DAYS - NOTICE_LEAD_DAYS; // rows this old (28d) get a notice
-const NOTICE_COOLDOWN_DAYS = 7;  // do not email the same user more often than this
+const NOTICE_WINDOW_DAYS = 25;   // lawyer (16 Oct 2026): notice at day 25, erasure at day 30 (5 days' buffer)
+// Dashboard history (financial_snapshots) stays unless this switch is on. Messages are always cleared.
+const CLEAR_SNAPSHOTS = process.env.CLEAR_SNAPSHOTS === 'true';
+const TABLES = CLEAR_SNAPSHOTS ? ['messages', 'financial_snapshots'] : ['messages'];
 const PAGE_SIZE = 1000;          // PostgREST default max rows per request
 const MAX_USERS_PER_RUN = 500;   // safety cap per run
 
@@ -149,10 +153,11 @@ function buildNoticeEmail({ firstName, clearFromMs }) {
 <tr><td style="font-size:15px;line-height:1.6;">
 <p style="margin:0 0 12px;">${hello}</p>
 <p style="margin:0 0 12px;">As set out in our Data Retention Policy, DataDost keeps the text read from your documents and your past questions and answers for ${RETENTION_DAYS} days, then clears them.</p>
-<p style="margin:0 0 12px;">Some of your older data has reached that point. It will be cleared on or after <strong>${esc(formatDate(clearFromMs))}</strong>. If there is anything you want to keep, please save it before then.</p>
+<p style="margin:0 0 12px;">This is a service notice about your data, not a marketing email.</p>
+<p style="margin:0 0 12px;">Some of your older data is about to reach that point. It will be cleared on or after <strong>${esc(formatDate(clearFromMs))}</strong>. If there is anything you want to keep, please save it before then.</p>
 <p style="margin:0 0 12px;">Your account stays open. You can upload a document again at any time.</p>
 <p style="margin:0 0 18px;"><a href="${APP_URL}/data-retention" style="color:#FF6B1A;">Read the Data Retention Policy</a></p>
-<p style="margin:0;color:#6B6B80;font-size:13px;">We never store your PAN or Aadhaar. Questions? Write to legal@datadost.in.</p>
+<p style="margin:0;color:#6B6B80;font-size:13px;">We never store your PAN or Aadhaar. Questions? Write to privacy@datadost.in.</p>
 </td></tr></table></td></tr></table></body></html>`;
   return { subject, html };
 }
@@ -177,7 +182,9 @@ async function clearUser(userId, plan, cutoffMs) {
 
   // Delete both tables, getting back exactly what was removed.
   const delMsgs = await sbDeleteReturning(`/rest/v1/messages?user_id=eq.${uid}&created_at=lt.${cut}&select=role`);
-  const delSnaps = await sbDeleteReturning(`/rest/v1/financial_snapshots?user_id=eq.${uid}&created_at=lt.${cut}&select=doc_key`);
+  const delSnaps = CLEAR_SNAPSHOTS
+    ? await sbDeleteReturning(`/rest/v1/financial_snapshots?user_id=eq.${uid}&created_at=lt.${cut}&select=doc_key`)
+    : [];
 
   const questionsCleared = delMsgs.filter((m) => m.role === 'user').length;
 
@@ -239,13 +246,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Database setup incomplete.' });
     }
 
-    // Everyone with data at least NOTICE_WINDOW_DAYS old, in either table.
+    // Everyone with data at least NOTICE_WINDOW_DAYS (25 days) old, in the tables this job clears.
     const windowMs = now - NOTICE_WINDOW_DAYS * DAY_MS;
-    const [fromMsgs, fromSnaps] = await Promise.all([
-      usersWithRowsOlderThan('messages', windowMs),
-      usersWithRowsOlderThan('financial_snapshots', windowMs),
-    ]);
-    const userIds = Array.from(new Set([...fromMsgs, ...fromSnaps])).slice(0, MAX_USERS_PER_RUN);
+    const found = await Promise.all(TABLES.map((t) => usersWithRowsOlderThan(t, windowMs)));
+    const userIds = Array.from(new Set(found.flatMap((f) => Array.from(f)))).slice(0, MAX_USERS_PER_RUN);
     summary.usersConsidered = userIds.length;
 
     for (const userId of userIds) {
@@ -263,16 +267,18 @@ export default async function handler(req, res) {
 
         const noticeMs = plan.clear_notice_sent_at ? new Date(plan.clear_notice_sent_at).getTime() : null;
 
-        // ── 2. CLEAR — only rows that were already inside the notice window when the notice
-        //    went out, and only once that notice is at least 48 hours old.
+        // ── 2. CLEAR — only rows that are at least 30 days old AND already existed when the last
+        //    notice went out, and only once that notice is at least 48 hours old.
         let clearCutoffMs = null;
         if (noticeMs && noticeMs <= now - NOTICE_LEAD_DAYS * DAY_MS) {
-          clearCutoffMs = noticeMs - NOTICE_WINDOW_DAYS * DAY_MS;
+          clearCutoffMs = Math.min(now - RETENTION_DAYS * DAY_MS, noticeMs);
         }
         if (clearCutoffMs) {
-          const hasMsgs = await hasRowsBetween('messages', userId, null, clearCutoffMs);
-          const hasSnaps = await hasRowsBetween('financial_snapshots', userId, null, clearCutoffMs);
-          if (hasMsgs || hasSnaps) {
+          let hasExpired = false;
+          for (const t of TABLES) {
+            if (await hasRowsBetween(t, userId, null, clearCutoffMs)) hasExpired = true;
+          }
+          if (hasExpired) {
             if (ENABLED) {
               const r = await clearUser(userId, plan, clearCutoffMs);
               summary.usersCleared++;
@@ -287,13 +293,15 @@ export default async function handler(req, res) {
           }
         }
 
-        // ── 1. NOTICE — rows that have reached the notice window but no notice has covered yet.
-        const cooledDown = !noticeMs || noticeMs <= now - NOTICE_COOLDOWN_DAYS * DAY_MS;
-        if (cooledDown) {
-          const uncoveredFrom = noticeMs ? noticeMs - NOTICE_WINDOW_DAYS * DAY_MS : null;
-          const uncoveredMsgs = await hasRowsBetween('messages', userId, uncoveredFrom, windowMs);
-          const uncoveredSnaps = await hasRowsBetween('financial_snapshots', userId, uncoveredFrom, windowMs);
-          if (uncoveredMsgs || uncoveredSnaps) {
+        // ── 1. NOTICE — rows that are 25+ days old but were created after the last notice, so no
+        //    notice covers them yet.
+        {
+          const uncoveredFrom = noticeMs; // null = never noticed
+          let hasUncovered = false;
+          for (const t of TABLES) {
+            if (await hasRowsBetween(t, userId, uncoveredFrom, windowMs)) hasUncovered = true;
+          }
+          if (hasUncovered) {
             if (!ENABLED) {
               summary.noticesSent++;
               console.log('[DRY RUN] clear-expired: would send notice to', userId);
@@ -303,9 +311,21 @@ export default async function handler(req, res) {
                 console.warn('[DataDost] clear-expired: no email found for', userId, '— no notice sent, so no deletion either.');
                 summary.skipped++;
               } else {
+                // Date shown to the user: when the oldest not-yet-noticed row reaches 30 days
+                // (never sooner than 48 hours from now).
+                let oldestMs = null;
+                for (const t of TABLES) {
+                  const lower = uncoveredFrom == null ? '' : `&created_at=gte.${iso(uncoveredFrom)}`;
+                  const r = await sbGet(`/rest/v1/${t}?user_id=eq.${encodeURIComponent(userId)}${lower}&select=created_at&order=created_at.asc&limit=1`);
+                  if (r && r[0] && r[0].created_at) {
+                    const ms = new Date(r[0].created_at).getTime();
+                    if (oldestMs == null || ms < oldestMs) oldestMs = ms;
+                  }
+                }
+                const clearFromMs = Math.max((oldestMs == null ? now : oldestMs) + RETENTION_DAYS * DAY_MS, now + NOTICE_LEAD_DAYS * DAY_MS);
                 const { subject, html } = buildNoticeEmail({
                   firstName: info.firstName,
-                  clearFromMs: now + NOTICE_LEAD_DAYS * DAY_MS,
+                  clearFromMs: clearFromMs,
                 });
                 await sendEmail({ to: info.email, subject, html });
                 // Stamp only after the email was accepted — a failed send must never start the clock.
