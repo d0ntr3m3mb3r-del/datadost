@@ -5,6 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="build" content="26062026_MYDAY">
 <title>DataDost — Your Personal Money Companion</title>
+<meta name="description" content="DataDost is an AI money companion for salaried Indians. Upload a bank statement or payslip, ask questions in plain English and see where your money goes.">
+<link rel="canonical" href="https://datadost.in/">
+<meta name="theme-color" content="#0E0D0B">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="DataDost">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://datadost.in/">
+<meta property="og:title" content="DataDost — Your Personal Money Companion">
+<meta property="og:description" content="DataDost is an AI money companion for salaried Indians. Upload a bank statement or payslip, ask questions in plain English and see where your money goes.">
+<meta property="og:image" content="https://datadost.in/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="DataDost — your personal money companion">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="DataDost — Your Personal Money Companion">
+<meta name="twitter:description" content="DataDost is an AI money companion for salaried Indians. Upload a bank statement or payslip, ask questions in plain English and see where your money goes.">
+<meta name="twitter:image" content="https://datadost.in/assets/og-image.png">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "@id": "https://datadost.in/#org",
+   "name": "DataDost",
+   "url": "https://datadost.in/",
+   "logo": "https://datadost.in/assets/logo-icon.png",
+   "email": "feedback@datadost.in"
+  },
+  {
+   "@type": "WebSite",
+   "@id": "https://datadost.in/#site",
+   "url": "https://datadost.in/",
+   "name": "DataDost",
+   "publisher": {
+    "@id": "https://datadost.in/#org"
+   },
+   "inLanguage": "en-IN"
+  },
+  {
+   "@type": "SoftwareApplication",
+   "name": "DataDost",
+   "url": "https://datadost.in/",
+   "applicationCategory": "FinanceApplication",
+   "operatingSystem": "Web",
+   "description": "DataDost is an AI money companion for salaried Indians. Upload a bank statement or payslip, ask questions in plain English and see where your money goes.",
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "INR"
+   }
+  }
+ ]
+}
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css?v=20261015a">
 <style>
@@ -1348,6 +1403,13 @@ body.dd-dark [style*="background:#FAEEDA"]{background:#2A2010!important}
             <div style="font-size:.73rem;color:var(--slate)" id="f-size">—</div>
             <div class="file-ok-badge">✓ Ready to analyse</div>
           </div>
+        </div>
+        <!-- Password box for a locked PDF: shown only when a locked PDF is picked. It sits ABOVE the consent tick box on purpose (lawyer, 18 Oct 2026). The password is used only in this browser. -->
+        <div id="pw-box" style="display:none;padding:.75rem .9rem;background:var(--mist);border-radius:10px;font-size:.78rem;color:var(--ink-s);line-height:1.5">
+          <div style="font-weight:600;color:var(--ink);font-size:.88rem;margin-bottom:.45rem">🔒 This statement is password-protected</div>
+          <input type="password" id="pw-inp" autocomplete="new-password" placeholder="Statement password" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:.9rem;padding:.6rem .8rem;border:1px solid #D9D5CF;border-radius:10px;background:#FFFFFF;color:#1A1A2E">
+          <div style="margin-top:.4rem">Your statement password is used only on your device to open the file. We never receive, store or record it.</div>
+          <div id="pw-err" style="font-size:.78rem;color:#E24B4A;min-height:1.1em;margin-top:.2rem"></div>
         </div>
         <label style="display:flex;align-items:flex-start;gap:.6rem;padding:.75rem .9rem;background:var(--mist);border-radius:10px;cursor:pointer;font-size:.78rem;color:var(--ink-s);line-height:1.5">
           <input type="checkbox" id="consent-check" style="margin-top:2px;flex-shrink:0;cursor:pointer">
@@ -4023,6 +4085,8 @@ function handleFile(f) {
   document.getElementById("btn-analyse").classList.add("vis");
   document.getElementById("btn-change").classList.add("vis");
   document.getElementById("consent-check").checked = false;
+  hidePwBox();
+  detectLockedPdf(f);
 }
 
 function resetUpload() {
@@ -4052,6 +4116,7 @@ function resetUploadBoxVisuals() {
   document.getElementById("btn-change").classList.remove("vis");
   document.getElementById("btn-analyse").disabled = false;
   document.getElementById("consent-check").checked = false;
+  hidePwBox();
   fileInp.value = "";
   document.getElementById("file-inp-camera").value = "";
 }
@@ -4076,6 +4141,27 @@ document.getElementById("btn-analyse").addEventListener("click", async function(
     toast("Please tick the consent box first — your choice, your data 🙏");
     return;
   }
+  var preUnlockedB64 = null;
+  if (lockedPdfPending) {
+    var pwInp = document.getElementById("pw-inp"), pwErr = document.getElementById("pw-err"), goBtn = document.getElementById("btn-analyse");
+    if (!pwInp.value) { pwErr.textContent = "Please enter the statement password."; pwInp.focus(); return; }
+    pwErr.textContent = "";
+    goBtn.disabled = true;
+    goBtn.textContent = "Opening…";
+    try {
+      preUnlockedB64 = await unlockedPdfBase64(await fileToBase64(curFile), pwInp.value);
+    } catch (err) {
+      goBtn.disabled = false;
+      goBtn.textContent = "Analyse this document →";
+      if (err && err.name === "PasswordException") { pwInp.value = ""; pwInp.focus(); pwErr.textContent = "That password didn't open the file. Please check it and try again."; }
+      else if (err && err.kind === "notext") pwErr.textContent = "I opened it, but there is no readable text inside (it may be a scanned copy). Please download a text version of the statement from your bank and upload that.";
+      else if (err && err.kind === "toolong") pwErr.textContent = "This statement is too long to read in one go. Please upload a shorter period, for example 6 months at a time.";
+      else { console.error("[DataDost] PDF unlock error:", err && err.name); pwErr.textContent = "I couldn't open this file here. Please unlock it in your bank's app or PDF viewer, save a copy and upload that instead."; }
+      return;
+    }
+    goBtn.textContent = "Analyse this document →";
+    hidePwBox(); // password cleared; box hidden while the file is read
+  }
   var dz = document.getElementById("dz");
   dz.classList.remove("ok"); dz.classList.add("read");
   document.getElementById("btn-analyse").disabled = true;
@@ -4095,7 +4181,7 @@ document.getElementById("btn-analyse").addEventListener("click", async function(
   // which previously could leave the screen stuck.
   if (curFile) {
     try {
-      await readFileForAPI(curFile);
+      await readFileForAPI(curFile, preUnlockedB64);
     } catch (err) {
       console.error("File reading error:", err);
       toast("There was a problem reading that file — please try again or pick a different file 🙏");
@@ -4160,8 +4246,8 @@ function compressImage(file, maxDimension, quality) {
   });
 }
 
-function readFileForAPI(file) {
-  pdfAlreadyUnlocked = false; // a new file: it may need the password form again
+function readFileForAPI(file, preUnlockedB64) {
+  pdfAlreadyUnlocked = !!preUnlockedB64; // a new file may need the password form again; one unlocked on the upload screen must not ask twice
   var docTypeName = {bank:"bank statement",salary:"salary slip",utility:"utility bill",insurance:"insurance document",tax:"tax document",creditcard:"credit card statement",other:"financial document"}[docType] || "financial document";
   fileBase64 = "";
   fileMediaType = "";
@@ -4239,7 +4325,7 @@ function readFileForAPI(file) {
       var reader2 = new FileReader();
       reader2.onload = function(e) {
         var result = e.target.result;
-        fileBase64 = result.split(",")[1];
+        fileBase64 = preUnlockedB64 || result.split(",")[1];
         fileMediaType = file.type;
         uploadedDocContext = "Document type: " + docTypeName + "\nFilename: " + file.name + "\n[The actual document is attached and visible to you. Read the real figures, transactions, and details directly from it. Answer the user's questions based on what you actually see in the document.]";
         conversationHistory = [];
@@ -4418,6 +4504,115 @@ function textLinesToPdfBase64(lines) {
   return btoa(pdf);
 }
 
+// ── Strip PAN and date of birth from the text BEFORE it goes anywhere (lawyer, 18 Oct 2026) ──
+// The unlocked text is the only thing that is sent to the AI for a password-protected statement, so
+// anything that identifies the person's PAN or date of birth is removed here, on the device. Removed:
+// (1) anything shaped like a PAN, (2) a date written next to a "date of birth" / "DOB" label,
+// (3) the password itself if it appears in the text, and (4) when the password is a date (ddmmyyyy or
+// ddmmyy), that same date written in the usual ways. Ordinary transaction dates are never touched.
+function redactPersonalIds(lines, password) {
+  var MON = "(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)";
+  var DATE = "(?:\\d{1,2}[\\s./-]+(?:\\d{1,2}|" + MON + ")[\\s./-]+(?:\\d{4}|\\d{2})|\\d{4}[\\s./-]+\\d{1,2}[\\s./-]+\\d{1,2}|" + MON + "\\s+\\d{1,2},?\\s+\\d{4}|\\d{8}|\\d{6})";
+  var LABEL = "(?:date\\s*of\\s*birth|birth\\s*date|birthdate|\\bborn(?:\\s+on)?\\b|\\bdob\\b|\\bd\\.\\s*o\\.\\s*b\\.?)";
+  var HINT = "(?:\\s*\\([^)]{0,30}\\))?";
+  var reLabelled = new RegExp("(" + LABEL + ")" + HINT + "[\\s:.\\-]*" + DATE, "gi");
+  var reLabelOnly = new RegExp(LABEL + HINT + "[\\s:.\\-]*$", "i");
+  var reLeadDate = new RegExp("^(\\s*)" + DATE, "i");
+  var rePan = /\b[A-Z]{5}[0-9]{4}[A-Z]\b/gi;
+  var extra = []; // regexes built from the password
+  var pw = String(password || "");
+  function esc(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  if (pw.length >= 6 && !/^\d+$/.test(pw)) extra.push(new RegExp(esc(pw), "gi"));
+  var d = null, m = null, y = null;
+  if (/^\d{8}$/.test(pw)) { d = +pw.slice(0, 2); m = +pw.slice(2, 4); y = pw.slice(4); }
+  else if (/^\d{6}$/.test(pw)) { d = +pw.slice(0, 2); m = +pw.slice(2, 4); y = pw.slice(4); }
+  if (d !== null && d >= 1 && d <= 31 && m >= 1 && m <= 12) {
+    var names = ["jan(?:uary)?", "feb(?:ruary)?", "mar(?:ch)?", "apr(?:il)?", "may", "june?", "july?", "aug(?:ust)?", "sep(?:t(?:ember)?)?", "oct(?:ober)?", "nov(?:ember)?", "dec(?:ember)?"];
+    var dd = "0?" + d, mm = "0?" + m, yy = (y.length === 4) ? "(?:" + y + "|" + y.slice(2) + ")" : "(?:\\d{2})?" + y;
+    if (y.length === 2) yy = "(?:(?:19|20)?" + y + ")";
+    extra.push(new RegExp("(^|\\D)" + dd + "[\\s./-]+" + mm + "[\\s./-]+" + yy + "(?!\\d)", "gi"));
+    extra.push(new RegExp("(^|\\D)" + dd + "[\\s./-]*" + names[m - 1] + "[\\s./,-]*" + yy + "(?!\\d)", "gi"));
+    extra.push(new RegExp("(^|\\D)" + esc(pw) + "(?!\\d)", "g"));
+  }
+  var out = lines.slice(), i;
+  for (i = 0; i < out.length; i++) {
+    var line = out[i];
+    line = line.replace(reLabelled, function(all, lab) { return lab + ": [removed]"; });
+    line = line.replace(rePan, "[PAN removed]");
+    extra.forEach(function(re) { line = line.replace(re, function(all, lead) { return (typeof lead === "string" && lead.length <= 1 && re.source.indexOf("(^|") === 0 ? lead : "") + "[removed]"; }); });
+    out[i] = line;
+  }
+  // a label on one line with its value on the next
+  for (i = 0; i < out.length - 1; i++) {
+    if (reLabelOnly.test(out[i])) {
+      var j = i + 1;
+      while (j < out.length && !out[j].trim()) j++;
+      if (j < out.length) out[j] = out[j].replace(reLeadDate, function(all, sp) { return sp + "[removed]"; });
+    }
+  }
+  return out;
+}
+
+// Opens a locked PDF with the password (pdf.js, on this device) and returns the unlocked,
+// PAN/date-of-birth-free text re-saved as a plain PDF (base64). Throws: PasswordException from
+// pdf.js for a wrong password; an error with .kind "notext" or "toolong"; anything else is a failure.
+async function unlockedPdfBase64(lockedB64, password) {
+  var lib = await loadPdfJs();
+  var bin = atob(lockedB64), bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  var pdf = null;
+  try {
+    pdf = await lib.getDocument({ data: bytes, password: password }).promise;
+    var lines = await pdfToTextLines(pdf);
+    var readable = lines.join("").replace(/=== Page \d+ of \d+ ===/g, "").replace(/\s/g, "");
+    if (readable.length < 20) { var e1 = new Error("notext"); e1.kind = "notext"; throw e1; }
+    if (lines.join("\n").length > 600000) { var e2 = new Error("toolong"); e2.kind = "toolong"; throw e2; }
+    return textLinesToPdfBase64(redactPersonalIds(lines, password));
+  } finally {
+    if (pdf && pdf.destroy) { try { pdf.destroy(); } catch (e3) {} }
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise(function(resolve, reject) {
+    var r = new FileReader();
+    r.onload = function(e) { resolve(String(e.target.result).split(",")[1]); };
+    r.onerror = function() { reject(new Error("read failed")); };
+    r.readAsDataURL(file);
+  });
+}
+
+// ── Password box on the upload screen ──
+// When a PDF is picked we check, on this device only, whether it needs a password. If it does, the
+// password box appears above the consent tick box. If this check cannot tell (or fails), nothing
+// is shown and the old behaviour (ask after the scan) still applies.
+var lockedPdfPending = false;
+function hidePwBox() {
+  lockedPdfPending = false;
+  var b = document.getElementById("pw-box"), i = document.getElementById("pw-inp"), e = document.getElementById("pw-err");
+  if (b) b.style.display = "none";
+  if (i) i.value = "";
+  if (e) e.textContent = "";
+}
+async function detectLockedPdf(f) {
+  if (!f || f.type !== "application/pdf") return;
+  try {
+    var u8 = new Uint8Array(await f.arrayBuffer());
+    if (new TextDecoder("latin1").decode(u8).indexOf("/Encrypt") === -1) return;
+    var lib = await loadPdfJs();
+    var task = lib.getDocument({ data: u8.slice() });
+    try {
+      var pdf = await task.promise; // opens without a password: not locked for the reader
+      if (pdf && pdf.destroy) pdf.destroy();
+    } catch (e) {
+      if (e && e.name === "PasswordException" && curFile === f) {
+        lockedPdfPending = true;
+        document.getElementById("pw-box").style.display = "block";
+      }
+    }
+  } catch (err) { /* could not tell: fall back to asking after the scan */ }
+}
+
 function showPdfPasswordPrompt(lockedB64, note) {
   document.getElementById("sov-sub").textContent = "";
   var el = document.getElementById("sov-ins");
@@ -4425,9 +4620,9 @@ function showPdfPasswordPrompt(lockedB64, note) {
     "<div style=\"display:flex;flex-direction:column;gap:.6rem;text-align:center;padding:.5rem 0\">" +
     "<div style=\"font-size:2rem\">🔒</div>" +
     "<div style=\"font-weight:600;color:var(--ink);font-size:.95rem\">This statement is password-protected</div>" +
-    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Banks often lock statements with your PAN, date of birth or account number. Enter the password and I'll open it here.<br>" +
-    "<span style=\"font-size:.76rem\">The password is used only in your browser to open the file. It is not sent to DataDost and not stored.</span></div>" +
+    "<div style=\"font-size:.82rem;color:var(--ink-s);line-height:1.6\">Banks often lock statements with your PAN, date of birth or account number. Enter the password and I'll open it here.</div>" +
     "<input type=\"password\" id=\"sov-pdf-pw\" autocomplete=\"new-password\" placeholder=\"Statement password\" style=\"font-family:inherit;font-size:.9rem;padding:.65rem .8rem;border:1px solid #D9D5CF;border-radius:10px;background:#FFFFFF;color:#1A1A2E;text-align:center;\">" +
+    "<div style=\"font-size:.76rem;color:var(--ink-s);line-height:1.5\">Your statement password is used only on your device to open the file. We never receive, store or record it.</div>" +
     "<div id=\"sov-pdf-err\" style=\"font-size:.78rem;color:#E24B4A;min-height:1.1em\"></div>" +
     "<button type=\"button\" id=\"sov-pdf-unlock\" style=\"background:var(--sf);color:#fff;border:none;border-radius:100px;padding:.7rem 1.6rem;font-size:.88rem;font-weight:600;cursor:pointer;font-family:inherit\">Unlock and read</button>" +
     "</div>";
@@ -4464,42 +4659,27 @@ async function unlockPdfWithPassword(lockedB64, inp, btn, errEl) {
     btn.style.opacity = "1";
     btn.textContent = "Unlock and read";
   }
-  var pdf = null;
   try {
-    var lib = await loadPdfJs();
-    var bin = atob(lockedB64), bytes = new Uint8Array(bin.length);
-    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    try {
-      pdf = await lib.getDocument({ data: bytes, password: inp.value }).promise;
-    } catch (e) {
-      if (e && e.name === "PasswordException") {
-        inp.value = "";
-        inp.focus();
-        fail("That password didn't open the file. Please check it and try again.");
-        return;
-      }
-      throw e;
-    }
+    var pw = inp.value;
+    var unlocked = await unlockedPdfBase64(lockedB64, pw);
     inp.value = ""; // the password is no longer needed anywhere
-    var lines = await pdfToTextLines(pdf);
-    var readable = lines.join("").replace(/=== Page \d+ of \d+ ===/g, "").replace(/\s/g, "");
-    if (readable.length < 20) {
-      fail("I opened it, but there is no readable text inside (it may be a scanned copy). Please download a text version of the statement from your bank and upload that.");
-      return;
-    }
-    if (lines.join("\n").length > 600000) {
-      fail("This statement is too long to read in one go. Please upload a shorter period, for example 6 months at a time.");
-      return;
-    }
-    fileBase64 = textLinesToPdfBase64(lines);
+    fileBase64 = unlocked;
     fileMediaType = "application/pdf";
     pdfAlreadyUnlocked = true;
     analyseRealDocument();
   } catch (err) {
-    console.error("[DataDost] PDF unlock error:", err && err.name);
-    fail("I couldn't open this file here. Please unlock it in your bank's app or PDF viewer, save a copy and upload that instead.");
-  } finally {
-    if (pdf && pdf.destroy) { try { pdf.destroy(); } catch (e2) {} }
+    if (err && err.name === "PasswordException") {
+      inp.value = "";
+      inp.focus();
+      fail("That password didn't open the file. Please check it and try again.");
+    } else if (err && err.kind === "notext") {
+      fail("I opened it, but there is no readable text inside (it may be a scanned copy). Please download a text version of the statement from your bank and upload that.");
+    } else if (err && err.kind === "toolong") {
+      fail("This statement is too long to read in one go. Please upload a shorter period, for example 6 months at a time.");
+    } else {
+      console.error("[DataDost] PDF unlock error:", err && err.name);
+      fail("I couldn't open this file here. Please unlock it in your bank's app or PDF viewer, save a copy and upload that instead.");
+    }
   }
 }
 
