@@ -89,6 +89,9 @@ export function renderLegalPage({ title, pageLabel, currentPath, paragraphs }) {
 '  <meta charset="UTF-8">\n' +
 '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
 '  <meta name="description" content="DataDost ' + esc(pageLabel) + '">\n' +
+'  <link rel="canonical" href="https://datadost.in' + esc(currentPath) + '">\n' +
+'  <meta property="og:title" content="' + esc(pageLabel) + ' — DataDost">\n' +
+'  <meta property="og:image" content="https://datadost.in/assets/og-image.png">\n' +
 '  <title>' + esc(pageLabel) + ' — DataDost</title>\n' +
 '  <style>' + CSS + '</style>\n' +
 '</head>\n' +
