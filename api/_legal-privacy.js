@@ -7,11 +7,14 @@
  * (PRIVACY POLICY). Do not edit the wording by hand. When the lawyer sends a new version,
  * regenerate this file from the new PDF so the page always matches the signed-off text.
  *
- * Words: 5233   Paragraphs: 85
- * SHA-256 of the text (whitespace-normalised): 50380ba354a3a08bc84245f40566b46c5f9bfece0d389e5073f806d7c774ca76
+ * Words: 5305   Paragraphs: 87
+ * SHA-256 of the text (whitespace-normalised): b522ddbd3f07d262451d2a201e1ea075d6012d2f7c06c0d91fc8882097f7e9ed
  *
  * AMENDED 16 Oct 2026 on the lawyer's email: one paragraph added (free-tier question/upload count). The hash above covers the text
  * INCLUDING that paragraph, so it no longer matches the lawyer's original PDF. Regenerate from the lawyer's next PDF.
+ *
+ * AMENDED 18 Oct 2026 on the lawyer's email: password-protected statement paragraph and the line "We do not receive, store or record any passwords you enter." added.
+ * The hash above covers the text INCLUDING these additions, so it no longer matches the lawyer's original PDF. Regenerate from the lawyer's next PDF.
  */
 export default {
   title: "PRIVACY POLICY",
@@ -53,6 +56,8 @@ export default {
   "Where you have configured your browser to block cookies, the Platform may not function correctly, and you may not be able to use all of its features. The session cookie is necessary for the Platform to function, and if you block it, you may not be able to sign in or to use any of the features of the Platform. The cross-site-request-forgery token is necessary to protect your account from unauthorised actions, and if you block it, we may not be able to protect your account from such actions.",
   "We process your personal data only for the purposes set out in this Privacy Policy, and only with your consent, except where processing is necessary for certain legitimate uses permitted under the DPDP Act.",
   "We process your personal data to enable you to sign in and access the Platform; to extract text and numerical data from the Documents you upload; to transmit the extracted text to the AI Processing Service for the purpose of generating responses to your queries; to generate and display the output of your queries; to improve the Platform and user experience using only Aggregated Data; to communicate your results to you; to send you results emails if you separately agree; to send you marketing communications about new features if you separately agree; to process your Subscription Fee if you subscribe to a paid plan; to respond to your queries and to provide customer support; to detect, prevent, and address technical issues, fraud, abuse, and security incidents; and to comply with legal and regulatory obligations.",
+  "If your document is password-protected, you may enter its password on your device so that your browser can open it. The password is used only on your device. It is not sent to us or to any third party, and we do not store or record it. After the document is opened, it is handled as described in this Privacy Policy.",
+  "We do not receive, store or record any passwords you enter.",
   "We record how you interact with the Platform, including which screens you reach and how long queries take, so that we can see where the Platform loses people and so that we can improve the Platform. Until you sign in, none of that is tied to you. At sign-in, those earlier records are linked to your identified account.",
   "We may use Aggregated Data for analytics, reporting, and improving the Platform. Aggregated Data is not personal data and is not subject to the provisions of this Privacy Policy. We do not use your Personal Data for training the AI Processing Service's models. We do not use your Personal Data to build a profile of you for advertising purposes. We do not sell your Personal Data to any third party.",
   "We do not use your Personal Data for any purpose other than those set out in this Privacy Policy, and if we wish to use your Personal Data for any new purpose, we shall obtain your fresh consent before doing so. We do not use automated decision-making in a manner that produces legal effects concerning you or that similarly significantly affects you, except to the extent that the generation of a response to your query by the AI Processing Service may be considered automated processing, and such processing is carried out solely for the purpose of providing the response to you and is subject to your review and verification.",
